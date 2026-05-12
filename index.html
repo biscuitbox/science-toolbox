@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>과학 도구상자</title>
+  <meta name="description" content="학생과 교사를 위한 과학 학습 도구 모음">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">과학 도구상자</h1>
+      <p class="site-tagline">학생과 교사를 위한 과학 학습 도구 모음</p>
+
+      <div class="search-wrap">
+        <input
+          type="search"
+          id="search"
+          placeholder="도구 이름·태그·설명으로 검색…"
+          aria-label="도구 검색"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="controls-row">
+        <div class="filter-chips" id="grade-filter" role="radiogroup" aria-label="학년 필터">
+          <!-- app.js가 채움 -->
+        </div>
+        <label class="teacher-toggle" id="teacher-toggle-label">
+          <input type="checkbox" id="teacher-mode-toggle">
+          <span class="toggle-text">교사용 정보 보기</span>
+        </label>
+      </div>
+
+      <nav class="category-nav" id="category-nav" aria-label="카테고리 바로가기">
+        <!-- app.js가 채움 -->
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="featured"><!-- 추천 도구 영역 --></div>
+    <div id="content">
+      <p class="loading">도구를 불러오는 중…</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>과학 도구상자 · 학생과 교사를 위한 과학 학습 자료</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
