@@ -1,6 +1,21 @@
 {
   "tools": [
     {
+      "id": "atomic-structure",
+      "name": "원자 구조 탐험",
+      "description": "보어 모형으로 배우는 원자 구조 + 주기율표 학습 + 10문제 퀴즈",
+      "category": "chemistry",
+      "subcategory": "",
+      "path": "chemistry/atomic-structure/",
+      "tags": ["주기율표", "원자모형", "보어모형", "퀴즈"],
+      "level": "중2~중3",
+      "featured": true,
+      "activityType": "개념학습",
+      "target": "중2~중3 과학 학생",
+      "sessions": "1차시",
+      "materials": ["태블릿/PC"]
+    },
+    {
       "id": "ph-calculator",
       "name": "pH 계산기",
       "description": "산·염기 농도로 pH와 pOH를 계산해봅니다",

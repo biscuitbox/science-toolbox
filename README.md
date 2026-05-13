@@ -12,6 +12,7 @@ science-toolbox/
 ├── index.html       ← 홈페이지 (수정할 일 거의 없음)
 ├── style.css        ← 디자인 (색·폰트 바꾸려면 여기)
 ├── app.js           ← 카드를 자동으로 그려주는 코드
+├── toolbox-nav.js   ← ⭐ 각 도구에 "← 도구상자" 링크를 자동으로 넣어주는 파일
 ├── tools.json       ← ⭐ 도구를 추가·수정할 때 여기만 고치면 됨
 ├── README.md        ← 이 파일
 │
@@ -54,9 +55,39 @@ science-toolbox/
 
 ---
 
-## 4. 도구 추가하기 (가장 자주 할 일)
+## 4. "← 도구상자" 링크 자동 추가 (toolbox-nav.js)
 
-### 4-1. 도구 파일을 해당 카테고리 폴더에 넣기
+도구 안에서 홈으로 돌아가는 링크를 매번 직접 붙여넣지 않아도 됩니다.
+**도구의 `index.html` 안에 아래 한 줄만 넣으면** 왼쪽 위에 "← 도구상자" 버튼이 자동으로 생성됩니다.
+
+```html
+<script src="../../toolbox-nav.js"></script>
+```
+
+`</head>` 바로 앞이나 `</body>` 바로 앞 어디에 넣어도 됩니다.
+
+**작동 원리 (궁금하지 않으면 건너뛰어도 됩니다)**
+이 스크립트는 자기 자신의 URL(`toolbox-nav.js`)에서 사이트 루트를 자동으로 계산합니다. 그래서 `../../`가 맞든 `../../../`가 맞든 상관없이 항상 올바른 홈 주소로 링크가 걸립니다. CSS도 코드로 자동 주입하기 때문에 스타일 파일을 따로 복사할 필요가 없어요.
+
+**폴더 깊이에 따라 경로 조정**
+
+| 폴더 구조 | src 값 |
+|-----------|--------|
+| `chemistry/ph-calculator/` | `src="../../toolbox-nav.js"` |
+| `physics/mechanics/pendulum/` (하위 분류 포함) | `src="../../../toolbox-nav.js"` |
+
+**링크 모양을 바꾸고 싶다면**
+도구 자체의 CSS에서 `.toolbox-back-link { ... }`를 덮어쓰면 됩니다.
+```css
+/* 예: 특정 도구에서 텍스트 색을 바꾸고 싶을 때 */
+.toolbox-back-link { color: #your-color; border-color: #your-color; }
+```
+
+---
+
+## 5. 도구 추가하기 (가장 자주 할 일)
+
+### 5-1. 도구 파일을 해당 카테고리 폴더에 넣기
 
 예시) 광합성 시뮬레이터를 추가한다면:
 
@@ -66,7 +97,7 @@ biology/photosynthesis/style.css    (필요하면)
 biology/photosynthesis/script.js    (필요하면)
 ```
 
-### 4-2. `tools.json`에 한 칸 추가
+### 5-2. `tools.json`에 한 칸 추가
 
 ```json
 {
@@ -90,7 +121,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 5. 각 필드 설명
+## 6. 각 필드 설명
 
 ### 필수 필드
 
@@ -133,7 +164,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 6. 활동 유형(`activityType`) 추천 값
+## 7. 활동 유형(`activityType`) 추천 값
 
 일관성을 위해 다음 중에서 골라 쓰는 걸 권장합니다:
 
@@ -148,7 +179,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 7. 학년 필터 작동 방식
+## 8. 학년 필터 작동 방식
 
 `level` 값에 포함된 글자로 자동 분류됩니다:
 
@@ -161,7 +192,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 8. "준비 중" 자동 처리
+## 9. "준비 중" 자동 처리
 
 페이지가 열리면 백그라운드에서 각 도구의 폴더가 실제로 있는지 확인합니다.
 폴더가 없으면 자동으로:
@@ -174,7 +205,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 9. 나중에 하위 분류 만들기
+## 10. 나중에 하위 분류 만들기
 
 지금은 비워둔 `subcategory`를 나중에 채우면 자동으로 그룹화돼요.
 
@@ -195,7 +226,7 @@ biology/photosynthesis/script.js    (필요하면)
 
 ---
 
-## 10. 로컬 테스트
+## 11. 로컬 테스트
 
 브라우저 보안 때문에 `index.html`을 더블클릭하면 작동하지 않습니다. 셋 중 하나를 선택:
 
@@ -213,7 +244,7 @@ python3 -m http.server 8000
 
 ---
 
-## 11. 자주 막히는 부분
+## 12. 자주 막히는 부분
 
 - **카드가 안 보여요** → `tools.json` 문법 오류. 쉼표·따옴표 누락이 가장 흔합니다. [JSONLint](https://jsonlint.com)에 붙여넣어 검사하세요.
 - **클릭하면 404가 떠요** → 실제 폴더가 없는 거예요. 이젠 자동으로 "준비 중"으로 표시되니 새로고침 해보세요.
@@ -223,7 +254,7 @@ python3 -m http.server 8000
 
 ---
 
-## 12. 디자인 바꾸기
+## 13. 디자인 바꾸기
 
 - 카테고리 색상 → `app.js` 위쪽의 `CATEGORIES` 안에서 `color` 값 수정
 - 사이트 이름·소개 문구 → `index.html`의 `<h1>`, `<p class="site-tagline">`
@@ -233,8 +264,9 @@ python3 -m http.server 8000
 
 ---
 
-## 13. 빠른 체크리스트 (도구 하나 추가할 때)
+## 14. 빠른 체크리스트 (도구 하나 추가할 때)
 
+- [ ] `<script src="../../toolbox-nav.js"></script>` 한 줄이 도구 HTML 안에 있나?
 - [ ] 도구 폴더를 올바른 카테고리 아래에 만들었나? (예: `physics/내도구/`)
 - [ ] 폴더 안에 `index.html`이 있나?
 - [ ] `tools.json`에 새 항목을 추가했나?
