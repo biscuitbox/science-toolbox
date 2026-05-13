@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚛️ 원자 구조 탐험 | 중학교 화학</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06090f;
+  --surface: #0e1624;
+  --surface2: #162035;
+  --border: #1e3050;
+  --border2: #2a4272;
+  --text: #dce8ff;
+  --muted: #6888b0;
+  --accent: #38bdf8;
+  --accent2: #f97316;
+  --green: #34d399;
+  --red: #f87171;
+  --proton: #f87171;
+  --neutron: #94a3b8;
+  --electron: #38bdf8;
+  --alkali: #f87171;
+  --alkaline: #fb923c;
+  --metalloid: #a78bfa;
+  --nonmetal: #38bdf8;
+  --halogen: #f472b6;
+  --noble: #a3e635;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* STARFIELD */
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stars::before, .stars::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 5% 8%, rgba(255,255,255,.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 32%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 29% 65%, rgba(255,255,255,.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 15%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 78%, rgba(255,255,255,.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 44%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 77% 12%, rgba(255,255,255,.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 84% 60%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 93% 28%, rgba(255,255,255,.9) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 12% 52%, rgba(255,255,255,.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 35% 88%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 62% 35%, rgba(255,255,255,.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 72%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(2px 2px at 24% 20%, rgba(200,220,255,.4) 0%, transparent 100%),
+    radial-gradient(2px 2px at 74% 90%, rgba(200,220,255,.4) 0%, transparent 100%);
+}
+
+.stars::after {
+  background-image:
+    radial-gradient(1px 1px at 10% 72%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 22% 45%, rgba(255,255,255,.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38% 5%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 55%, rgba(255,255,255,.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 22%, rgba(255,255,255,.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 79% 48%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 91% 82%, rgba(255,255,255,.8) 0%, transparent 100%);
+  animation: twinkle 5s infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.6; } 100% { opacity: 1; }
+}
+
+.page-content { position: relative; z-index: 1; }
+
+/* HEADER */
+header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+}
+
+.header-badge {
+  display: inline-block;
+  font-size: .7rem;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: .15em;
+  color: var(--accent);
+  border: 1px solid rgba(56,189,248,.3);
+  background: rgba(56,189,248,.05);
+  border-radius: 999px;
+  padding: .25rem .9rem;
+  margin-bottom: .8rem;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+h1 span {
+  font-family: 'Space Mono', monospace;
+  color: var(--accent);
+}
+
+.header-sub {
+  font-size: .85rem;
+  color: var(--muted);
+  margin-top: .5rem;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  padding: 1rem 1rem 0;
+}
+
+.tab-btn {
+  padding: .55rem 1.4rem;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: .85rem;
+  transition: all .25s;
+  letter-spacing: .02em;
+}
+
+.tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+
+/* MAIN */
+.main { max-width: 1380px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* LEARN LAYOUT */
+.learn-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+
+@media (min-width: 900px) {
+  .learn-grid { grid-template-columns: auto 1fr; }
+  .info-col { grid-row: 1 / 3; grid-column: 2; }
+  .bohr-col { grid-column: 1; }
+  .periodic-col { grid-column: 1; }
+}
+
+@media (min-width: 1200px) {
+  .learn-grid { grid-template-columns: auto 1fr 300px; }
+  .periodic-col { grid-column: 1; grid-row: 1 / 3; }
+  .bohr-col { grid-column: 2; }
+  .info-col { grid-column: 3; grid-row: 1 / 3; }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+}
+
+.panel-title {
+  font-size: .7rem;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: .12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* PERIODIC TABLE */
+.pt-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(4, auto);
+  gap: 4px;
+}
+
+.el-card {
+  border-radius: 7px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 2px;
+  transition: transform .18s, box-shadow .18s;
+  aspect-ratio: 1;
+  min-width: 42px;
+  position: relative;
+  user-select: none;
+}
+
+.el-card:hover { transform: scale(1.12); z-index: 20; box-shadow: 0 0 14px currentColor; }
+.el-card.active { transform: scale(1.12); border-width: 2px !important; box-shadow: 0 0 18px currentColor; z-index: 20; }
+
+.el-num { font-size: .45rem; font-family: 'Space Mono', monospace; opacity: .65; }
+.el-sym { font-size: .95rem; font-weight: 700; font-family: 'Space Mono', monospace; line-height: 1; }
+.el-ko  { font-size: .38rem; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.c-alkali   { background: rgba(248,113,113,.14); border-color: rgba(248,113,113,.4); color: #f87171; }
+.c-alkaline { background: rgba(251,146,60,.14);  border-color: rgba(251,146,60,.4);  color: #fb923c; }
+.c-metalloid{ background: rgba(167,139,250,.14); border-color: rgba(167,139,250,.4); color: #a78bfa; }
+.c-nonmetal { background: rgba(56,189,248,.14);  border-color: rgba(56,189,248,.4);  color: #38bdf8; }
+.c-halogen  { background: rgba(244,114,182,.14); border-color: rgba(244,114,182,.4); color: #f472b6; }
+.c-noble    { background: rgba(163,230,53,.14);  border-color: rgba(163,230,53,.4);  color: #a3e635; }
+
+.pt-gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .42rem;
+  font-family: 'Space Mono', monospace;
+  color: rgba(104,136,176,.35);
+  border: 1px dashed rgba(104,136,176,.15);
+  border-radius: 5px;
+  aspect-ratio: unset;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .9rem;
+  margin-top: 1rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--border);
+}
+
+.leg-item {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .65rem; color: var(--muted);
+}
+
+.leg-dot { width: 9px; height: 9px; border-radius: 2px; }
+
+/* BOHR MODEL */
+.bohr-col { display: flex; flex-direction: column; align-items: center; }
+#bohr-wrap { width: 100%; max-width: 420px; }
+#bohr-svg { width: 100%; height: auto; display: block; }
+
+.nuc-legend {
+  display: flex; gap: 1.2rem;
+  margin-top: .7rem;
+}
+
+.nuc-item {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .72rem; color: var(--muted);
+}
+
+.nuc-dot { width: 11px; height: 11px; border-radius: 50%; }
+
+.model-notice {
+  font-size: .67rem;
+  color: var(--muted);
+  text-align: center;
+  border: 1px solid rgba(56,189,248,.2);
+  background: rgba(56,189,248,.04);
+  border-radius: 8px;
+  padding: .45rem .9rem;
+  margin-top: .8rem;
+  line-height: 1.5;
+}
+
+/* INFO PANEL */
+.info-col .panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem 1rem;
+  gap: .6rem;
+}
+
+.placeholder-icon {
+  font-size: 2rem;
+  animation: pulseArrow 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseArrow { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-10px)} }
+
+.info-element { display: none; }
+
+.el-title {
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: -.03em;
+  color: var(--text);
+}
+
+.el-sym-big {
+  font-family: 'Space Mono', monospace;
+  font-size: 4rem;
+  font-weight: 700;
+  text-align: center;
+  margin: .3rem 0;
+  line-height: 1;
+}
+
+.el-cat-tag {
+  display: inline-block;
+  font-size: .65rem;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: .08em;
+  border-radius: 999px;
+  padding: .2rem .7rem;
+  margin-bottom: .8rem;
+}
+
+.info-rows { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-top: .2rem; }
+
+.info-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: .7rem .9rem;
+}
+
+.info-box.wide { grid-column: 1 / -1; }
+
+.info-box label {
+  font-size: .62rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: .2rem;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: .05em;
+}
+
+.info-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+}
+
+.v-proton { color: var(--proton); }
+.v-neutron { color: var(--neutron); }
+.v-electron { color: var(--electron); }
+
+.shell-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .3rem; }
+
+.shell-chip {
+  background: rgba(56,189,248,.12);
+  border: 1px solid rgba(56,189,248,.3);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: .18rem .55rem;
+  font-family: 'Space Mono', monospace;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.el-desc {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-top: .9rem;
+  padding: .7rem .9rem;
+  background: rgba(255,255,255,.025);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+
+.balance-note {
+  margin-top: .6rem;
+  font-size: .65rem;
+  font-family: 'Space Mono', monospace;
+  color: rgba(104,136,176,.6);
+  text-align: center;
+}
+
+/* ====== QUIZ ====== */
+.quiz-wrap { max-width: 680px; margin: 0 auto; }
+
+.quiz-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .9rem 1.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.hud-score {
+  font-family: 'Space Mono', monospace;
+  font-size: .9rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hud-prog { font-size: .8rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+.prog-bar-wrap {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: .6rem 0 0;
+  grid-column: 1/-1;
+}
+
+.prog-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem 1.8rem;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+}
+
+.q-text { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.q-sub  { font-size: .78rem; color: var(--muted); margin-top: .2rem; margin-bottom: 1.2rem; }
+
+.q-symbol {
+  font-family: 'Space Mono', monospace;
+  font-size: 3.2rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  margin: .5rem 0 1.2rem;
+  letter-spacing: -.02em;
+}
+
+.q-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .7rem;
+  flex: 1;
+}
+
+@media (max-width: 500px) { .q-options { grid-template-columns: 1fr; } }
+
+.q-opt {
+  padding: .85rem 1rem;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: .9rem;
+  color: var(--text);
+  text-align: left;
+  transition: all .18s;
+  line-height: 1.4;
+}
+
+.q-opt:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(56,189,248,.08);
+  color: var(--accent);
+}
+
+.q-opt.correct { border-color: var(--green); background: rgba(52,211,153,.12); color: var(--green); }
+.q-opt.wrong   { border-color: var(--red);   background: rgba(248,113,113,.12); color: var(--red); }
+.q-opt:disabled { cursor: not-allowed; }
+
+.q-feedback {
+  margin-top: .9rem;
+  padding: .85rem 1rem;
+  border-radius: 10px;
+  font-size: .82rem;
+  line-height: 1.55;
+  display: none;
+}
+
+.q-feedback.show { display: block; }
+.q-feedback.ok  { background: rgba(52,211,153,.1);  border: 1px solid rgba(52,211,153,.3);  color: var(--green); }
+.q-feedback.err { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: var(--red); }
+
+.q-next {
+  margin-top: 1rem;
+  width: 100%;
+  padding: .85rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+}
+
+.q-next:hover { background: #7dd3fc; transform: translateY(-1px); }
+
+.quiz-result {
+  text-align: center;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .6rem;
+}
+
+.r-emoji { font-size: 3.5rem; }
+.r-score { font-size: 2.8rem; font-weight: 900; font-family: 'Space Mono', monospace; color: var(--accent); }
+.r-msg   { font-size: .95rem; color: var(--text); }
+.r-sub   { font-size: .8rem; color: var(--muted); }
+
+.btn-restart {
+  margin-top: 1rem;
+  padding: .8rem 2.2rem;
+  background: transparent;
+  border: 1.5px solid var(--accent2);
+  color: var(--accent2);
+  border-radius: 999px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-restart:hover { background: var(--accent2); color: white; transform: translateY(-2px); }
+
+/* mobile */
+@media (max-width: 520px) {
+  .el-card { min-width: 32px; }
+  .el-sym  { font-size: .75rem; }
+  .el-ko   { display: none; }
+  .el-num  { font-size: .38rem; }
+  .pt-grid { gap: 2px; }
+}
+
+</style>
+<!-- 과학 도구상자 공통 내비게이션 — 이 한 줄이 "← 도구상자" 링크를 자동으로 만들어줍니다 -->
+<script src="../../toolbox-nav.js"></script>
+</head>
+<body>
+<div class="stars"></div>
+<div class="page-content">
+
+<header>
+  <div class="header-badge">CHEMISTRY · 화학 · 중학교 과학</div>
+  <h1>⚛️ 원자 구조 <span>탐험</span></h1>
+  <p class="header-sub">보어 원자모형으로 배우는 원자 구조 — 원소 카드를 눌러보세요!</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="btn-learn" onclick="switchTab('learn')">📚 학습 모드</button>
+  <button class="tab-btn" id="btn-quiz"  onclick="switchTab('quiz')">🧪 퀴즈 모드</button>
+</div>
+
+<div class="main">
+
+<!-- ===== LEARN ===== -->
+<div class="tab-panel active" id="tab-learn">
+<div class="learn-grid">
+
+  <!-- Periodic Table -->
+  <div class="panel periodic-col">
+    <div class="panel-title">주기율표 (1번 ~ 20번 원소)</div>
+    <div class="pt-grid" id="ptGrid"></div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#f87171"></div>알칼리 금속</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#fb923c"></div>알칼리 토금속</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#38bdf8"></div>비금속</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#a78bfa"></div>준금속/금속</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f472b6"></div>할로겐</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#a3e635"></div>비활성 기체</div>
+    </div>
+  </div>
+
+  <!-- Bohr Model -->
+  <div class="panel bohr-col">
+    <div class="panel-title">보어 원자모형 (Bohr Model)</div>
+    <div id="bohr-wrap">
+      <svg id="bohr-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+        <text x="210" y="215" text-anchor="middle" fill="#6888b0" font-size="15" font-family="Noto Sans KR">
+          원소 카드를 클릭하면 원자모형이 나타납니다
+        </text>
+      </svg>
+    </div>
+    <div class="nuc-legend">
+      <div class="nuc-item"><div class="nuc-dot" style="background:#f87171"></div>양성자 (Proton)</div>
+      <div class="nuc-item"><div class="nuc-dot" style="background:#94a3b8"></div>중성자 (Neutron)</div>
+      <div class="nuc-item"><div class="nuc-dot" style="background:#38bdf8"></div>전자 (Electron)</div>
+    </div>
+    <div class="model-notice">
+      ⚠️ <strong>이 모형은 학습용 단순 모형입니다.</strong><br>
+      실제 원자의 크기·구조와 정확히 일치하지 않을 수 있습니다.
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="panel info-col">
+    <div class="panel-title">원소 정보</div>
+
+    <div class="info-placeholder" id="infoPlaceholder">
+      <div class="placeholder-icon">←</div>
+      <p style="font-size:.85rem">왼쪽 주기율표에서<br>원소 카드를 클릭하세요!</p>
+    </div>
+
+    <div class="info-element" id="infoEl">
+      <div class="el-title" id="iName"></div>
+      <div class="el-sym-big" id="iSym"></div>
+      <div style="text-align:center"><span class="el-cat-tag" id="iCat"></span></div>
+
+      <div class="info-rows">
+        <div class="info-box">
+          <label>원자 번호</label>
+          <div class="info-val" id="iNo"></div>
+        </div>
+        <div class="info-box">
+          <label>대표 질량수</label>
+          <div class="info-val" id="iMass"></div>
+        </div>
+        <div class="info-box">
+          <label>⚡ 양성자 수</label>
+          <div class="info-val v-proton" id="iProton"></div>
+        </div>
+        <div class="info-box">
+          <label>🔵 전자 수</label>
+          <div class="info-val v-electron" id="iElectron"></div>
+        </div>
+        <div class="info-box">
+          <label>⚪ 중성자 수</label>
+          <div class="info-val v-neutron" id="iNeutron"></div>
+        </div>
+        <div class="info-box">
+          <label>전자껍질 수</label>
+          <div class="info-val" id="iShellCount"></div>
+        </div>
+        <div class="info-box wide">
+          <label>전자 배치 (껍질별)</label>
+          <div class="shell-chips" id="iShells"></div>
+        </div>
+      </div>
+
+      <div class="el-desc" id="iDesc"></div>
+      <div class="balance-note" id="iBalance"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div class="tab-panel" id="tab-quiz">
+<div class="quiz-wrap">
+  <div class="quiz-hud">
+    <div class="hud-score">점수: <span id="qScore">0</span>점</div>
+    <div class="hud-prog">문제 <span id="qCur">1</span> / 10</div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;height:4px;overflow:hidden;margin-bottom:1.2rem">
+    <div class="prog-bar" id="qBar" style="width:10%"></div>
+  </div>
+  <div class="quiz-card" id="qCard"></div>
+</div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /page-content -->
+
+<script>
+/* ========== DATA ========== */
+const ELEMS = [
+  {no:1,  sym:'H',  name:'수소',    mass:1,  cat:'nonmetal',  shells:[1],       desc:'우주에서 가장 풍부한 원소입니다. 태양의 주성분이며 물(H₂O)을 구성합니다.'},
+  {no:2,  sym:'He', name:'헬륨',    mass:4,  cat:'noble',     shells:[2],       desc:'풍선을 띄우는 기체! 비활성 기체라 화학 반응을 거의 하지 않아 안전합니다.'},
+  {no:3,  sym:'Li', name:'리튬',    mass:7,  cat:'alkali',    shells:[2,1],     desc:'스마트폰 배터리의 핵심! 가장 가벼운 금속 원소입니다.'},
+  {no:4,  sym:'Be', name:'베릴륨',  mass:9,  cat:'alkaline',  shells:[2,2],     desc:'X선을 잘 투과시켜 X선 창에 사용되는 가볍고 단단한 금속입니다.'},
+  {no:5,  sym:'B',  name:'붕소',    mass:11, cat:'metalloid', shells:[2,3],     desc:'반도체 재료와 붕산(눈 세척제)에 쓰이는 준금속입니다.'},
+  {no:6,  sym:'C',  name:'탄소',    mass:12, cat:'nonmetal',  shells:[2,4],     desc:'생명의 원소! 다이아몬드·흑연·우리 몸의 유기물 모두 탄소로 이루어져 있습니다.'},
+  {no:7,  sym:'N',  name:'질소',    mass:14, cat:'nonmetal',  shells:[2,5],     desc:'공기의 78%를 차지하는 기체! DNA와 단백질을 이루는 중요한 원소입니다.'},
+  {no:8,  sym:'O',  name:'산소',    mass:16, cat:'nonmetal',  shells:[2,6],     desc:'우리가 숨쉬는 산소! 물과 대부분의 물질을 이루는 매우 중요한 원소입니다.'},
+  {no:9,  sym:'F',  name:'플루오린',mass:19, cat:'halogen',   shells:[2,7],     desc:'가장 반응성이 큰 원소! 치약의 플루오린화물이 충치를 예방합니다.'},
+  {no:10, sym:'Ne', name:'네온',    mass:20, cat:'noble',     shells:[2,8],     desc:'네온사인의 주인공! 비활성 기체라 아름다운 빛만 내고 반응은 하지 않습니다.'},
+  {no:11, sym:'Na', name:'나트륨',  mass:23, cat:'alkali',    shells:[2,8,1],   desc:'소금(NaCl)의 주성분! 우리 몸의 전해질 균형을 유지하는 데 꼭 필요합니다.'},
+  {no:12, sym:'Mg', name:'마그네슘',mass:24, cat:'alkaline',  shells:[2,8,2],   desc:'가볍고 단단한 금속! 자동차·항공기·불꽃놀이에 활용됩니다.'},
+  {no:13, sym:'Al', name:'알루미늄',mass:27, cat:'metalloid', shells:[2,8,3],   desc:'음료캔·포일·항공기 재료! 가볍고 산화막이 생겨 녹이 잘 슬지 않습니다.'},
+  {no:14, sym:'Si', name:'규소',    mass:28, cat:'metalloid', shells:[2,8,4],   desc:'컴퓨터 칩의 원료! 반도체 소재로 현대 전자기기의 핵심이며 모래의 주성분입니다.'},
+  {no:15, sym:'P',  name:'인',      mass:31, cat:'nonmetal',  shells:[2,8,5],   desc:'DNA와 세포막의 구성 성분! 성냥과 비료에도 사용되는 중요한 원소입니다.'},
+  {no:16, sym:'S',  name:'황',      mass:32, cat:'nonmetal',  shells:[2,8,6],   desc:'화산에서 나오는 노란 물질! 고무를 단단하게 만드는 가황 공정에도 쓰입니다.'},
+  {no:17, sym:'Cl', name:'염소',    mass:35, cat:'halogen',   shells:[2,8,7],   desc:'수영장 물을 소독하는 기체! 소금(NaCl)과 표백제의 재료입니다.'},
+  {no:18, sym:'Ar', name:'아르곤',  mass:40, cat:'noble',     shells:[2,8,8],   desc:'공기의 약 1%를 차지하는 비활성 기체. 형광등과 용접에 활용됩니다.'},
+  {no:19, sym:'K',  name:'칼륨',    mass:39, cat:'alkali',    shells:[2,8,8,1], desc:'바나나에 풍부한 미네랄! 근육과 신경의 작동에 꼭 필요한 원소입니다.'},
+  {no:20, sym:'Ca', name:'칼슘',    mass:40, cat:'alkaline',  shells:[2,8,8,2], desc:'뼈와 이를 이루는 원소! 우유에 풍부하게 들어 있어 성장에 꼭 필요합니다.'},
+];
+
+const CAT_CLASS = {alkali:'c-alkali', alkaline:'c-alkaline', metalloid:'c-metalloid', nonmetal:'c-nonmetal', halogen:'c-halogen', noble:'c-noble'};
+const CAT_NAME  = {alkali:'알칼리 금속', alkaline:'알칼리 토금속', metalloid:'준금속 / 금속', nonmetal:'비금속', halogen:'할로겐', noble:'비활성 기체'};
+const SHELL_LBL = ['K껍질','L껍질','M껍질','N껍질'];
+
+/* Grid positions [row, col] in 10-column layout */
+const POS = {
+  1:[1,1],  2:[1,10],
+  3:[2,1],  4:[2,2],  5:[2,5],  6:[2,6],  7:[2,7],  8:[2,8],  9:[2,9],  10:[2,10],
+  11:[3,1], 12:[3,2], 13:[3,5], 14:[3,6], 15:[3,7], 16:[3,8], 17:[3,9], 18:[3,10],
+  19:[4,1], 20:[4,2],
+};
+
+/* ========== PERIODIC TABLE ========== */
+function buildPT() {
+  const grid = document.getElementById('ptGrid');
+  const occupied = new Set();
+
+  ELEMS.forEach(el => {
+    const [row, col] = POS[el.no];
+    const div = document.createElement('div');
+    div.className = `el-card ${CAT_CLASS[el.cat]}`;
+    div.id = `ec-${el.no}`;
+    div.style.gridRow = row;
+    div.style.gridColumn = col;
+    div.innerHTML = `<div class="el-num">${el.no}</div><div class="el-sym">${el.sym}</div><div class="el-ko">${el.name}</div>`;
+    div.addEventListener('click', () => selectElem(el.no));
+    grid.appendChild(div);
+    occupied.add(`${row},${col}`);
+  });
+
+  /* Gap spans */
+  const gapStyle = 'display:flex;align-items:center;justify-content:center;font-size:.4rem;color:rgba(104,136,176,.3);border:1px dashed rgba(104,136,176,.12);border-radius:5px;';
+  [2,3].forEach(row => {
+    const gap = document.createElement('div');
+    gap.className = 'pt-gap';
+    gap.style.cssText = gapStyle;
+    gap.style.gridRow = row;
+    gap.style.gridColumn = '3 / 5';
+    gap.textContent = '3~12족 생략';
+    grid.appendChild(gap);
+  });
+}
+
+let activeNo = null;
+
+function selectElem(no) {
+  if (activeNo) document.getElementById(`ec-${activeNo}`)?.classList.remove('active');
+  activeNo = no;
+  document.getElementById(`ec-${no}`)?.classList.add('active');
+  const el = ELEMS.find(e => e.no === no);
+  updateInfo(el);
+  drawBohr(el);
+}
+
+/* ========== INFO PANEL ========== */
+function updateInfo(el) {
+  document.getElementById('infoPlaceholder').style.display = 'none';
+  const box = document.getElementById('infoEl');
+  box.style.display = 'block';
+
+  const n = el.mass - el.no;
+  document.getElementById('iName').textContent = el.name;
+  document.getElementById('iSym').textContent  = el.sym;
+  document.getElementById('iSym').style.color  = getColor(el.cat);
+
+  const catTag = document.getElementById('iCat');
+  catTag.textContent = CAT_NAME[el.cat];
+  catTag.style.background = getColorAlpha(el.cat, .14);
+  catTag.style.border = `1px solid ${getColorAlpha(el.cat, .4)}`;
+  catTag.style.color  = getColor(el.cat);
+
+  document.getElementById('iNo').textContent        = el.no;
+  document.getElementById('iMass').textContent      = el.mass;
+  document.getElementById('iProton').textContent    = `${el.no}개`;
+  document.getElementById('iElectron').textContent  = `${el.no}개`;
+  document.getElementById('iNeutron').textContent   = `${n}개`;
+  document.getElementById('iShellCount').textContent= `${el.shells.length}개`;
+  document.getElementById('iDesc').textContent      = `💡 ${el.desc}`;
+  document.getElementById('iBalance').textContent   = `양성자(${el.no}개) = 전자(${el.no}개) → 중성 원자`;
+
+  const chips = document.getElementById('iShells');
+  chips.innerHTML = '';
+  el.shells.forEach((n, i) => {
+    const c = document.createElement('span');
+    c.className = 'shell-chip';
+    c.textContent = `${SHELL_LBL[i]}: ${n}`;
+    chips.appendChild(c);
+  });
+}
+
+function getColor(cat) {
+  return {alkali:'#f87171',alkaline:'#fb923c',metalloid:'#a78bfa',nonmetal:'#38bdf8',halogen:'#f472b6',noble:'#a3e635'}[cat];
+}
+
+function getColorAlpha(cat, a) {
+  const hex = getColor(cat).replace('#','');
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* ========== BOHR MODEL ========== */
+function drawBohr(el) {
+  const svg = document.getElementById('bohr-svg');
+  const cx = 210, cy = 210;
+  const RADII = [52, 92, 132, 168];
+  const ANI_DUR = [2.5, 4, 5.5, 7.5];
+  let s = '';
+
+  /* defs */
+  s += `<defs>
+    <filter id="eg"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="ng"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>`;
+
+  /* nucleus glow */
+  s += `<circle cx="${cx}" cy="${cy}" r="55" fill="#f87171" opacity=".06" filter="url(#ng)"/>`;
+
+  /* orbits */
+  el.shells.forEach((cnt,i) => {
+    const r = RADII[i];
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1e3050" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+    /* shell label */
+    const lx = cx + r * Math.cos(-0.9);
+    const ly = cy + r * Math.sin(-0.9) - 7;
+    s += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#2a4272" font-size="10" font-family="Space Mono" text-anchor="middle">${SHELL_LBL[i][0]}</text>`;
+  });
+
+  /* nucleus: deterministic spiral layout */
+  const protons  = el.no;
+  const neutrons = el.mass - el.no;
+  const total    = protons + neutrons;
+  const nucs = [...Array(protons).fill('p'), ...Array(neutrons).fill('n')];
+
+  /* shuffle deterministically by index */
+  const shuffled = nucs.map((t,i) => ({t,i})).sort((a,b) => (a.i*7+13)%17 - (b.i*7+13)%17).map(x=>x.t);
+
+  const spread = Math.min(28, 4 + total * 1.2);
+  shuffled.forEach((type, i) => {
+    const angle  = (i / Math.max(1,total)) * 2 * Math.PI * 2.618;
+    const rr     = i === 0 ? 0 : spread * Math.sqrt(i / total);
+    const nx     = cx + rr * Math.cos(angle);
+    const ny     = cy + rr * Math.sin(angle);
+    const color  = type === 'p' ? '#f87171' : '#64748b';
+    const dotR   = total > 16 ? 3.2 : 4.2;
+    s += `<circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="${dotR}" fill="${color}" opacity=".92"/>`;
+  });
+
+  /* 양성자 수 표시: +N (원소 기호 대신) */
+  const fontSize = el.no >= 10 ? 13 : 15;
+  s += `<text x="${cx}" y="${cy + fontSize/3}" text-anchor="middle" fill="white"
+    font-size="${fontSize}" font-family="Space Mono" font-weight="700">+${el.no}</text>`;
+
+  /* 전자 배치 버그 수정:
+     circle을 (cx+r, cy) — 0도 기준 위치에 그리고,
+     animateTransform으로 baseAngle만큼 회전시켜 올바른 시작 위치를 잡음.
+     이전 코드는 circle을 이미 baseAngle 위치에 그린 뒤 또 baseAngle 회전을 적용해
+     2배 각도로 어긋나는 버그가 있었음. */
+  el.shells.forEach((cnt, shellIdx) => {
+    const r   = RADII[shellIdx];
+    const dur = ANI_DUR[shellIdx];
+    for (let e = 0; e < cnt; e++) {
+      const baseAngle = (e / cnt) * 360;
+      s += `<circle cx="${(cx + r).toFixed(1)}" cy="${cy}" r="5.5" fill="#38bdf8" opacity=".95" filter="url(#eg)">
+        <animateTransform attributeName="transform" type="rotate"
+          from="${baseAngle} ${cx} ${cy}" to="${baseAngle + 360} ${cx} ${cy}"
+          dur="${dur}s" repeatCount="indefinite"/>
+      </circle>`;
+    }
+  });
+
+  /* electron count labels */
+  el.shells.forEach((cnt, i) => {
+    const r = RADII[i];
+    s += `<text x="${(cx+r+9).toFixed(0)}" y="${cy+5}" fill="#38bdf8" font-size="9.5" font-family="Space Mono" opacity=".8">×${cnt}</text>`;
+  });
+
+  svg.innerHTML = s;
+}
+
+/* ========== QUIZ ========== */
+/* 문제 유형: 기호→이름, 이름→기호, 전자 수, 양성자 수, 주기, 금속/비금속 분류 */
+const QTYPES = ['name','symbol','electron','proton','period'];
+
+/* 중학교 수준 분류: 금속 원소 / 비금속 원소 / 비활성 기체 */
+
+let QS = { qs:[], cur:0, score:0, done:false };
+
+function startQuiz() {
+  /* 문제 유형이 골고루 나오도록 섞기 */
+  const pool = [...ELEMS].sort(() => Math.random() - .5).slice(0,10);
+  QS = { qs: pool.map((el, i) => makeQ(el, QTYPES[i % QTYPES.length])), cur:0, score:0, done:false };
+  QS.qs = QS.qs.sort(() => Math.random() - .5);
+  renderQ();
+}
+
+function makeQ(el, type) {
+  let q = {el, type};
+
+  if (type === 'name') {
+    q.prompt = '다음 원소 기호의 이름은 무엇인가요?';
+    q.symbol = el.sym;
+    q.answer = el.name;
+    q.opts   = shuffle([el.name, ...pick3Names(el)]);
+
+  } else if (type === 'symbol') {
+    q.prompt = `"${el.name}"의 원소 기호로 올바른 것은?`;
+    q.hint   = '원소 기호의 첫 글자는 대문자로 씁니다.';
+    q.answer = el.sym;
+    q.opts   = shuffle([el.sym, ...pick3Syms(el)]);
+
+  } else if (type === 'electron') {
+    q.prompt = `${el.name}(${el.sym})의 전자 수는 몇 개인가요?`;
+    q.hint   = '💡 중성 원자에서 전자 수 = 원자번호';
+    q.answer = `${el.no}개`;
+    q.opts   = shuffle([`${el.no}개`, ...nearNums(el.no,3).map(x=>`${x}개`)]);
+
+  } else if (type === 'proton') {
+    q.prompt = `${el.name}(${el.sym})의 원자핵 속 양성자 수는?`;
+    q.hint   = '💡 양성자 수 = 원자번호';
+    q.answer = `${el.no}개`;
+    q.opts   = shuffle([`${el.no}개`, ...nearNums(el.no,3).map(x=>`${x}개`)]);
+
+  } else if (type === 'period') {
+    q.prompt = `${el.name}(${el.sym})은 주기율표 몇 번 주기에 있나요?`;
+    q.hint   = '💡 주기 번호 = 전자껍질의 수';
+    q.answer = `${el.shells.length}주기`;
+    q.opts   = ['1주기','2주기','3주기','4주기'];
+
+  }
+  return q;
+}
+
+function pick3Names(el) {
+  return ELEMS.filter(e=>e.no!==el.no).sort(()=>Math.random()-.5).slice(0,3).map(e=>e.name);
+}
+
+function pick3Syms(el) {
+  return ELEMS.filter(e=>e.no!==el.no).sort(()=>Math.random()-.5).slice(0,3).map(e=>e.sym);
+}
+
+function nearNums(n, cnt) {
+  const s = new Set();
+  let tries = 0;
+  while (s.size < cnt && tries++ < 50) {
+    const v = Math.max(1, n + Math.floor(Math.random()*8)-4);
+    if (v !== n) s.add(v);
+  }
+  return [...s];
+}
+
+function shuffle(a) { return a.sort(()=>Math.random()-.5); }
+
+function renderQ() {
+  const q = QS.qs[QS.cur];
+  const card = document.getElementById('qCard');
+  const symHTML  = q.symbol ? `<div class="q-symbol">${q.symbol}</div>` : '';
+  const hintHTML = q.hint
+    ? `<div style="font-size:.75rem;color:var(--muted);margin-bottom:.9rem;padding:.4rem .8rem;background:rgba(56,189,248,.06);border-radius:7px;border-left:2px solid rgba(56,189,248,.3)">${q.hint}</div>`
+    : '';
+  /* 보기 3개(분류 문제)일 때 단일 열로 표시 */
+  const colStyle = q.opts.length === 3 ? 'grid-template-columns:1fr;max-width:340px;margin:0 auto' : '';
+  const optsHTML = q.opts.map(o =>
+    `<button class="q-opt" onclick="checkQ(this,'${o.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}',${QS.cur})">${o}</button>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="q-text">${q.prompt}</div>
+    <div class="q-sub">원자번호 1~20번 원소 중에서 고르세요</div>
+    ${symHTML}
+    ${hintHTML}
+    <div class="q-options" style="${colStyle}">${optsHTML}</div>
+    <div class="q-feedback" id="qFb"></div>
+  `;
+
+  document.getElementById('qCur').textContent = QS.cur + 1;
+  document.getElementById('qBar').style.width = `${(QS.cur+1)*10}%`;
+}
+
+function checkQ(btn, selected, answer, idx) {
+  if (idx !== QS.cur) return;
+  document.querySelectorAll('.q-opt').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === answer) b.classList.add('correct');
+    else if (b === btn && selected !== answer) b.classList.add('wrong');
+  });
+
+  const correct = selected === answer;
+  if (correct) QS.score++;
+  document.getElementById('qScore').textContent = QS.score * 10;
+
+  const el = QS.qs[idx].el;
+  const fb = document.getElementById('qFb');
+  fb.className = `q-feedback show ${correct ? 'ok' : 'err'}`;
+  fb.innerHTML = correct
+    ? `🎉 정답! &nbsp;${el.name}(${el.sym}) — ${el.desc}`
+    : `😅 오답! 정답은 <strong>${answer}</strong>입니다. &nbsp;${el.name}(${el.sym}) — ${el.desc}`;
+
+  const isLast = QS.cur >= 9;
+  const nb = document.createElement('button');
+  nb.className = 'q-next';
+  nb.textContent = isLast ? '결과 보기 🎯' : '다음 문제 →';
+  nb.onclick = () => { if (isLast) showResult(); else { QS.cur++; renderQ(); } };
+  document.getElementById('qCard').appendChild(nb);
+}
+
+function showResult() {
+  const pct = QS.score / 10;
+  let emoji='😐', msg='조금 더 공부해봐요!', sub='원소 카드를 눌러 복습해보세요.';
+  if (pct >= .9) { emoji='🏆'; msg='원자 구조 마스터!'; sub='거의 모든 문제를 맞혔어요. 대단해요!'; }
+  else if (pct >= .7) { emoji='🌟'; msg='훌륭해요!'; sub='틀린 문제만 복습하면 완벽해요.'; }
+  else if (pct >= .5) { emoji='😊'; msg='잘했어요!'; sub='학습 모드로 돌아가 다시 복습해봐요.'; }
+
+  document.getElementById('qCard').innerHTML = `
+    <div class="quiz-result">
+      <div class="r-emoji">${emoji}</div>
+      <div class="r-score">${QS.score * 10}점 / 100점</div>
+      <div class="r-msg">${msg}</div>
+      <div class="r-sub">${sub} (10문제 중 ${QS.score}개 정답)</div>
+      <button class="btn-restart" onclick="startQuiz()">🔄 다시 도전!</button>
+    </div>
+  `;
+  document.getElementById('qBar').style.width = '100%';
+}
+
+/* ========== TAB SWITCH ========== */
+function switchTab(tab) {
+  ['learn','quiz'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`btn-${t}`).classList.toggle('active', t===tab);
+  });
+  if (tab === 'quiz') startQuiz();
+}
+
+/* ========== INIT ========== */
+buildPT();
+selectElem(6); /* default: Carbon */
+</script>
+</body>
+</html>
