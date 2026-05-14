@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모둠 구성 도우미 — 과학 도구상자</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="../../toolbox-nav.js"></script>
+  <style>
+    :root {
+      --bg:        #F5F3FF;
+      --surface:   #FFFFFF;
+      --border:    #E4E0F5;
+      --border2:   #C4BAE8;
+      --accent:    #6D28D9;
+      --accent-lt: #EDE9FE;
+      --text:      #1E1B33;
+      --muted:     #6B6888;
+      --subtle:    #9B98B8;
+      --radius:    12px;
+
+      /* 모둠 카드 색상 팔레트 (8개) */
+      --g1: #6D28D9; --g1l: #EDE9FE;
+      --g2: #0E7490; --g2l: #E0F2FE;
+      --g3: #B45309; --g3l: #FEF3C7;
+      --g4: #15803D; --g4l: #DCFCE7;
+      --g5: #BE123C; --g5l: #FFE4E6;
+      --g6: #1D4ED8; --g6l: #DBEAFE;
+      --g7: #92400E; --g7l: #FEF3C7;
+      --g8: #166534; --g8l: #DCFCE7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── 레이아웃 ── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+    }
+
+    /* ── 헤더 ── */
+    .header { margin-bottom: 2.5rem; }
+
+    .badge {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-lt);
+      padding: .3rem .75rem;
+      border-radius: 999px;
+      margin-bottom: .85rem;
+    }
+
+    .page-title {
+      font-family: 'Gowun Batang', serif;
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: .45rem;
+    }
+
+    .page-desc { font-size: .97rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── 컨트롤 패널 ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-title {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .85rem;
+    }
+
+    /* 이름 입력 */
+    #names {
+      width: 100%;
+      height: 160px;
+      padding: .8rem 1rem;
+      font-family: inherit;
+      font-size: .95rem;
+      line-height: 1.7;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      resize: vertical;
+      transition: border-color .15s;
+    }
+    #names:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109,40,217,.1); }
+    #names::placeholder { color: var(--subtle); }
+
+    .names-hint {
+      font-size: .8rem;
+      color: var(--subtle);
+      margin-top: .5rem;
+    }
+
+    /* 모둠 크기 설정 */
+    .settings-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 1.25rem;
+    }
+
+    .setting-group {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .setting-label { font-size: .9rem; font-weight: 500; color: var(--muted); white-space: nowrap; }
+
+    .seg-ctrl {
+      display: inline-flex;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .seg-btn {
+      padding: .42rem .85rem;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 500;
+      background: var(--surface);
+      border: none;
+      border-right: 1px solid var(--border2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn:hover { background: var(--accent-lt); color: var(--accent); }
+    .seg-btn.active { background: var(--accent); color: white; }
+
+    .mode-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-left: auto;
+    }
+
+    .mode-label { font-size: .88rem; color: var(--muted); }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border2);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform .2s;
+    }
+    .toggle-switch input:checked + .slider { background: var(--accent); }
+    .toggle-switch input:checked + .slider::before { transform: translateX(18px); }
+
+    /* ── 버튼 ── */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .7rem 1.4rem;
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #5B21B6; }
+    .btn-primary:active { transform: scale(.97); }
+
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* ── 결과 영역 ── */
+    #result { display: none; margin-top: 1.5rem; }
+    #result.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .result-title {
+      font-family: 'Gowun Batang', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .result-meta { font-size: .85rem; color: var(--muted); }
+
+    /* 모둠 카드 그리드 */
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: .85rem;
+    }
+
+    .group-card {
+      background: var(--surface);
+      border: 2px solid var(--g-border, var(--border));
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: cardIn .25s ease both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .group-header {
+      background: var(--g-color, var(--accent));
+      color: white;
+      padding: .55rem 1rem;
+      font-weight: 700;
+      font-size: .88rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .group-count {
+      font-size: .75rem;
+      font-weight: 500;
+      opacity: .75;
+    }
+
+    .group-members {
+      padding: .75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+    }
+
+    .member {
+      font-size: .9rem;
+      padding: .3rem .55rem;
+      background: var(--g-light, var(--accent-lt));
+      border-radius: 6px;
+      color: var(--text);
+    }
+
+    /* ── 알림 ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--text);
+      color: white;
+      padding: .65rem 1.2rem;
+      border-radius: 999px;
+      font-size: .88rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: transform .25s ease, opacity .25s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ── 모바일 ── */
+    @media (max-width: 540px) {
+      .page { padding: 3.5rem 1rem 2.5rem; }
+      .groups-grid { grid-template-columns: 1fr 1fr; }
+      .mode-row { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="badge">학급 운영</div>
+    <h1 class="page-title">모둠 구성 도우미</h1>
+    <p class="page-desc">학생 이름을 붙여넣으면 무작위로 모둠을 나눠드립니다. 몇 명씩 묶을지 선택하고 버튼을 누르세요.</p>
+  </header>
+
+  <div class="panel">
+    <div class="panel-title">① 학생 이름 입력</div>
+    <textarea id="names" placeholder="이름을 한 줄에 한 명씩 입력하거나 붙여넣으세요.
+예:
+김민준
+이서연
+박도윤
+최지아
+..."></textarea>
+    <p class="names-hint" id="name-count">이름을 입력하면 인원 수가 표시됩니다.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">② 모둠 설정</div>
+    <div class="settings-row">
+      <div class="setting-group">
+        <span class="setting-label">모둠당 인원</span>
+        <div class="seg-ctrl" role="radiogroup" aria-label="모둠당 인원">
+          <button class="seg-btn" data-size="2" type="button">2명</button>
+          <button class="seg-btn active" data-size="3" type="button">3명</button>
+          <button class="seg-btn" data-size="4" type="button">4명</button>
+          <button class="seg-btn" data-size="5" type="button">5명</button>
+          <button class="seg-btn" data-size="6" type="button">6명</button>
+        </div>
+      </div>
+      <div class="mode-row">
+        <span class="mode-label">모둠 이름 표시</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="show-name-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" id="build-btn" type="button">
+      🎲 모둠 구성하기
+    </button>
+    <button class="btn btn-ghost" id="copy-btn" type="button" disabled>
+      📋 결과 복사
+    </button>
+    <button class="btn btn-ghost" id="print-btn" type="button" disabled>
+      🖨️ 인쇄
+    </button>
+  </div>
+
+  <div id="result">
+    <div class="result-header">
+      <span class="result-title" id="result-title">모둠 구성 결과</span>
+      <span class="result-meta" id="result-meta"></span>
+    </div>
+    <div class="groups-grid" id="groups-grid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 모둠 색상 팔레트 ──
+const PALETTE = [
+  { color: '#6D28D9', light: '#EDE9FE' },
+  { color: '#0E7490', light: '#E0F2FE' },
+  { color: '#B45309', light: '#FEF3C7' },
+  { color: '#15803D', light: '#DCFCE7' },
+  { color: '#BE123C', light: '#FFE4E6' },
+  { color: '#1D4ED8', light: '#DBEAFE' },
+  { color: '#92400E', light: '#FFF7ED' },
+  { color: '#166534', light: '#F0FDF4' },
+];
+
+// ── 상태 ──
+let groupSize = 3;
+let lastGroups = [];
+
+// ── 이름 입력 실시간 카운트 ──
+const namesEl    = document.getElementById('names');
+const countEl    = document.getElementById('name-count');
+const buildBtn   = document.getElementById('build-btn');
+const copyBtn    = document.getElementById('copy-btn');
+const printBtn   = document.getElementById('print-btn');
+const resultEl   = document.getElementById('result');
+const gridEl     = document.getElementById('groups-grid');
+const resultMeta = document.getElementById('result-meta');
+
+namesEl.addEventListener('input', () => {
+  const names = parseNames();
+  if (names.length === 0) {
+    countEl.textContent = '이름을 입력하면 인원 수가 표시됩니다.';
+  } else {
+    const groups = Math.ceil(names.length / groupSize);
+    countEl.textContent = `총 ${names.length}명 → ${groupSize}명씩 ${groups}모둠 (나머지 있으면 균등 배분)`;
+  }
+});
+
+// ── 모둠 크기 세그먼트 ──
+document.querySelectorAll('.seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    groupSize = parseInt(btn.dataset.size, 10);
+    namesEl.dispatchEvent(new Event('input')); // 카운트 갱신
+  });
+});
+
+// ── 모둠 구성 ──
+buildBtn.addEventListener('click', () => {
+  const names = parseNames();
+  if (names.length < 2) {
+    showToast('이름을 2명 이상 입력해주세요.');
+    return;
+  }
+
+  const shuffled = shuffle([...names]);
+  const groups   = [];
+  const total    = shuffled.length;
+  const numGroups = Math.ceil(total / groupSize);
+
+  // 앞 모둠들은 groupSize+1명, 나머지는 groupSize명 (나머지 인원 균등 배분)
+  const bigger  = total % numGroups; // bigger개 모둠이 한 명 더
+  let idx = 0;
+  for (let g = 0; g < numGroups; g++) {
+    const size = (g < bigger && bigger > 0) ? groupSize + 1 : groupSize;
+    // 실제론 역방향으로: 나머지를 마지막 모둠에 줌
+    groups.push(shuffled.slice(idx, idx + size));
+    idx += size;
+  }
+
+  lastGroups = groups;
+  renderGroups(groups);
+  resultEl.classList.add('visible');
+  copyBtn.disabled = false;
+  printBtn.disabled = false;
+
+  resultMeta.textContent = `총 ${total}명 · ${numGroups}모둠`;
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// ── 렌더링 ──
+function renderGroups(groups) {
+  const showName = document.getElementById('show-name-toggle').checked;
+  gridEl.innerHTML = '';
+  groups.forEach((members, i) => {
+    const { color, light } = PALETTE[i % PALETTE.length];
+    const groupLabel = showName ? `${i + 1}모둠` : `모둠 ${i + 1}`;
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.style.setProperty('--g-color', color);
+    card.style.setProperty('--g-light', light);
+    card.style.setProperty('--g-border', color + '55');
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <div class="group-header">
+        <span>${groupLabel}</span>
+        <span class="group-count">${members.length}명</span>
+      </div>
+      <div class="group-members">
+        ${members.map(m => `<div class="member">${escHtml(m)}</div>`).join('')}
+      </div>
+    `;
+    gridEl.appendChild(card);
+  });
+}
+
+// 모둠 이름 토글 → 즉시 재렌더
+document.getElementById('show-name-toggle').addEventListener('change', () => {
+  if (lastGroups.length > 0) renderGroups(lastGroups);
+});
+
+// ── 결과 복사 ──
+copyBtn.addEventListener('click', () => {
+  if (lastGroups.length === 0) return;
+  const showName = document.getElementById('show-name-toggle').checked;
+  const text = lastGroups.map((members, i) => {
+    const label = showName ? `${i + 1}모둠` : `모둠 ${i + 1}`;
+    return `[${label}]\n${members.join('\n')}`;
+  }).join('\n\n');
+
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('클립보드에 복사됐습니다!'))
+    .catch(() => showToast('복사에 실패했습니다. 직접 선택해 복사해주세요.'));
+});
+
+// ── 인쇄 ──
+printBtn.addEventListener('click', () => window.print());
+
+// ── 유틸 ──
+function parseNames() {
+  return namesEl.value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── 인쇄 전용 스타일 ──
+const printStyle = document.createElement('style');
+printStyle.textContent = `
+  @media print {
+    .page { padding: 1rem; }
+    .panel, .btn-row, .header p, .badge { display: none; }
+    .toolbox-back-link { display: none !important; }
+    .groups-grid { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+    .group-card { border: 1px solid #ccc !important; break-inside: avoid; }
+    .group-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .member { background: #f5f5f5 !important; }
+  }
+`;
+document.head.appendChild(printStyle);
+</script>
+</body>
+</html>
