@@ -156,6 +156,46 @@
       "target": "초6~중1 과학",
       "sessions": "1차시",
       "materials": ["레몬 2~3개", "구리 동전", "아연 못", "LED", "악어클립선"]
+    },
+    {
+      "id": "random-group",
+      "name": "모둠 구성 도우미",
+      "description": "학생 이름을 붙여넣으면 무작위로 모둠을 나눠줍니다",
+      "category": "classroom",
+      "subcategory": "",
+      "path": "classroom/random-group/",
+      "tags": ["모둠", "무작위"],
+      "level": "전 학년",
+      "featured": true,
+      "activityType": "참조",
+      "target": "교사",
+      "sessions": "수업 준비"
+    },
+    {
+      "id": "class-timer",
+      "name": "수업 타이머",
+      "description": "실험·토론·발표 등 활동별 카운트다운 타이머",
+      "category": "classroom",
+      "subcategory": "",
+      "path": "classroom/class-timer/",
+      "tags": ["타이머", "시간관리"],
+      "level": "전 학년",
+      "activityType": "참조",
+      "target": "교사",
+      "sessions": "수업 중"
+    },
+    {
+      "id": "random-picker",
+      "name": "발표자 뽑기",
+      "description": "이름 목록에서 랜덤으로 발표자·모둠을 선택합니다",
+      "category": "classroom",
+      "subcategory": "",
+      "path": "classroom/random-picker/",
+      "tags": ["발표", "무작위"],
+      "level": "전 학년",
+      "activityType": "참조",
+      "target": "교사",
+      "sessions": "수업 중"
     }
   ]
 }

@@ -9,10 +9,11 @@ const CATEGORIES = {
   biology:   { name: '생명과학',  color: '#15803D', description: '세포 · 유전 · 인체 · 생태·진화' },
   earth:     { name: '지구과학',  color: '#78350F', description: '지질 · 대기·기상 · 천문 · 해양' },
   maker:     { name: '메이커',    color: '#BE123C', description: '직접 만들고 실험하는 활동 모음' },
-  common:    { name: '공통 도구', color: '#57534E', description: '여러 분야에서 두루 쓰이는 도구 — 단위 변환, 주기율표, 계산기 등' }
+  common:    { name: '공통 도구', color: '#57534E', description: '여러 분야에서 두루 쓰이는 도구 — 단위 변환, 주기율표, 계산기 등' },
+  classroom: { name: '학급 운영', color: '#6D28D9', description: '모둠 구성 · 수업 타이머 · 발표 순서 · 평가 도구 등 교실 운영 도구' }
 };
 
-const CATEGORY_ORDER = ['physics', 'chemistry', 'biology', 'earth', 'maker', 'common'];
+const CATEGORY_ORDER = ['physics', 'chemistry', 'biology', 'earth', 'maker', 'common', 'classroom'];
 
 // ===== 학년 필터 정의 =====
 // match 함수가 true를 반환하면 해당 도구가 필터에 포함됨
