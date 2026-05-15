@@ -1831,6 +1831,9 @@ function renderAnswer() {
 /* ----- 정답 모형 SVG 빌더 (중학생용: 껍질 없음) ----- */
 function buildAnswerSimple(el) {
   const cx = 210, cy = 210;
+  const OUTER_R = 155;   /* 원자 외곽 반지름 */
+  const RING_R  = 108;   /* 전자 배치 반지름 */
+
   let s = `<defs>
     <filter id="aeg-s"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <radialGradient id="anuc-s" cx="35%" cy="35%">
@@ -1842,33 +1845,40 @@ function buildAnswerSimple(el) {
       <stop offset="0%" stop-color="#bae6fd"/>
       <stop offset="100%" stop-color="#0369a1"/>
     </radialGradient>
-    <radialGradient id="acloud-s">
-      <stop offset="0%" stop-color="rgba(186,230,253,.0)"/>
-      <stop offset="60%" stop-color="rgba(186,230,253,.0)"/>
-      <stop offset="85%" stop-color="rgba(186,230,253,.10)"/>
-      <stop offset="100%" stop-color="rgba(186,230,253,.0)"/>
+    <radialGradient id="aglw-s" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#bae6fd" stop-opacity=".0"/>
+      <stop offset="55%"  stop-color="#bae6fd" stop-opacity=".07"/>
+      <stop offset="88%"  stop-color="#7dd3fc" stop-opacity=".20"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity=".08"/>
     </radialGradient>
   </defs>`;
 
-  /* 전자 구름 (배경, 옅게) */
-  s += `<circle cx="${cx}" cy="${cy}" r="170" fill="url(#acloud-s)"/>`;
-  s += `<circle cx="${cx}" cy="${cy}" r="160" fill="none" stroke="#1e3050" stroke-width="1" stroke-dasharray="3 5" opacity=".5"/>`;
+  /* ① 원자 내부 글로우 (반투명 채움) */
+  s += `<circle cx="${cx}" cy="${cy}" r="${OUTER_R}" fill="url(#aglw-s)"/>`;
 
-  /* 핵 (양성자 수 표시) */
+  /* ② 원자 외곽선 — 뚜렷한 실선 */
+  s += `<circle cx="${cx}" cy="${cy}" r="${OUTER_R}"
+    fill="none"
+    stroke="#38bdf8"
+    stroke-width="2.5"
+    opacity=".9"/>`;
+
+  /* ③ 핵 */
   s += `<circle cx="${cx}" cy="${cy}" r="38" fill="url(#anuc-s)" filter="url(#aeg-s)"/>`;
-  s += `<text x="${cx}" y="${cy + 7}" text-anchor="middle" fill="white" font-size="20" font-family="Space Mono" font-weight="700">+${el.no}</text>`;
+  s += `<text x="${cx}" y="${cy + 7}" text-anchor="middle" fill="white"
+    font-size="20" font-family="Space Mono" font-weight="700">+${el.no}</text>`;
 
-  /* 전자: 핵 주변에 골고루 배치 (껍질 없이) */
+  /* ④ 전자: 핵 주변에 골고루 배치 (껍질 없이) */
   const totalE = el.no;
-  const ringR = 115;
   for (let i = 0; i < totalE; i++) {
     const angle = (i / totalE) * 2 * Math.PI - Math.PI / 2;
-    /* 살짝 변형해서 너무 기계적으로 보이지 않게 */
-    const jitterR = ringR + ((i * 7) % 13 - 6) * 1.5;
+    const jitterR = RING_R + ((i * 7) % 13 - 6) * 1.2;
     const ex = cx + jitterR * Math.cos(angle);
     const ey = cy + jitterR * Math.sin(angle);
-    s += `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="13" fill="url(#aelec-s)" filter="url(#aeg-s)"/>`;
-    s += `<text x="${ex.toFixed(1)}" y="${ey + 5}" text-anchor="middle" fill="white" font-size="14" font-family="Space Mono" font-weight="700">−</text>`;
+    s += `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="13"
+      fill="url(#aelec-s)" filter="url(#aeg-s)"/>`;
+    s += `<text x="${ex.toFixed(1)}" y="${ey + 5}" text-anchor="middle"
+      fill="white" font-size="14" font-family="Space Mono" font-weight="700">−</text>`;
   }
 
   return s;
@@ -1878,6 +1888,11 @@ function buildAnswerSimple(el) {
 function buildAnswerBohr(el) {
   const cx = 210, cy = 210;
   const RADII = [55, 95, 135, 170];
+
+  /* 가장 바깥 껍질 반지름 + 여백 → 원자 외곽 */
+  const lastR  = RADII[el.shells.length - 1];
+  const OUTER_R = lastR + 22;
+
   let s = `<defs>
     <filter id="aeg-b"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <radialGradient id="anuc-b" cx="35%" cy="35%">
@@ -1889,29 +1904,55 @@ function buildAnswerBohr(el) {
       <stop offset="0%" stop-color="#bae6fd"/>
       <stop offset="100%" stop-color="#0369a1"/>
     </radialGradient>
+    <radialGradient id="aglw-b" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#bae6fd" stop-opacity=".0"/>
+      <stop offset="55%"  stop-color="#bae6fd" stop-opacity=".06"/>
+      <stop offset="88%"  stop-color="#7dd3fc" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity=".07"/>
+    </radialGradient>
   </defs>`;
 
-  /* 전자껍질 (점선 원) */
+  /* ① 원자 내부 글로우 (반투명 채움) */
+  s += `<circle cx="${cx}" cy="${cy}" r="${OUTER_R}" fill="url(#aglw-b)"/>`;
+
+  /* ② 원자 외곽선 — 뚜렷한 실선 */
+  s += `<circle cx="${cx}" cy="${cy}" r="${OUTER_R}"
+    fill="none"
+    stroke="#38bdf8"
+    stroke-width="2.5"
+    opacity=".9"/>`;
+
+  /* ③ 전자껍질 — 더 잘 보이게 */
   el.shells.forEach((cnt, i) => {
     const r = RADII[i];
-    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#3b5378" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}"
+      fill="none"
+      stroke="#5b8fc9"
+      stroke-width="1.5"
+      stroke-dasharray="5 3"
+      opacity=".8"/>`;
     /* 껍질 라벨 */
-    s += `<text x="${cx + r + 12}" y="${cy + 4}" fill="#7b9cc9" font-size="13" font-family="Space Mono" font-weight="700">${SHELL_LBL[i][0]}</text>`;
+    s += `<text x="${cx + r + 10}" y="${cy + 4}"
+      fill="#7bb3dc" font-size="13"
+      font-family="Space Mono" font-weight="700">${SHELL_LBL[i][0]}</text>`;
   });
 
-  /* 핵 */
+  /* ④ 핵 */
   s += `<circle cx="${cx}" cy="${cy}" r="26" fill="url(#anuc-b)" filter="url(#aeg-b)"/>`;
-  s += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="white" font-size="15" font-family="Space Mono" font-weight="700">+${el.no}</text>`;
+  s += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="white"
+    font-size="15" font-family="Space Mono" font-weight="700">+${el.no}</text>`;
 
-  /* 각 껍질에 정해진 수의 전자 */
+  /* ⑤ 각 껍질에 정해진 수의 전자 */
   el.shells.forEach((cnt, shellIdx) => {
     const r = RADII[shellIdx];
     for (let e = 0; e < cnt; e++) {
       const angle = (e / cnt) * 2 * Math.PI - Math.PI / 2;
       const ex = cx + r * Math.cos(angle);
       const ey = cy + r * Math.sin(angle);
-      s += `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="9" fill="url(#aelec-b)" filter="url(#aeg-b)"/>`;
-      s += `<text x="${ex.toFixed(1)}" y="${ey + 4}" text-anchor="middle" fill="white" font-size="11" font-family="Space Mono" font-weight="700">−</text>`;
+      s += `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="9"
+        fill="url(#aelec-b)" filter="url(#aeg-b)"/>`;
+      s += `<text x="${ex.toFixed(1)}" y="${ey + 4}" text-anchor="middle"
+        fill="white" font-size="11" font-family="Space Mono" font-weight="700">−</text>`;
     }
   });
 
