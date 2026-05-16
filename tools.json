@@ -111,7 +111,7 @@
       "path": "common/unit-converter/",
       "tags": ["변환기", "유틸리티", "계산기"],
       "level": "전체",
-      "featured": false,
+      "featured": true,
       "activityType": "학습도구",
       "target": "초중고 학생 및 교사",
       "sessions": "상시 활용",
