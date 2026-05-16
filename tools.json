@@ -104,14 +104,18 @@
     },
     {
       "id": "unit-converter",
-      "name": "단위 변환기",
-      "description": "길이·무게·부피·온도 등 단위를 변환해줍니다",
+      "name": "과학 범용 단위 변환기",
+      "description": "분야별 과학 단위(물리, 화학, 생명과학 등)를 변환하고 계산 공식을 확인하는 도구",
       "category": "common",
       "subcategory": "",
       "path": "common/unit-converter/",
-      "tags": ["계산기", "참조"],
-      "level": "전 학년",
-      "activityType": "계산"
+      "tags": ["변환기", "유틸리티", "계산기"],
+      "level": "전체",
+      "featured": false,
+      "activityType": "학습도구",
+      "target": "초중고 학생 및 교사",
+      "sessions": "상시 활용",
+      "materials": ["스마트폰", "태블릿/PC"]
     },
     {
       "id": "periodic-table",
