@@ -1,0 +1,575 @@
+﻿/* ============================================================
+   과학 도구상자 — 스타일시트
+   디자인 컨셉: 따뜻한 학습 노트, 카테고리별 색상 구분
+   ============================================================ */
+
+:root {
+  /* 카테고리별 색상 */
+  --color-physics:    #1D4ED8;
+  --color-chemistry:  #B45309;
+  --color-biology:    #15803D;
+  --color-earth:      #78350F;
+  --color-maker:      #BE123C;
+  --color-common:     #57534E;
+  --color-classroom:  #6D28D9;   /* 학급 운영: 보라 */
+
+  /* 기본 색상 */
+  --color-bg:         #FAF7F0;
+  --color-bg-soft:    #F4F0E6;
+  --color-surface:    #FFFFFF;
+  --color-text:       #1C1917;
+  --color-text-muted: #57534E;
+  --color-text-subtle:#78716C;
+  --color-border:     #E7E5E0;
+  --color-border-strong: #D6D3CE;
+  --color-warning:    #B45309;
+
+  /* 폰트 */
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+
+  /* 레이아웃 */
+  --content-max: 1200px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(2rem - 1px),
+    rgba(120, 113, 108, 0.04) calc(2rem - 1px),
+    rgba(120, 113, 108, 0.04) 2rem
+  );
+  background-size: 100% 2rem;
+}
+
+.container {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===== 헤더 ===== */
+.site-header {
+  padding: 4rem 0 1.75rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.site-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.site-tagline {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ===== 검색 ===== */
+.search-wrap { margin-top: 2rem; }
+
+#search {
+  width: 100%;
+  max-width: 520px;
+  padding: 0.85rem 1.1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#search:focus {
+  outline: none;
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 3px rgba(28, 25, 23, 0.06);
+}
+
+/* ===== 컨트롤 영역: 필터 + 교사 토글 ===== */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.filter-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.filter-chips .filter-label {
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+  margin-right: 0.25rem;
+}
+
+.filter-chip {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.filter-chip[aria-pressed="true"] {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-bg);
+}
+
+/* 교사용 토글 */
+.teacher-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  padding: 0.35rem 0.85rem 0.35rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  transition: border-color 0.15s ease;
+}
+
+.teacher-toggle:hover { border-color: var(--color-text); }
+
+.teacher-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 32px;
+  height: 18px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  position: relative;
+  cursor: pointer;
+  margin: 0;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.teacher-toggle input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.teacher-toggle input[type="checkbox"]:checked {
+  background: var(--color-text);
+}
+
+.teacher-toggle input[type="checkbox"]:checked::after {
+  transform: translateX(14px);
+}
+
+.teacher-toggle:has(input:checked) {
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+/* ===== 카테고리 네비 ===== */
+.category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.category-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  transition: all 0.15s ease;
+}
+
+.category-nav a:hover {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.category-nav .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ===== 추천 도구 영역 ===== */
+.featured-section {
+  padding: 2.25rem 0 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.featured-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.featured-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.featured-title .star {
+  display: inline-block;
+  color: #D97706;
+  margin-right: 0.2rem;
+}
+
+.featured-subtitle {
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+}
+
+/* 추천 카드 강조 표시 */
+.tool-card.featured-card {
+  background: linear-gradient(
+    to bottom right,
+    var(--color-surface) 0%,
+    var(--color-bg-soft) 100%
+  );
+  border-color: var(--color-border-strong);
+}
+
+.tool-card.featured-card::before {
+  content: '★';
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  color: #D97706;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ===== 카테고리 섹션 ===== */
+.category-section {
+  padding: 2.5rem 0;
+  scroll-margin-top: 2rem;
+}
+
+.category-section + .category-section {
+  border-top: 1px solid var(--color-border);
+}
+
+#featured:not(:empty) + #content .category-section:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.category-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  margin-bottom: 0.6rem;
+  padding-left: 1rem;
+  border-left: 4px solid var(--cat-color, var(--color-text));
+}
+
+.category-name {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cat-color, var(--color-text));
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.category-count {
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+}
+
+.category-description {
+  color: var(--color-text-muted);
+  margin: 0 0 1.5rem 1rem;
+  font-size: 0.95rem;
+}
+
+.subcategory-group { margin-bottom: 1.75rem; }
+.subcategory-group:last-child { margin-bottom: 0; }
+
+.subcategory-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ===== 카드 그리드 ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+/* ===== 도구 카드 ===== */
+.tool-card {
+  display: block;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.tool-card[href]:hover,
+.tool-card[href]:focus-visible {
+  border-color: var(--cat-color, var(--color-text));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(28, 25, 23, 0.06);
+  outline: none;
+}
+
+/* 준비 중 카드 */
+.tool-card.coming-soon {
+  cursor: not-allowed;
+  opacity: 0.65;
+  background: var(--color-bg-soft);
+  border-style: dashed;
+}
+
+.tool-card.coming-soon:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-cat-label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cat-color, var(--color-text));
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning);
+  color: white;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  padding-right: 1.5rem; /* 추천 별표 자리 */
+}
+
+.tool-card:not(.featured-card) .card-title { padding-right: 0; }
+
+.card-description {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0 0 0.85rem 0;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+}
+
+.level {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--cat-color, var(--color-text));
+  color: white;
+  border-radius: var(--radius-pill);
+  opacity: 0.9;
+}
+
+/* 활동 유형 — 카테고리 색상의 아웃라인 배지 */
+.activity-pill {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1.5px solid var(--cat-color, var(--color-text));
+  color: var(--cat-color, var(--color-text));
+  border-radius: var(--radius-pill);
+}
+
+/* ===== 메이커 카드 추가 정보 ===== */
+.maker-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.maker-info .info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.difficulty-stars {
+  color: var(--color-maker);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ===== 교사용 정보 영역 ===== */
+.teacher-info {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--color-bg-soft);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.teacher-info-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.teacher-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+  align-items: start;
+}
+
+.teacher-row:last-child { margin-bottom: 0; }
+
+.teacher-row .label {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.teacher-row .value {
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+/* ===== 빈 상태 / 로딩 ===== */
+.empty-state, .loading {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--color-text-subtle);
+  font-size: 0.95rem;
+}
+
+.empty-state strong {
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ===== 푸터 ===== */
+.site-footer {
+  padding: 2.5rem 0;
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 3rem;
+}
+
+/* ===== 모바일 ===== */
+@media (max-width: 640px) {
+  .site-header { padding: 2.5rem 0 1.5rem; }
+  .category-section { padding: 2rem 0; }
+  .card-grid { grid-template-columns: 1fr; }
+  .category-name { font-size: 1.45rem; }
+  .controls-row { gap: 0.85rem; }
+  .featured-title { font-size: 1.3rem; }
+}
+

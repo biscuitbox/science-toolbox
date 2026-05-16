@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="웹에서 간편하게 사용할 수 있는 과학 범용 단위 변환기입니다. 기본, 물리, 화학, 생명과학, 지구과학 단위 변환 기능을 제공합니다.">
+    <title>과학 범용 단위 변환기</title>
+    <link rel="stylesheet" href="index.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+</head>
+<body>
+    <header class="header">
+        <h1>과학 범용 단위 변환기</h1>
+        <p>물리, 화학, 생명과학, 지구과학을 아우르는 도구</p>
+    </header>
+
+    <main class="container">
+        <div class="converter-card">
+            
+            <div class="domain-selector">
+                <select id="domainSelect" aria-label="과학 분야 선택">
+                    <option value="basic">📏 기본 변환 (길이, 질량 등)</option>
+                    <option value="physics">⚙️ 물리 변환 (속도, 힘 등)</option>
+                    <option value="chemistry">🧪 화학 변환 (몰, 농도 등)</option>
+                    <option value="biology">🧬 생명과학 변환 (세포 크기 등)</option>
+                    <option value="earth">🌍 지구과학 변환 (기압, 천문 등)</option>
+                </select>
+            </div>
+
+            <div class="category-tabs" id="categoryTabs">
+                <!-- Tabs will be dynamically inserted here -->
+            </div>
+
+            <div class="converter-body">
+                <div class="input-group">
+                    <label for="inputValue" class="sr-only">입력 값</label>
+                    <input type="number" id="inputValue" placeholder="값을 입력하세요" value="1" />
+                    <label for="inputUnit" class="sr-only">입력 단위</label>
+                    <select id="inputUnit"></select>
+                </div>
+
+                <div class="equals-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M19 12l-7 7-7-7" />
+                    </svg>
+                </div>
+
+                <div class="input-group">
+                    <label for="outputValue" class="sr-only">결과 값</label>
+                    <input type="number" id="outputValue" placeholder="결과" readonly />
+                    <label for="outputUnit" class="sr-only">결과 단위</label>
+                    <select id="outputUnit"></select>
+                </div>
+            </div>
+
+            <div class="formula-box" id="formulaBox">
+                <h4>💡 변환 공식 및 이해</h4>
+                <p id="formulaText" class="formula-text"></p>
+                <div id="calcProcess" class="calc-process"></div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
