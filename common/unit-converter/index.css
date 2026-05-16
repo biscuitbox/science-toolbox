@@ -59,6 +59,7 @@ body {
 .header p {
     color: var(--text-muted);
     font-size: 1.05rem;
+    word-break: keep-all;
 }
 
 .container {
@@ -167,6 +168,7 @@ body {
     background-color: var(--bg-main);
     outline: none;
     transition: border-color 0.2s ease;
+    font-variant-numeric: tabular-nums;
 }
 
 .input-group input:focus {
@@ -180,7 +182,7 @@ body {
 }
 
 .input-group select {
-    width: 130px;
+    width: 155px;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -232,6 +234,13 @@ body {
     color: var(--text-main);
     margin-bottom: 0.5rem;
     font-weight: 700;
+}
+
+.formula-note {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    word-break: keep-all;
 }
 
 .formula-text {
