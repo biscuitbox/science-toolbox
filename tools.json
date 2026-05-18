@@ -200,6 +200,19 @@
       "activityType": "참조",
       "target": "교사",
       "sessions": "수업 중"
+    },
+    {
+    "id": "qr-code-maker",
+    "name": "QR코드 만들기",
+    "description": "사이트·와이파이·모둠별 자료를 QR로 즉시 변환",
+    "category": "common",
+    "path": "common/qr-code-maker/",
+    "tags": ["QR", "공유", "수업도구", "와이파이", "모둠활동"],
+    "level": "전 학년",
+    "activityType": "참조",
+    "target": "교사 (학생도 사용 가능)",
+    "sessions": "수시 사용",
+    "materials": ["인터넷", "(인쇄 시) 프린터"]
     }
   ]
 }
