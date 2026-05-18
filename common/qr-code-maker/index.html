@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR코드 만들기 | 과학 도구상자</title>
+
+  <!-- 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- QR 라이브러리 (소형 단일 파일, 브라우저 안에서만 동작) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+  <!-- 사이트 공통 복귀 링크 (좌상단 "← 도구상자") -->
+  <script src="../../toolbox-nav.js"></script>
+
+  <style>
+    :root {
+      --bg: #faf6ee;
+      --paper: #fffdf7;
+      --ink: #2a2620;
+      --muted: #7a7060;
+      --border: #e8dfc9;
+      --border2: #d6c9aa;
+      --accent: #6b5d4a;          /* common 카테고리: 회갈색 */
+      --accent-strong: #4a3f30;
+      --accent-soft: #f0e8d5;
+      --line: rgba(180, 145, 90, 0.12);
+      --shadow: 0 2px 8px rgba(80, 60, 30, 0.08);
+      --focus: 0 0 0 3px rgba(107, 93, 74, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      padding: 24px 16px 80px;
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--bg);
+      /* 노트북 라인 배경 */
+      background-image: linear-gradient(to bottom, transparent 31px, var(--line) 32px);
+      background-size: 100% 32px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 980px; margin: 0 auto; }
+
+    /* 헤더 */
+    header.tool-header { margin: 40px 0 24px; }
+    h1 {
+      font-family: 'Gowun Batang', serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      margin: 0 0 8px;
+      color: var(--accent-strong);
+      letter-spacing: -0.01em;
+    }
+    h1::before { content: "▒ "; color: var(--accent); }
+    .lead { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+    /* 탭 */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 28px 0 0;
+      border-bottom: 2px solid var(--border2);
+      flex-wrap: wrap;
+    }
+    .tab {
+      background: transparent;
+      border: none;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px 6px 0 0;
+      transition: color 200ms;
+    }
+    .tab:hover { color: var(--ink); background: rgba(0,0,0,0.02); }
+    .tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .tab[aria-selected="true"] {
+      color: var(--accent-strong);
+      border-bottom-color: var(--accent);
+      font-weight: 700;
+    }
+    .tab-icon { font-size: 1.05rem; }
+
+    /* 패널 */
+    .panel { display: none; padding: 24px 0; }
+    .panel.active { display: block; }
+
+    /* 레이아웃 */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media (min-width: 760px) {
+      .layout { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* 카드 */
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-family: 'Gowun Batang', serif;
+      font-size: 1.05rem;
+      margin: 0 0 16px;
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+
+    /* 폼 */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .field-help {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .field-help code {
+      background: var(--accent-soft);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    input[type="url"],
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      transition: border-color 200ms, box-shadow 200ms;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: var(--focus);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 140px;
+      font-family: 'Pretendard', monospace;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 480px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    /* 슬라이더 */
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      height: 6px;
+    }
+    .slider-value {
+      min-width: 64px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    /* 체크박스 */
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .check input { width: auto; accent-color: var(--accent); transform: scale(1.1); }
+
+    /* 버튼 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: 1px solid var(--accent-strong);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 200ms, transform 100ms;
+      min-height: 40px;
+    }
+    .btn:hover { background: var(--accent-strong); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn.secondary {
+      background: transparent;
+      color: var(--accent-strong);
+    }
+    .btn.secondary:hover { background: var(--accent-soft); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn .ico { font-size: 1rem; }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    /* 미리보기 */
+    .preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      min-height: 280px;
+    }
+    .qr-frame {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      max-width: 100%;
+    }
+    .qr-canvas {
+      display: block;
+      image-rendering: pixelated;
+      max-width: 100%;
+      height: auto;
+    }
+    .qr-label {
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ink);
+      text-align: center;
+      max-width: 240px;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .placeholder {
+      color: var(--muted);
+      text-align: center;
+      padding: 40px 20px;
+      border: 2px dashed var(--border2);
+      border-radius: 10px;
+      width: 100%;
+    }
+
+    /* 다중 그리드 */
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+    .qr-grid .qr-frame { padding: 12px; width: 100%; }
+    .qr-grid .qr-canvas { width: 100% !important; height: auto !important; }
+    .qr-grid .qr-label { font-size: 0.82rem; max-width: 100%; }
+
+    /* 안내 박스 */
+    .notice {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--accent-strong);
+      margin-bottom: 16px;
+    }
+    .notice strong { font-weight: 700; }
+
+    .info {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 12px 0 0;
+    }
+    .info strong { color: var(--ink); }
+
+    /* 푸터 */
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border2);
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    footer code {
+      background: var(--accent-soft);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* 화면에서는 4분할/그리드용 인쇄 영역 숨김 */
+    .single-qr-quad { display: none; }
+
+    /* 인쇄 */
+    @media print {
+      body {
+        background: white;
+        background-image: none;
+        padding: 0;
+        font-size: 12pt;
+      }
+      header.tool-header,
+      .tabs,
+      .controls-card,
+      .actions,
+      .print-hide,
+      footer,
+      .toolbox-back-link,
+      .field-help,
+      .notice,
+      .info {
+        display: none !important;
+      }
+      .panel:not(.active) { display: none !important; }
+      .layout { display: block; }
+      .card.preview-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        background: white;
+      }
+      .card-title { display: none; }
+      .preview { min-height: auto; padding: 0; }
+      .qr-frame {
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+        padding: 8mm;
+      }
+      .qr-canvas { image-rendering: crisp-edges; }
+
+      /* 4분할 인쇄 모드: 원본 숨기고 quad 4개 격자로 */
+      .print-quad-mode .preview-original { display: none !important; }
+      .print-quad-mode .single-qr-quad {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 10mm;
+        page-break-inside: avoid;
+      }
+      .print-quad-mode .single-qr-quad .qr-frame {
+        margin: 0 auto;
+      }
+
+      /* 여러 URL 인쇄: 2열 격자 */
+      .qr-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="tool-header">
+      <h1>QR코드 만들기</h1>
+      <p class="lead">학습지 링크, 학교 와이파이, 모둠별 자료를 빠르게 QR로 만듭니다.</p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="QR 종류 선택">
+      <button class="tab" role="tab" id="tab-single" aria-selected="true"
+              aria-controls="panel-single" data-panel="single">
+        <span class="tab-icon" aria-hidden="true">🔗</span>단일 URL
+      </button>
+      <button class="tab" role="tab" id="tab-multi" aria-selected="false"
+              aria-controls="panel-multi" data-panel="multi" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">📋</span>여러 URL 일괄
+      </button>
+      <button class="tab" role="tab" id="tab-wifi" aria-selected="false"
+              aria-controls="panel-wifi" data-panel="wifi" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">📶</span>WiFi
+      </button>
+    </nav>
+
+    <!-- 단일 URL -->
+    <section class="panel active" id="panel-single" role="tabpanel" aria-labelledby="tab-single">
+      <div class="layout">
+        <div class="card controls-card">
+          <h2 class="card-title">설정</h2>
+
+          <div class="field">
+            <label for="single-url">사이트 주소</label>
+            <input type="url" id="single-url" placeholder="https://..."
+                   autocomplete="off" value="https://example.com" />
+          </div>
+
+          <div class="field">
+            <label for="single-label">라벨 (선택)</label>
+            <input type="text" id="single-label" placeholder="예: 1단원 학습지" maxlength="40" />
+            <p class="field-help">QR 아래에 표시되고 다운로드·인쇄에도 함께 들어갑니다.</p>
+          </div>
+
+          <div class="field">
+            <label for="single-size">
+              크기 <span class="slider-value" id="single-size-val">320px</span>
+            </label>
+            <div class="slider-row">
+              <input type="range" id="single-size" min="160" max="600"
+                     step="20" value="320" aria-describedby="single-size-val" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="single-ec">오류정정 레벨</label>
+            <select id="single-ec">
+              <option value="L">L — 낮음 (7%, 작고 깨끗한 화면용)</option>
+              <option value="M" selected>M — 보통 (15%, 기본 추천)</option>
+              <option value="Q">Q — 높음 (25%, 인쇄물)</option>
+              <option value="H">H — 최고 (30%, 스티커·구겨질 수 있는 곳)</option>
+            </select>
+            <p class="field-help">
+              레벨이 높을수록 일부가 가려져도 잘 읽히지만, 패턴이 더 복잡해집니다.
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="check">
+              <input type="checkbox" id="single-quad" />
+              <span>인쇄 시 한 장에 4개로 (모둠 나눠주기용)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card preview-card">
+          <h2 class="card-title">미리보기</h2>
+          <div class="preview preview-original">
+            <div class="qr-frame" id="single-frame">
+              <canvas class="qr-canvas" id="single-canvas"></canvas>
+              <div class="qr-label" id="single-label-display" hidden></div>
+            </div>
+          </div>
+
+          <!-- 인쇄 4분할용 (화면에서는 숨김) -->
+          <div class="single-qr-quad" aria-hidden="true" id="single-quad-area"></div>
+
+          <div class="actions">
+            <button class="btn" id="single-download" type="button">
+              <span class="ico" aria-hidden="true">⬇</span> PNG 다운로드
+            </button>
+            <button class="btn secondary" id="single-print" type="button">
+              <span class="ico" aria-hidden="true">🖨</span> 인쇄
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 여러 URL -->
+    <section class="panel" id="panel-multi" role="tabpanel" aria-labelledby="tab-multi" hidden>
+      <div class="layout">
+        <div class="card controls-card">
+          <h2 class="card-title">목록 입력</h2>
+
+          <div class="field">
+            <label for="multi-input">URL 목록 (한 줄에 하나씩)</label>
+            <textarea id="multi-input" rows="8"
+              placeholder="https://example.com/group1 |1모둠&#10;https://example.com/group2 |2모둠&#10;https://example.com/group3 |3모둠"></textarea>
+            <p class="field-help">
+              줄 뒤에 <code>|라벨</code>을 적으면 QR 아래에 그 라벨이 들어갑니다.
+              예: <code>https://... |1모둠</code>
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="multi-ec">오류정정 레벨</label>
+            <select id="multi-ec">
+              <option value="L">L — 낮음</option>
+              <option value="M" selected>M — 보통</option>
+              <option value="Q">Q — 높음</option>
+              <option value="H">H — 최고</option>
+            </select>
+          </div>
+
+          <button class="btn" id="multi-generate" type="button">
+            <span class="ico" aria-hidden="true">⚡</span> 한꺼번에 만들기
+          </button>
+        </div>
+
+        <div class="card preview-card">
+          <h2 class="card-title">미리보기</h2>
+          <div class="preview">
+            <div class="qr-grid" id="multi-grid">
+              <div class="placeholder">URL 목록을 입력한 뒤 <strong>한꺼번에 만들기</strong>를 누르세요.</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn secondary" id="multi-print" type="button" disabled>
+              <span class="ico" aria-hidden="true">🖨</span> 인쇄 (격자로)
+            </button>
+          </div>
+          <p class="info">
+            <strong>팁.</strong> A4 1장에 2열로 배치됩니다. 더 작게 인쇄하고 싶으면
+            브라우저 인쇄 설정에서 "여러 페이지를 한 면에"를 활용하세요.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WiFi -->
+    <section class="panel" id="panel-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
+      <div class="layout">
+        <div class="card controls-card">
+          <h2 class="card-title">와이파이 정보</h2>
+
+          <div class="notice">
+            <strong>안전 안내.</strong> 입력한 비밀번호는 이 페이지(브라우저) 안에서만
+            QR로 변환됩니다. 외부 서버로 전송되지 않습니다.
+          </div>
+
+          <div class="field">
+            <label for="wifi-ssid">네트워크 이름 (SSID)</label>
+            <input type="text" id="wifi-ssid" placeholder="예: SchoolWiFi" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="wifi-pass">비밀번호</label>
+            <input type="text" id="wifi-pass" placeholder="비밀번호" autocomplete="off" />
+            <p class="field-help">개방 네트워크면 비워두고 아래 "암호 없음"을 선택하세요.</p>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="wifi-auth">보안 방식</label>
+              <select id="wifi-auth">
+                <option value="WPA" selected>WPA / WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">암호 없음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="wifi-size">
+                크기 <span class="slider-value" id="wifi-size-val">320px</span>
+              </label>
+              <div class="slider-row">
+                <input type="range" id="wifi-size" min="160" max="600" step="20" value="320" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="check">
+              <input type="checkbox" id="wifi-hidden" />
+              <span>숨김 네트워크입니다</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="wifi-label">라벨 (선택)</label>
+            <input type="text" id="wifi-label" placeholder="예: 과학실 와이파이" maxlength="40" />
+          </div>
+        </div>
+
+        <div class="card preview-card">
+          <h2 class="card-title">미리보기</h2>
+          <div class="preview">
+            <div class="qr-frame">
+              <canvas class="qr-canvas" id="wifi-canvas"></canvas>
+              <div class="qr-label" id="wifi-label-display" hidden></div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="wifi-download" type="button">
+              <span class="ico" aria-hidden="true">⬇</span> PNG 다운로드
+            </button>
+            <button class="btn secondary" id="wifi-print" type="button">
+              <span class="ico" aria-hidden="true">🖨</span> 인쇄
+            </button>
+          </div>
+          <p class="info">
+            <strong>읽는 법.</strong> iPhone·최근 Android 카메라로 비추면 자동으로
+            와이파이 연결 안내가 뜹니다. 일부 구형 기기는 동작하지 않을 수 있어요.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>외부 서버 없이 브라우저 안에서 작동합니다 · QR 라이브러리: <code>qrcode.js</code> · 과학 도구상자</p>
+    </footer>
+  </main>
+
+  <script>
+    // =========================================================
+    // 탭 전환 (키보드 ←/→ 지원)
+    // =========================================================
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+
+    function activateTab(tab) {
+      const target = tab.dataset.panel;
+      tabs.forEach(t => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach(p => {
+        const on = p.id === 'panel-' + target;
+        p.classList.toggle('active', on);
+        p.hidden = !on;
+      });
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', e => {
+        const idx = Array.from(tabs).indexOf(tab);
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          const next = tabs[(idx + 1) % tabs.length];
+          activateTab(next); next.focus();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+          activateTab(prev); prev.focus();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          activateTab(tabs[0]); tabs[0].focus();
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          const last = tabs[tabs.length - 1];
+          activateTab(last); last.focus();
+        }
+      });
+    });
+
+    // =========================================================
+    // QR 그리기 공통 함수
+    // =========================================================
+    function drawQR(canvas, text, opts) {
+      if (!text || !text.trim()) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = 1; canvas.height = 1;
+        return;
+      }
+      QRCode.toCanvas(canvas, text, {
+        width: opts.size,
+        margin: 2,
+        errorCorrectionLevel: opts.ec || 'M',
+        color: { dark: '#1a1611', light: '#ffffff' }
+      }, function (err) {
+        if (err) console.error('QR 생성 오류:', err);
+      });
+    }
+
+    // QR + 라벨을 합쳐서 PNG로 다운로드
+    function downloadFrame(canvas, label, filename) {
+      const size = canvas.width;
+      if (!size || size < 2) return;
+      const labelText = (label || '').trim();
+      const pad = 30;
+      const labelHeight = labelText ? 56 : 0;
+
+      const out = document.createElement('canvas');
+      out.width = size + pad * 2;
+      out.height = size + pad * 2 + labelHeight;
+      const ctx = out.getContext('2d');
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(canvas, pad, pad);
+
+      if (labelText) {
+        ctx.fillStyle = '#1a1611';
+        ctx.font = 'bold 22px "Gowun Batang", "Pretendard", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, out.width / 2, size + pad + 26, out.width - 24);
+      }
+
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = out.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function safeFilename(text) {
+      return (text || 'qrcode')
+        .replace(/^https?:\/\//, '')
+        .replace(/[\/\\?%*:|"<>]/g, '_')
+        .substring(0, 40) || 'qrcode';
+    }
+
+    // =========================================================
+    // 단일 URL
+    // =========================================================
+    const sUrl = document.getElementById('single-url');
+    const sLabel = document.getElementById('single-label');
+    const sSize = document.getElementById('single-size');
+    const sSizeVal = document.getElementById('single-size-val');
+    const sEc = document.getElementById('single-ec');
+    const sQuad = document.getElementById('single-quad');
+    const sCanvas = document.getElementById('single-canvas');
+    const sLabelDisplay = document.getElementById('single-label-display');
+    const sQuadArea = document.getElementById('single-quad-area');
+
+    function renderSingle() {
+      const text = sUrl.value;
+      const size = parseInt(sSize.value, 10);
+      sSizeVal.textContent = size + 'px';
+
+      drawQR(sCanvas, text, { size, ec: sEc.value });
+
+      const label = sLabel.value.trim();
+      if (label) {
+        sLabelDisplay.textContent = label;
+        sLabelDisplay.hidden = false;
+      } else {
+        sLabelDisplay.hidden = true;
+      }
+
+      // 인쇄 4분할 영역 갱신
+      sQuadArea.innerHTML = '';
+      if (sQuad.checked && text.trim()) {
+        document.body.classList.add('print-quad-mode');
+        for (let i = 0; i < 4; i++) {
+          const frame = document.createElement('div');
+          frame.className = 'qr-frame';
+          const c = document.createElement('canvas');
+          c.className = 'qr-canvas';
+          frame.appendChild(c);
+          if (label) {
+            const l = document.createElement('div');
+            l.className = 'qr-label';
+            l.textContent = label;
+            frame.appendChild(l);
+          }
+          sQuadArea.appendChild(frame);
+          drawQR(c, text, { size: 280, ec: sEc.value });
+        }
+      } else {
+        document.body.classList.remove('print-quad-mode');
+      }
+    }
+
+    [sUrl, sLabel, sSize, sEc, sQuad].forEach(el => {
+      el.addEventListener('input', renderSingle);
+      el.addEventListener('change', renderSingle);
+    });
+
+    document.getElementById('single-download').addEventListener('click', () => {
+      if (!sUrl.value.trim()) {
+        alert('URL을 먼저 입력하세요.');
+        sUrl.focus();
+        return;
+      }
+      downloadFrame(sCanvas, sLabel.value,
+        safeFilename(sLabel.value || sUrl.value) + '.png');
+    });
+
+    document.getElementById('single-print').addEventListener('click', () => {
+      if (!sUrl.value.trim()) {
+        alert('URL을 먼저 입력하세요.');
+        sUrl.focus();
+        return;
+      }
+      window.print();
+    });
+
+    // =========================================================
+    // 여러 URL 일괄
+    // =========================================================
+    const mInput = document.getElementById('multi-input');
+    const mEc = document.getElementById('multi-ec');
+    const mGrid = document.getElementById('multi-grid');
+    const mPrintBtn = document.getElementById('multi-print');
+
+    document.getElementById('multi-generate').addEventListener('click', () => {
+      const lines = mInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+      mGrid.innerHTML = '';
+
+      if (lines.length === 0) {
+        mGrid.innerHTML =
+          '<div class="placeholder">URL을 한 줄에 하나씩 입력하세요.</div>';
+        mPrintBtn.disabled = true;
+        return;
+      }
+      if (lines.length > 60) {
+        alert('한 번에 최대 60개까지 만들 수 있어요. 더 많으면 두 번에 나눠주세요.');
+        return;
+      }
+
+      lines.forEach((line, i) => {
+        const [urlPart, ...labelParts] = line.split('|');
+        const url = urlPart.trim();
+        const label = labelParts.join('|').trim() || ('QR ' + (i + 1));
+
+        const frame = document.createElement('div');
+        frame.className = 'qr-frame';
+        const c = document.createElement('canvas');
+        c.className = 'qr-canvas';
+        frame.appendChild(c);
+        const l = document.createElement('div');
+        l.className = 'qr-label';
+        l.textContent = label;
+        frame.appendChild(l);
+        mGrid.appendChild(frame);
+
+        drawQR(c, url, { size: 220, ec: mEc.value });
+      });
+
+      mPrintBtn.disabled = false;
+    });
+
+    mPrintBtn.addEventListener('click', () => {
+      document.body.classList.remove('print-quad-mode');
+      window.print();
+    });
+
+    // =========================================================
+    // WiFi
+    // =========================================================
+    const wSsid = document.getElementById('wifi-ssid');
+    const wPass = document.getElementById('wifi-pass');
+    const wAuth = document.getElementById('wifi-auth');
+    const wHidden = document.getElementById('wifi-hidden');
+    const wLabel = document.getElementById('wifi-label');
+    const wSize = document.getElementById('wifi-size');
+    const wSizeVal = document.getElementById('wifi-size-val');
+    const wCanvas = document.getElementById('wifi-canvas');
+    const wLabelDisplay = document.getElementById('wifi-label-display');
+
+    // WiFi QR 표준의 특수문자 이스케이프: \ ; , : "
+    function escapeWifi(s) {
+      return String(s).replace(/([\\;,:"])/g, '\\$1');
+    }
+
+    function wifiString() {
+      const ssid = wSsid.value;
+      if (!ssid) return '';
+      const auth = wAuth.value;
+      const pass = (auth === 'nopass') ? '' : wPass.value;
+      const hidden = wHidden.checked ? 'true' : 'false';
+      return 'WIFI:T:' + auth +
+             ';S:' + escapeWifi(ssid) +
+             ';P:' + escapeWifi(pass) +
+             ';H:' + hidden + ';;';
+    }
+
+    function renderWifi() {
+      const size = parseInt(wSize.value, 10);
+      wSizeVal.textContent = size + 'px';
+      // WiFi QR은 정정 레벨 H로 고정 (인쇄·먼 거리 스캔에서 더 안정적)
+      drawQR(wCanvas, wifiString(), { size, ec: 'H' });
+
+      const label = wLabel.value.trim();
+      if (label) {
+        wLabelDisplay.textContent = label;
+        wLabelDisplay.hidden = false;
+      } else {
+        wLabelDisplay.hidden = true;
+      }
+    }
+
+    [wSsid, wPass, wAuth, wHidden, wLabel, wSize].forEach(el => {
+      el.addEventListener('input', renderWifi);
+      el.addEventListener('change', renderWifi);
+    });
+
+    document.getElementById('wifi-download').addEventListener('click', () => {
+      if (!wSsid.value.trim()) {
+        alert('네트워크 이름(SSID)을 입력하세요.');
+        wSsid.focus();
+        return;
+      }
+      downloadFrame(wCanvas, wLabel.value,
+        safeFilename('wifi-' + wSsid.value) + '.png');
+    });
+
+    document.getElementById('wifi-print').addEventListener('click', () => {
+      if (!wSsid.value.trim()) {
+        alert('네트워크 이름(SSID)을 입력하세요.');
+        wSsid.focus();
+        return;
+      }
+      window.print();
+    });
+
+    // =========================================================
+    // 초기 렌더
+    // =========================================================
+    renderSingle();
+    renderWifi();
+  </script>
+</body>
+</html>
