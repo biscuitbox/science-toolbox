@@ -17,8 +17,14 @@
     rel="stylesheet"
   />
 
-  <!-- QR 라이브러리 (소형 단일 파일, 브라우저 안에서만 동작) -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- QR 라이브러리 (브라우저 안에서만 동작) -->
+  <!-- 1차: jsDelivr. 막혀 있으면 자동으로 2차(unpkg) 시도. -->
+  <script src="https://cdn.jsdelivr.net/npm/[email protected]/build/qrcode.min.js"></script>
+  <script>
+    if (typeof QRCode === 'undefined') {
+      document.write('<script src="https://unpkg.com/[email protected]/build/qrcode.min.js"><\/script>');
+    }
+  </script>
 
   <!-- 사이트 공통 복귀 링크 (좌상단 "← 도구상자") -->
   <script src="../../toolbox-nav.js"></script>
