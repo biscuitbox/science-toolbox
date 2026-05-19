@@ -209,6 +209,7 @@
     "path": "common/qr-code-maker/",
     "tags": ["QR", "공유", "수업도구", "와이파이", "모둠활동"],
     "level": "전 학년",
+    "featured": true,
     "activityType": "참조",
     "target": "교사 (학생도 사용 가능)",
     "sessions": "수시 사용",
