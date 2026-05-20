@@ -214,6 +214,21 @@
     "target": "교사 (학생도 사용 가능)",
     "sessions": "수시 사용",
     "materials": ["인터넷", "(인쇄 시) 프린터"]
+    },
+    {
+    "id": "water-electrolysis",
+    "name": "물 전기분해 가상실험",
+    "description": "물에 전기를 흘려 수소와 산소로 분해되는 과정을 관찰해요",
+    "category": "chemistry",
+    "path": "chemistry/water-electrolysis/",
+    "tags": ["화학변화", "전기분해", "수소", "산소", "화학반응식", "입자모형"],
+    "level": "중2~고2",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중2~3 화학반응식 학습 / 고2 화학 분자구조·전기분해",
+    "sessions": "1차시",
+    "materials": [],
+    "achievementStandard": ["9과16-01", "9과16-02", "12화학02-04"]
     }
   ]
 }
