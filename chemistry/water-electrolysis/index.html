@@ -1,0 +1,2879 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>물 전기분해 가상실험</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable.min.css">
+
+<style>
+/* ══════════════════════════════════════════════
+   CSS 변수
+══════════════════════════════════════════════ */
+:root {
+  --amber:       #D97706;
+  --amber-light: #FEF3C7;
+  --amber-dark:  #92400E;
+  --amber-mid:   #B45309;
+
+  --h2-color:  #92400E;
+  --h2-bg:     #FFFBEB;
+  --h2-border: #FDE68A;
+  --o2-color:  #B91C1C;
+  --o2-bg:     #FEF2F2;
+  --o2-border: #FECACA;
+
+  --bg:        #FAF9F6;
+  --bg-card:   #FFFFFF;
+  --border:    #E5E2D7;
+  --border2:   #CEC9BB;
+  --line:      #ECEAE0;
+
+  --text:      #1C1917;
+  --muted:     #78716C;
+  --light:     #A8A29E;
+
+  --shadow:    0 2px 10px rgba(0,0,0,0.07);
+  --r:         10px;
+}
+
+/* ══════════════════════════════════════════════
+   리셋 & 기본
+══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  background-image: repeating-linear-gradient(
+    transparent 0px, transparent 31px,
+    var(--line) 31px, var(--line) 32px
+  );
+  background-attachment: fixed;
+}
+
+/* ══════════════════════════════════════════════
+   상단 바
+══════════════════════════════════════════════ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 20px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.tool-title {
+  font-family: 'Gowun Batang', serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tool-title span { color: var(--amber); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* 학년 토글 */
+.grade-toggle {
+  display: flex;
+  background: var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.grade-btn {
+  padding: 4px 11px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.77rem;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.grade-btn.active {
+  background: #fff;
+  color: var(--amber-dark);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.grade-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* 교사 버튼 */
+.teacher-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.77rem;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 200ms ease;
+  white-space: nowrap;
+}
+.teacher-btn.active {
+  border-color: var(--amber);
+  color: var(--amber-dark);
+  background: var(--amber-light);
+}
+.teacher-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* ══════════════════════════════════════════════
+   메인 레이아웃
+══════════════════════════════════════════════ */
+.main {
+  display: flex;
+  justify-content: center;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 16px;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* ══════════════════════════════════════════════
+   장치 패널 (왼쪽) — 1.5배 확대
+══════════════════════════════════════════════ */
+.device-panel {
+  flex: 0 0 510px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-caption {
+  font-family: 'Gowun Batang', serif;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.device-wrap {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px 12px 12px;
+  position: relative;
+}
+
+.speed-badge {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  background: rgba(0,0,0,0.07);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+
+#device-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* 기포: JS로 동적 생성 — CSS 애니메이션 불필요 */
+
+.shortcut-hint {
+  font-size: 0.68rem;
+  color: var(--light);
+  text-align: center;
+  width: 100%;
+}
+
+/* ══════════════════════════════════════════════
+   컨트롤 패널 (중앙) — 절반 너비
+══════════════════════════════════════════════ */
+.control-panel {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+}
+
+/* 카드 */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* 버튼 */
+.btn-row { display: flex; gap: 7px; }
+
+.btn-start {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 12px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 180ms ease, transform 100ms ease;
+}
+.btn-start:hover:not(:disabled) { background: var(--amber-mid); }
+.btn-start:active:not(:disabled) { transform: scale(0.98); }
+.btn-start:disabled { background: #D4D4D8; cursor: not-allowed; }
+.btn-start.running { background: #059669; }
+.btn-start.running:hover { background: #047857; }
+.btn-start:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.btn-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px 10px;
+  background: #fff;
+  color: var(--muted);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 180ms, color 180ms;
+  white-space: nowrap;
+}
+.btn-reset:hover { border-color: #999; color: var(--text); }
+.btn-reset:focus-visible { outline: 3px solid var(--muted); outline-offset: 2px; }
+
+/* 상태 메시지 */
+.status-msg {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: var(--amber-dark);
+  display: none;
+}
+.status-msg.show { display: block; }
+.status-msg.done { background: #ECFDF5; border-color: #6EE7B7; color: #065F46; }
+
+/* 슬라이더 영역 */
+.slider-block { display: flex; flex-direction: column; gap: 7px; }
+.slider-block + .slider-block { margin-top: 12px; }
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.slider-label { font-size: 0.8rem; font-weight: 500; }
+.slider-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--amber-dark);
+  min-width: 34px;
+  text-align: right;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--border);
+  -webkit-appearance: none;
+  cursor: pointer;
+  accent-color: var(--amber);
+  outline: none;
+}
+input[type="range"]:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+/* 속도 버튼 */
+.speed-group {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.speed-btn {
+  padding: 4px 10px;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.speed-btn.active {
+  border-color: var(--amber);
+  color: var(--amber-dark);
+  background: var(--amber-light);
+}
+.speed-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.hint-small {
+  font-size: 0.67rem;
+  color: var(--light);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* 부피 표시 */
+.vol-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vol-item {
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+.vol-item.h2 { background: var(--h2-bg); border: 1.5px solid var(--h2-border); }
+.vol-item.o2 { background: var(--o2-bg); border: 1.5px solid var(--o2-border); }
+
+.vol-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.69rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.vol-head.h2 { color: var(--h2-color); }
+.vol-head.o2 { color: var(--o2-color); }
+
+.vol-num {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.vol-num.h2 { color: var(--h2-color); }
+.vol-num.o2 { color: var(--o2-color); }
+
+.vol-unit { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+/* 비율 */
+.ratio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: #FAFAF5;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ratio-lbl { font-size: 0.72rem; color: var(--muted); }
+.ratio-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ratio-note { font-size: 0.68rem; color: var(--light); margin-top: 4px; text-align: right; }
+
+/* 관찰 힌트 카드 */
+.hint-card {
+  border-color: var(--amber) !important;
+  border-style: dashed !important;
+  background: linear-gradient(135deg, #FFFDF7, #FFF8E7) !important;
+}
+.hint-card .card-title { color: var(--amber-dark); }
+.hint-body { font-size: 0.83rem; color: var(--text); line-height: 1.55; }
+.hint-grade {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 6px;
+  line-height: 1.45;
+}
+
+/* ══════════════════════════════════════════════
+   탭 내비게이션
+══════════════════════════════════════════════ */
+.tab-nav {
+  display: flex;
+  background: var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 5px 3px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 180ms ease;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  background: white;
+  color: var(--amber-dark);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.tab-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.tab-pane { display: flex; flex-direction: column; gap: 11px; }
+.tab-pane[hidden] { display: none !important; }
+
+/* ══════════════════════════════════════════════
+   입자 모형 탭
+══════════════════════════════════════════════ */
+.particle-note {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+#particle-canvas {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #F8FAFC;
+  margin: 8px 0;
+}
+.particle-step-desc {
+  font-size: 0.77rem;
+  color: var(--text);
+  padding: 7px 10px;
+  background: var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  min-height: 2.2em;
+  line-height: 1.4;
+}
+.particle-controls { display: flex; gap: 6px; margin-bottom: 6px; }
+.btn-p-play {
+  flex: 1;
+  padding: 7px 8px;
+  background: var(--amber);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.btn-p-play:hover { background: var(--amber-mid); }
+.btn-p-play:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.btn-p-reset {
+  padding: 7px 11px;
+  background: white;
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  font-size: 0.79rem;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.btn-p-reset:hover { border-color: #999; color: var(--text); }
+.btn-p-reset:focus-visible { outline: 3px solid var(--muted); outline-offset: 2px; }
+.particle-scale-note {
+  font-size: 0.67rem;
+  color: var(--light);
+  line-height: 1.45;
+}
+
+/* ── 결과 저장 버튼 ── */
+.btn-capture {
+  width: 100%;
+  padding: 8px;
+  background: white;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.btn-capture:hover {
+  border-color: var(--amber);
+  color: var(--amber-dark);
+  background: var(--amber-light);
+}
+.btn-capture:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* ══════════════════════════════════════════════
+   반응식 탭
+══════════════════════════════════════════════ */
+.eq-intro {
+  font-size: 0.79rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.45;
+}
+
+/* 반응식 한 줄 */
+.eq-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 10px 0 8px;
+  flex-wrap: wrap;
+}
+.eq-term { display: flex; align-items: center; gap: 2px; }
+
+.eq-input {
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--border2);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--text);
+  background: white;
+  transition: border-color 200ms, background 200ms;
+  -moz-appearance: textfield;
+}
+.eq-input::-webkit-inner-spin-button,
+.eq-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.eq-input:focus { outline: none; border-color: var(--amber); }
+.eq-input.correct { border-color: #10B981; background: #ECFDF5; color: #065F46; }
+.eq-input.wrong   { border-color: #EF4444; background: #FEF2F2; color: #B91C1C; }
+
+.eq-formula {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.eq-symbol {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0 1px;
+}
+
+/* 피드백 */
+.eq-feedback {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  border-radius: 7px;
+}
+.eq-feedback:empty { display: none; }
+.eq-feedback.success {
+  padding: 8px 10px;
+  background: #ECFDF5;
+  border: 1px solid #6EE7B7;
+  color: #065F46;
+}
+.eq-feedback.error {
+  padding: 8px 10px;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+}
+
+/* 고등 추가 문제 */
+.eq-extra { margin-top: 10px; }
+.eq-extra-title {
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 7px;
+}
+.eq-choice-row { display: flex; gap: 0; }
+.eq-choice-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+}
+.eq-choice-item:first-child {
+  border-right: 1.5px solid var(--border2);
+}
+.eq-choice-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.eq-choice-btns { display: flex; gap: 4px; justify-content: center; }
+.choice-btn {
+  flex: 1;
+  padding: 5px 3px;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.choice-btn.selected      { border-color: var(--amber); color: var(--amber-dark); background: var(--amber-light); }
+.choice-btn.correct-sel   { border-color: #10B981; background: #ECFDF5; color: #065F46; }
+.choice-btn.wrong-sel     { border-color: #EF4444; background: #FEF2F2; color: #B91C1C; }
+.choice-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.eq-extra-fb { font-size: 0.73rem; margin-top: 6px; line-height: 1.4; color: var(--muted); min-height: 1em; }
+
+/* 힌트 박스 */
+.eq-hint-box {
+  font-size: 0.76rem;
+  color: var(--amber-dark);
+  padding: 8px 10px;
+  background: var(--amber-light);
+  border: 1px solid #FDE68A;
+  border-radius: 7px;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+/* 반응식 버튼 행 */
+.eq-btn-row { display: flex; gap: 5px; margin-top: 10px; }
+
+.btn-eq-check {
+  flex: 1;
+  padding: 8px 8px;
+  background: var(--amber);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.btn-eq-check:hover { background: var(--amber-mid); }
+.btn-eq-check:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.btn-eq-hint, .btn-eq-reset {
+  padding: 8px 8px;
+  background: white;
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  font-size: 0.77rem;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+  white-space: nowrap;
+}
+.btn-eq-hint:hover  { border-color: var(--amber); color: var(--amber-dark); }
+.btn-eq-reset:hover { border-color: #999; color: var(--text); }
+.btn-eq-hint:focus-visible,
+.btn-eq-reset:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* ══════════════════════════════════════════════
+   컨트롤 + 교사 패널 wrapper
+══════════════════════════════════════════════ */
+.control-wrapper {
+  position: relative;   /* 교사 패널의 absolute 기준점 */
+  flex-shrink: 0;
+  width: 260px;         /* control-panel 너비와 동일 — left: calc(100% + 12px) 기준 확정 */
+}
+
+/* ══════════════════════════════════════════════
+   교사 패널 — control-wrapper 오른쪽에 absolute
+   기존 박스 위치에 영향 없음
+══════════════════════════════════════════════ */
+.teacher-panel {
+  position: absolute;
+  left: calc(100% + 12px);   /* 컨트롤 패널 오른쪽 + 12px */
+  top: 0;
+  width: 230px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--amber-light);
+  border: 1px solid #FDE68A;
+  border-radius: var(--r);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+  transition: transform 300ms ease, opacity 300ms ease;
+  z-index: 100;
+}
+.teacher-panel.open {
+  padding: 16px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.tp-title {
+  font-family: 'Gowun Batang', serif;
+  font-size: 0.88rem;
+  color: var(--amber-dark);
+  margin-bottom: 10px;
+}
+
+.ac-badge {
+  display: inline-block;
+  background: var(--amber);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin: 2px 2px 2px 0;
+}
+
+.tp-section { border-top: 1px solid #FDE68A; padding-top: 12px; margin-top: 12px; }
+.tp-sec-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber-dark);
+  margin-bottom: 8px;
+}
+
+.q-item {
+  font-size: 0.76rem;
+  color: var(--amber-dark);
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.55);
+  border-radius: 6px;
+  margin-bottom: 5px;
+  line-height: 1.45;
+}
+
+.mc-item {
+  font-size: 0.73rem;
+  color: #92400E;
+  padding: 5px 8px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 5px;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.safety-text {
+  font-size: 0.71rem;
+  color: #92400E;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════
+   인쇄
+══════════════════════════════════════════════ */
+@media print {
+  .topbar { position: static; box-shadow: none; }
+  .teacher-panel, .teacher-btn, .grade-toggle,
+  .btn-row, .slider-block, .speed-group, .shortcut-hint { display: none !important; }
+  body { background: white; background-image: none; }
+  .main { padding: 0; }
+  .device-panel { page-break-inside: avoid; }
+  .card { box-shadow: none; border-color: #ddd; }
+}
+
+
+/* ══════════════════════════════════════════════
+   3단계 — 점화 시험 + 기록표
+══════════════════════════════════════════════ */
+
+/* 점화 버튼 쌍 */
+.ignite-btns { display: flex; gap: 7px; margin-top: 10px; }
+.btn-ignite {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 6px;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  background: white;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.btn-ignite:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-ignite .ig-icon  { font-size: 1.1rem; line-height: 1; }
+.btn-ignite .ig-label { font-size: 0.74rem; font-weight: 700; color: var(--text); }
+.btn-ignite .ig-sub   { font-size: 0.63rem; color: var(--light); text-align: center; }
+.btn-ignite.h2-ig:not(:disabled):hover { border-color: #FBBF24; background: #FFFBEB; }
+.btn-ignite.o2-ig:not(:disabled):hover { border-color: #F87171; background: #FEF2F2; }
+.btn-ignite:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* 점화 결과 메시지 */
+.ignite-result {
+  font-size: 0.77rem;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: 7px;
+  margin-top: 8px;
+  display: none;
+}
+.ignite-result.show { display: block; }
+.ignite-result.h2-r { background: #FFF7ED; border: 1px solid #FED7AA; color: #9A3412; }
+.ignite-result.o2-r { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+
+/* SVG 관 내 플래시 오버레이 */
+@keyframes flash-pop {
+  0%   { opacity: 0; }
+  12%  { opacity: 0.78; }
+  100% { opacity: 0; }
+}
+.flash-rect { opacity: 0; pointer-events: none; }
+.flash-rect.flashing { animation: flash-pop 680ms ease-out forwards; }
+
+/* 기록 버튼 */
+.btn-record {
+  width: 100%;
+  padding: 8px;
+  background: white;
+  border: 1.5px dashed var(--border2);
+  border-radius: 8px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+  margin-top: 4px;
+}
+.btn-record:not(:disabled):hover {
+  border-color: var(--amber);
+  color: var(--amber-dark);
+  background: var(--amber-light);
+}
+.btn-record:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-record:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* 기록 탭 표 */
+.log-table-wrap { overflow-x: auto; border-radius: 7px; border: 1px solid var(--border); }
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.log-table th {
+  background: var(--border);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.68rem;
+  text-align: center;
+  padding: 6px 4px;
+}
+.log-table td {
+  text-align: center;
+  padding: 5px 4px;
+  font-size: 0.76rem;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+.log-table tr.avg-row td {
+  font-weight: 700;
+  background: #FAFAF5;
+  border-top: 2px solid var(--border2);
+  color: var(--amber-dark);
+}
+.log-empty {
+  font-size: 0.77rem;
+  color: var(--light);
+  text-align: center;
+  padding: 22px 0;
+}
+.log-note {
+  font-size: 0.69rem;
+  color: var(--light);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.btn-log-clear {
+  width: 100%;
+  padding: 7px;
+  background: white;
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 150ms;
+}
+.btn-log-clear:hover { border-color: #EF4444; color: #EF4444; }
+.btn-log-clear:focus-visible { outline: 3px solid var(--muted); outline-offset: 2px; }
+
+/* SVG 점화 버튼 */
+.svg-ignite-btn { cursor: pointer; transition: opacity 150ms; }
+.svg-ignite-btn.disabled { opacity: 0.35; pointer-events: none; cursor: default; }
+.svg-ignite-btn:not(.disabled):hover rect { stroke-width: 2.5; }
+.svg-ignite-btn:focus { outline: none; }
+.svg-ignite-btn:focus rect { stroke-width: 2.5; stroke: var(--amber); }
+
+/* ══════════════════════════════════════════════
+   점화 실험 SVG 애니메이션
+══════════════════════════════════════════════ */
+.ignite-anim-group { opacity: 0; pointer-events: none; }
+
+/* 메시지 박스: 부드럽게 나타났다 사라짐 */
+@keyframes msg-fade {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+#o2-msg-box.active { animation: msg-fade 3.7s ease forwards; }
+#h2-msg-box.active { animation: msg-fade 2.9s ease forwards; }
+
+/* ── O₂: 성냥 불꽃 타오르기 ── */
+@keyframes o2-group-fade {
+  0%   { opacity: 0; }
+  8%   { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+#o2-anim-group.active {
+  animation: o2-group-fade 3.2s ease forwards;
+}
+
+@keyframes flame-flare {
+  0%   { transform: scaleY(0.04) scaleX(0.1); }
+  18%  { transform: scaleY(0.7)  scaleX(0.75); }
+  38%  { transform: scaleY(1.25) scaleX(1.1); }
+  55%  { transform: scaleY(0.92) scaleX(0.88); }
+  70%  { transform: scaleY(1.08) scaleX(1.02); }
+  85%  { transform: scaleY(0.97) scaleX(0.97); }
+  100% { transform: scaleY(1.0)  scaleX(1.0); }
+}
+.o2-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;   /* 불꽃 하단(성냥 머리) 기준으로 성장 */
+}
+#o2-anim-group.active .o2-flame-outer {
+  animation: flame-flare 2.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+#o2-anim-group.active .o2-flame-inner {
+  animation: flame-flare 2.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.12s forwards;
+}
+#o2-anim-group.active .o2-flame-core {
+  animation: flame-flare 2.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.22s forwards;
+}
+
+/* ── H₂: 폭발 + 퍽! ── */
+@keyframes h2-group-fade {
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  68%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+#h2-anim-group.active {
+  animation: h2-group-fade 2.4s ease forwards;
+}
+
+@keyframes puck-pop {
+  0%   { transform: scale(0.05); opacity: 0; }
+  14%  { transform: scale(1.55); opacity: 1; }
+  32%  { transform: scale(0.92); opacity: 1; }
+  78%  { transform: scale(1.0);  opacity: 1; }
+  100% { transform: scale(1.0);  opacity: 0; }
+}
+.puck-text {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+#h2-anim-group.active .puck-text {
+  animation: puck-pop 2.4s ease forwards;
+}
+
+@keyframes ray-shoot {
+  0%   { stroke-dashoffset: 42; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { opacity: 0; }
+}
+.exp-ray {
+  stroke-dasharray: 42;
+  stroke-dashoffset: 42;
+}
+#h2-anim-group.active .exp-ray { animation: ray-shoot 2.2s ease-out forwards; }
+#h2-anim-group.active .exp-ray:nth-child(2) { animation-delay: 0.00s; }
+#h2-anim-group.active .exp-ray:nth-child(3) { animation-delay: 0.03s; }
+#h2-anim-group.active .exp-ray:nth-child(4) { animation-delay: 0.06s; }
+#h2-anim-group.active .exp-ray:nth-child(5) { animation-delay: 0.09s; }
+#h2-anim-group.active .exp-ray:nth-child(6) { animation-delay: 0.12s; }
+#h2-anim-group.active .exp-ray:nth-child(7) { animation-delay: 0.15s; }
+#h2-anim-group.active .exp-ray:nth-child(8) { animation-delay: 0.18s; }
+#h2-anim-group.active .exp-ray:nth-child(9) { animation-delay: 0.21s; }
+
+@keyframes circle-expand {
+  0%   { r: 0;  opacity: 0.65; }
+  55%  { r: 32; opacity: 0.3; }
+  100% { r: 42; opacity: 0; }
+}
+#h2-anim-group.active .exp-circle {
+  animation: circle-expand 1.9s ease-out forwards;
+}
+
+/* 발생 기체 부피 카드 인라인 기록 버튼 */
+.btn-record-inline {
+  padding: 4px 9px;
+  background: white;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-record-inline:not(:disabled):hover {
+  border-color: var(--amber);
+  color: var(--amber-dark);
+  background: var(--amber-light);
+}
+.btn-record-inline:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-record-inline:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+@keyframes record-pulse {
+  0%   { background: white;   color: var(--muted);  border-color: var(--border2); transform: scale(1); }
+  20%  { background: #ECFDF5; color: #065F46;        border-color: #10B981;        transform: scale(1.08); }
+  65%  { background: #ECFDF5; color: #065F46;        border-color: #10B981;        transform: scale(1.04); }
+  100% { background: white;   color: var(--muted);  border-color: var(--border2); transform: scale(1); }
+}
+.btn-record-inline.flash { animation: record-pulse 950ms ease-out forwards; }
+
+/* ══════════════════════════════════════════════
+   반응형 — 모바일
+══════════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .main { flex-direction: column; padding: 12px; gap: 12px; }
+  .device-panel { flex: none; width: 100%; max-width: 520px; margin: 0 auto; }
+  .control-wrapper { width: 100%; max-width: 520px; margin: 0 auto; }
+  .control-panel { flex: none; width: 100%; }
+  /* 모바일: 교사 패널이 화면 하단에서 올라옴 */
+  .teacher-panel {
+    position: fixed;
+    left: 0; right: 0;
+    top: auto; bottom: 0;
+    width: 100%;
+    max-height: 65vh;
+    border-radius: var(--r) var(--r) 0 0;
+    border: none;
+    border-top: 2px solid #FDE68A;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    transform: translateY(100%);
+  }
+  .teacher-panel.open { transform: translateY(0); }
+  .topbar { padding: 10px 12px; }
+  .tool-title { font-size: 0.92rem; }
+}
+
+@media (max-width: 380px) {
+  .topbar { flex-wrap: wrap; gap: 6px; }
+  .topbar-right { gap: 5px; }
+  .grade-btn { padding: 4px 7px; font-size: 0.71rem; }
+  .teacher-btn { font-size: 0.71rem; padding: 4px 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 상단 바 ═══════════════════════════════════════ -->
+<header class="topbar">
+  <h1 class="tool-title">⚗️ 물 <span>전기분해</span> 가상실험</h1>
+  <div class="topbar-right">
+    <div class="grade-toggle" role="group" aria-label="학년 선택">
+      <button class="grade-btn active" data-grade="middle" aria-pressed="true">중학교</button>
+      <button class="grade-btn"        data-grade="high"   aria-pressed="false">고등학교</button>
+    </div>
+    <button class="teacher-btn" id="teacher-btn" aria-expanded="false" aria-controls="teacher-panel">
+      👨‍🏫 교사
+    </button>
+  </div>
+</header>
+
+<!-- ══ 메인 ════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- ─── 장치 패널 ────────────────────────────────── -->
+  <aside class="device-panel">
+    <p class="device-caption">호프만 전기분해 장치 (가상)</p>
+
+    <div class="device-wrap">
+      <span class="speed-badge" id="speed-badge">⏱ 10×</span>
+
+      <!-- ══ SVG 장치 ══════════════════════════════ -->
+      <svg id="device-svg" viewBox="0 -22 310 472"
+           xmlns="http://www.w3.org/2000/svg"
+           aria-label="물 전기분해 장치 시뮬레이션" role="img">
+        <defs>
+          <!-- O₂ 기체 채우기 클립 -->
+          <clipPath id="cp-o2">
+            <rect x="24" y="28" width="74" height="242"/>
+          </clipPath>
+          <!-- H₂ 기체 채우기 클립 -->
+          <clipPath id="cp-h2">
+            <rect x="212" y="28" width="74" height="242"/>
+          </clipPath>
+
+          <!-- 전해질 색: 파란색 (물) -->
+          <linearGradient id="g-electrolyte" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#BAE6FD" stop-opacity="0.85"/>
+            <stop offset="100%" stop-color="#7DD3FC" stop-opacity="0.65"/>
+          </linearGradient>
+          <!-- O₂ 기체 색: 분홍/빨강 — 위에서 아래로 진해짐 -->
+          <linearGradient id="g-o2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#FCA5A5" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#F87171" stop-opacity="0.75"/>
+          </linearGradient>
+          <!-- H₂ 기체 색: 노란색 — 위에서 아래로 진해짐 -->
+          <linearGradient id="g-h2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#FDE68A" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#FBBF24" stop-opacity="0.75"/>
+          </linearGradient>
+        </defs>
+
+        <!-- ─── 왼쪽 관: O₂ (+극) ─────────────────── -->
+        <!-- 전해질 배경 -->
+        <rect x="24" y="28" width="74" height="242" rx="5"
+              fill="url(#g-electrolyte)" stroke="#D4CFC0" stroke-width="1.5"/>
+        <!-- 기체 채우기 + 기포 컨테이너 (클립 안에서만) -->
+        <g clip-path="url(#cp-o2)">
+          <rect id="o2-fill" x="24" y="28" width="74" height="0" fill="url(#g-o2)"/>
+          <g id="o2-bub"></g>
+          <rect id="o2-flash" class="flash-rect" x="24" y="28" width="74" height="242" fill="#F87171"/>
+        </g>
+        <!-- 관 외곽선 -->
+        <rect x="24" y="28" width="74" height="242" rx="5"
+              fill="none" stroke="#9CA3AF" stroke-width="1.5"/>
+
+        <!-- 눈금 (5mL 단위, 총 25mL = 242px → 1mL=9.68px) -->
+        <!-- y = 270 - vol*9.68 이 기체 상단 위치 -->
+        <!-- 0mL=270, 5mL=221.6, 10mL=173.2, 15mL=124.8, 20mL=76.4, 25mL=28 -->
+        <g stroke="#BDB9AE" stroke-width="1" fill="none">
+          <line x1="24" y1="222" x2="33" y2="222"/>
+          <line x1="24" y1="174" x2="33" y2="174"/>
+          <line x1="24" y1="126" x2="33" y2="126"/>
+          <line x1="24" y1="78"  x2="33" y2="78"/>
+          <line x1="24" y1="270" x2="33" y2="270"/>
+        </g>
+        <g font-size="7.5" fill="#A8A29E" font-family="monospace" text-anchor="end">
+          <text x="20" y="225"> 5</text>
+          <text x="20" y="177">10</text>
+          <text x="20" y="129">15</text>
+          <text x="20" y="81"> 20</text>
+          <text x="20" y="33"> 25</text>
+        </g>
+        <text x="9" y="150" font-size="7" fill="#BDB9AE"
+              text-anchor="middle" transform="rotate(-90,9,150)">mL</text>
+
+        <!-- O₂ 라벨 + 극 표시 배지 -->
+        <rect x="24" y="-20" width="74" height="46" rx="6"
+              fill="#FEF2F2" stroke="#FECACA" stroke-width="1.5"/>
+        <text x="61" y="-5" font-size="13" font-weight="700" fill="#DC2626" text-anchor="middle">O₂</text>
+        <rect x="30" y="3" width="62" height="20" rx="4" fill="#DC2626"/>
+        <text x="61" y="18" font-size="13" font-weight="900" fill="white" text-anchor="middle">(+) 극</text>
+
+        <!-- 양극 전극 -->
+        <rect x="55" y="265" width="12" height="40" rx="3" fill="#FBBF24" stroke="#D97706" stroke-width="1.2"/>
+        <!-- 양극 기호 배지 -->
+        <circle cx="61" cy="256" r="12" fill="white" stroke="#D97706" stroke-width="2.5"/>
+        <text x="61" y="261" font-size="16" font-weight="900" fill="#D97706" text-anchor="middle">+</text>
+
+
+        <!-- ─── 오른쪽 관: H₂ (−극) ──────────────── -->
+        <!-- 전해질 배경 -->
+        <rect x="212" y="28" width="74" height="242" rx="5"
+              fill="url(#g-electrolyte)" stroke="#D4CFC0" stroke-width="1.5"/>
+        <!-- 기체 채우기 + 기포 컨테이너 (클립 안에서만) -->
+        <g clip-path="url(#cp-h2)">
+          <rect id="h2-fill" x="212" y="28" width="74" height="0" fill="url(#g-h2)"/>
+          <g id="h2-bub"></g>
+          <rect id="h2-flash" class="flash-rect" x="212" y="28" width="74" height="242" fill="#FBBF24"/>
+        </g>
+        <!-- 관 외곽선 -->
+        <rect x="212" y="28" width="74" height="242" rx="5"
+              fill="none" stroke="#9CA3AF" stroke-width="1.5"/>
+
+        <!-- 눈금 (오른쪽) -->
+        <g stroke="#BDB9AE" stroke-width="1" fill="none">
+          <line x1="286" y1="222" x2="277" y2="222"/>
+          <line x1="286" y1="174" x2="277" y2="174"/>
+          <line x1="286" y1="126" x2="277" y2="126"/>
+          <line x1="286" y1="78"  x2="277" y2="78"/>
+          <line x1="286" y1="270" x2="277" y2="270"/>
+        </g>
+        <g font-size="7.5" fill="#A8A29E" font-family="monospace">
+          <text x="290" y="225"> 5</text>
+          <text x="290" y="177">10</text>
+          <text x="290" y="129">15</text>
+          <text x="290" y="81"> 20</text>
+          <text x="290" y="33"> 25</text>
+        </g>
+        <text x="302" y="150" font-size="7" fill="#BDB9AE"
+              text-anchor="middle" transform="rotate(90,302,150)">mL</text>
+
+        <!-- H₂ 라벨 + 극 표시 배지 -->
+        <rect x="212" y="-20" width="74" height="46" rx="6"
+              fill="#FFFBEB" stroke="#FDE68A" stroke-width="1.5"/>
+        <text x="249" y="-5" font-size="13" font-weight="700" fill="#B45309" text-anchor="middle">H₂</text>
+        <rect x="218" y="3" width="62" height="20" rx="4" fill="#374151"/>
+        <text x="249" y="18" font-size="13" font-weight="900" fill="white" text-anchor="middle">(−) 극</text>
+
+        <!-- 음극 전극 -->
+        <rect x="243" y="265" width="12" height="40" rx="3" fill="#9CA3AF" stroke="#6B7280" stroke-width="1.2"/>
+        <!-- 음극 기호 배지 -->
+        <circle cx="249" cy="256" r="12" fill="white" stroke="#374151" stroke-width="2.5"/>
+        <text x="249" y="261" font-size="16" font-weight="900" fill="#374151" text-anchor="middle">−</text>
+
+
+        <!-- ─── 가상 점화 실험 버튼 (시험관 사이, 알아두세요 위) ── -->
+        <!-- O₂ 점화: 산소 관(왼쪽) 오른쪽에 -->
+        <g id="svg-btn-o2" class="svg-ignite-btn o2-btn disabled"
+           role="button" tabindex="0" aria-label="산소 점화 실험">
+          <rect x="101" y="130" width="54" height="38" rx="7"
+                fill="white" stroke="#FCA5A5" stroke-width="1.8"/>
+          <text x="128" y="144" font-size="9.5" fill="#B91C1C" text-anchor="middle" font-weight="700">🕯️ O₂</text>
+          <text x="128" y="158" font-size="8"   fill="#B91C1C" text-anchor="middle">점화 실험</text>
+        </g>
+        <!-- H₂ 점화: 수소 관(오른쪽) 왼쪽에 -->
+        <g id="svg-btn-h2" class="svg-ignite-btn h2-btn disabled"
+           role="button" tabindex="0" aria-label="수소 점화 실험">
+          <rect x="157" y="130" width="54" height="38" rx="7"
+                fill="white" stroke="#FDE68A" stroke-width="1.8"/>
+          <text x="184" y="144" font-size="9.5" fill="#92400E" text-anchor="middle" font-weight="700">🔥 H₂</text>
+          <text x="184" y="158" font-size="8"   fill="#92400E" text-anchor="middle">점화 실험</text>
+        </g>
+
+        <!-- ─── 시험관 사이: 무색 기체 안내 ──────── -->
+        <g transform="translate(155,225)">
+          <rect x="-50" y="-32" width="100" height="64" rx="7"
+                fill="rgba(255,255,255,0.88)" stroke="#D4CFC0" stroke-width="1.2"/>
+          <text y="-17" font-size="9.5" font-weight="700" fill="#52525B" text-anchor="middle">💡 알아두세요</text>
+          <text y="-4"  font-size="8.5" fill="#6B7280" text-anchor="middle">실제 기체는</text>
+          <text y="8"   font-size="9"   fill="#374151" font-weight="700" text-anchor="middle">무색 투명해요</text>
+          <text y="21"  font-size="7.5" fill="#A8A29E" text-anchor="middle">색은 시각화용이에요</text>
+        </g>
+
+        <!-- ─── 하부 수조 ──────────────────────────── -->
+        <path d="M 24 270 L 24 355 Q 24 368 37 368 L 273 368 Q 286 368 286 355 L 286 270 Z"
+              fill="url(#g-electrolyte)" stroke="#7DD3FC" stroke-width="1.5"/>
+
+        <!-- 수조 안내 텍스트 -->
+        <text x="155" y="315" font-size="8.5" fill="#0369A1" text-anchor="middle">전해질 수용액 (물)</text>
+        <text x="155" y="328" font-size="7.5" fill="#38BDF8" text-anchor="middle">(예: 황산나트륨 Na₂SO₄)</text>
+
+
+        <!-- ─── 전선 ───────────────────────────────── -->
+        <!-- + 극 전선 (호박색) -->
+        <polyline points="61,305 61,372 108,372 108,393"
+                  stroke="#FBBF24" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- − 극 전선 (회색) -->
+        <polyline points="249,305 249,372 202,372 202,393"
+                  stroke="#9CA3AF" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+        <!-- ─── 전원 장치 ──────────────────────────── -->
+        <rect x="105" y="388" width="100" height="45" rx="9" fill="#292524" stroke="#1C1917" stroke-width="1"/>
+        <text x="155" y="406" font-size="9.5" fill="#F5F5F4" text-anchor="middle" font-weight="700">⚡ 전원</text>
+        <text x="155" y="421" font-size="9"   fill="#A8A29E" text-anchor="middle" id="svg-volt">6 V</text>
+
+
+
+        <!-- ─── O₂ 점화 결과 메시지 (버튼 위) ──────── -->
+        <g id="o2-msg-box" class="ignite-anim-group">
+          <rect x="14" y="34" width="86" height="60" rx="6"
+                fill="rgba(254,242,242,0.96)" stroke="#FCA5A5" stroke-width="1.5"/>
+          <text x="57" y="50" font-size="8.5" fill="#991B1B" text-anchor="middle" font-weight="700">🕯️ 불씨 되살아남!</text>
+          <text x="57" y="63" font-size="7.5" fill="#991B1B" text-anchor="middle">산소는 연소를</text>
+          <text x="57" y="76" font-size="7.5" fill="#991B1B" text-anchor="middle">도와요 (조연성)</text>
+        </g>
+
+        <!-- ─── H₂ 점화 결과 메시지 (버튼 위) ──────── -->
+        <g id="h2-msg-box" class="ignite-anim-group">
+          <rect x="210" y="34" width="86" height="60" rx="6"
+                fill="rgba(255,247,237,0.96)" stroke="#FDE68A" stroke-width="1.5"/>
+          <text x="253" y="50" font-size="8.5" fill="#92400E" text-anchor="middle" font-weight="700">💥 수소가 연소됨!</text>
+          <text x="253" y="63" font-size="7.5" fill="#92400E" text-anchor="middle">H₂ + O₂ → H₂O</text>
+          <text x="253" y="76" font-size="7.5" fill="#92400E" text-anchor="middle">물이 생성돼요</text>
+        </g>
+
+        <!-- ─── O₂ 불꽃 애니메이션 (성냥 + 불꽃) ───── -->
+        <g id="o2-anim-group" class="ignite-anim-group" aria-hidden="true">
+          <!-- 성냥: 시험관 중앙(y=149) 기준, 막대 아래로 -->
+          <line x1="61" y1="152" x2="61" y2="177"
+                stroke="#78350F" stroke-width="3.5" stroke-linecap="round"/>
+          <ellipse cx="61" cy="152" rx="4.5" ry="3.5" fill="#1F2937"/>
+          <!-- 불꽃: 성냥 머리 위로 솟구침 -->
+          <ellipse class="o2-flame o2-flame-outer" cx="61" cy="132" rx="10" ry="20"
+                   fill="#FF6B35" opacity="0.92"/>
+          <ellipse class="o2-flame o2-flame-inner" cx="61" cy="138" rx="6"  ry="13"
+                   fill="#FFD700" opacity="0.88"/>
+          <ellipse class="o2-flame o2-flame-core"  cx="61" cy="143" rx="3"  ry="7"
+                   fill="#FFFFF0" opacity="0.95"/>
+        </g>
+
+        <!-- ─── H₂ 폭발 애니메이션 (퍽! + 방사선) ─── -->
+        <g id="h2-anim-group" class="ignite-anim-group" aria-hidden="true">
+          <!-- 폭발 중심: 시험관 중앙 (249, 149) -->
+          <circle class="exp-circle" cx="249" cy="149" r="0"
+                  fill="rgba(251,191,36,0.22)" stroke="#F59E0B" stroke-width="1.5"/>
+          <!-- 방사선 8방향, 32px 반경 -->
+          <line class="exp-ray" x1="249" y1="149" x2="249" y2="117" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="272" y2="126" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="281" y2="149" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="272" y2="172" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="249" y2="181" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="226" y2="172" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="217" y2="149" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <line class="exp-ray" x1="249" y1="149" x2="226" y2="126" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 퍽! 텍스트 -->
+          <text class="puck-text" x="249" y="157" font-size="22" font-weight="900"
+                fill="#D97706" text-anchor="middle"
+                stroke="white" stroke-width="3.5" paint-order="stroke">펑!</text>
+        </g>
+
+        <!-- ─── 범례 ───────────────────────────────── -->
+        <g transform="translate(0,443)">
+          <circle cx="16"  cy="0" r="5" fill="#F87171" opacity="0.9"/>
+          <text x="24" y="4"  font-size="8.5" fill="#6B7280">O₂ (산소, 빨강) ●</text>
+          <circle cx="140" cy="0" r="5" fill="#FDE68A" opacity="0.9" stroke="#FBBF24" stroke-width="1"/>
+          <text x="148" y="4" font-size="8.5" fill="#6B7280">H₂ (수소, 노랑) ▲</text>
+        </g>
+      </svg>
+      <!-- ══ /SVG ═════════════════════════════════ -->
+
+    </div><!-- .device-wrap -->
+
+    <p class="shortcut-hint">Space: 시작/정지 &nbsp;|&nbsp; R: 초기화</p>
+  </aside>
+
+
+  <!-- ─── 컨트롤 + 교사 패널 wrapper ────────────────── -->
+  <div class="control-wrapper">
+
+  <!-- ─── 컨트롤 패널 ──────────────────────────────── -->
+  <main class="control-panel">
+
+    <!-- 실험 제어 -->
+    <div class="card">
+      <p class="card-title">실험 제어</p>
+      <div class="btn-row">
+        <button class="btn-start" id="start-btn" aria-label="실험 시작">
+          <span id="btn-icon">▶</span>
+          <span id="btn-label">시작</span>
+        </button>
+        <button class="btn-reset" id="reset-btn" aria-label="초기화">↺ 초기화</button>
+      </div>
+    </div>
+
+    <!-- 상태 메시지 -->
+    <div class="status-msg" id="status-msg" role="alert" aria-live="polite"></div>
+
+    <!-- 실험 설정 -->
+    <div class="card">
+      <p class="card-title">실험 설정</p>
+
+      <!-- 전압 슬라이더 -->
+      <div class="slider-block">
+        <div class="slider-header">
+          <span class="slider-label">⚡ 전압</span>
+          <span class="slider-val" id="volt-display">6 V</span>
+        </div>
+        <input type="range" id="volt-slider"
+               min="3" max="12" value="6" step="1"
+               aria-label="전압 조절 3에서 12볼트"
+               aria-valuenow="6" aria-valuemin="3" aria-valuemax="12">
+        <p class="hint-small">3V 이상부터 반응이 시작됩니다.</p>
+      </div>
+
+      <!-- 속도 선택 -->
+      <div class="slider-block">
+        <div class="slider-header">
+          <span class="slider-label">⏱ 시간 가속</span>
+        </div>
+        <div class="speed-group" role="group" aria-label="시간 가속 배율 선택">
+          <button class="speed-btn"        data-s="1"  aria-pressed="false">1×</button>
+          <button class="speed-btn"        data-s="5"  aria-pressed="false">5×</button>
+          <button class="speed-btn active" data-s="10" aria-pressed="true">10×</button>
+          <button class="speed-btn"        data-s="50" aria-pressed="false">50×</button>
+        </div>
+        <p class="hint-small">실제 실험은 수 분이 걸려요. 시뮬레이션 가속 중입니다.</p>
+      </div>
+    </div>
+
+    <!-- 탭 내비게이션 -->
+    <div class="tab-nav" role="tablist" aria-label="탭 선택">
+      <button class="tab-btn active" id="tab-btn-observe"  data-tab="observe"
+              role="tab" aria-selected="true"  aria-controls="tab-observe">관찰</button>
+      <button class="tab-btn"        id="tab-btn-log"      data-tab="log"
+              role="tab" aria-selected="false" aria-controls="tab-log">기록</button>
+      <button class="tab-btn"        id="tab-btn-equation" data-tab="equation"
+              role="tab" aria-selected="false" aria-controls="tab-equation">반응식</button>
+      <button class="tab-btn"        id="tab-btn-particle" data-tab="particle"
+              role="tab" aria-selected="false" aria-controls="tab-particle">입자모형</button>
+    </div>
+
+    <!-- ─── 관찰 탭 ─── -->
+    <div class="tab-pane" id="tab-observe" role="tabpanel" aria-labelledby="tab-btn-observe">
+
+      <!-- 발생 기체 부피 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <p class="card-title" style="margin-bottom:0;">📊 발생 기체 부피</p>
+          <button class="btn-record-inline" id="btn-record" disabled
+                  aria-label="현재 부피를 기록표에 추가">현재 부피 기록</button>
+        </div>
+        <div class="vol-grid">
+          <!-- H₂ -->
+          <div class="vol-item h2">
+            <div class="vol-head h2">
+              <span>▲</span>
+              <span>수소 H₂ (−극)</span>
+            </div>
+            <div class="vol-num h2" id="h2-num">0.0</div>
+            <div class="vol-unit">mL</div>
+          </div>
+          <!-- O₂ -->
+          <div class="vol-item o2">
+            <div class="vol-head o2">
+              <span>●</span>
+              <span>산소 O₂ (+극)</span>
+            </div>
+            <div class="vol-num o2" id="o2-num">0.0</div>
+            <div class="vol-unit">mL</div>
+          </div>
+        </div>
+        <!-- 비율 -->
+        <div class="ratio-row">
+          <span class="ratio-lbl">H₂ : O₂ 비율</span>
+          <span class="ratio-val" id="ratio-val">— : 1</span>
+        </div>
+        <p class="ratio-note" id="ratio-note">기체가 충분히 쌓이면 비율이 표시돼요</p>
+      </div>
+
+      <!-- 관찰 힌트 카드 -->
+      <div class="card hint-card">
+        <p class="card-title">🔍 관찰 포인트</p>
+        <p class="hint-body">
+          어느 극에서 기체가 더 많이 나올까요?<br>
+          두 관의 부피 비율이 일정하게 유지되는지 관찰해 보세요.
+        </p>
+        <div class="hint-grade" id="hint-grade">
+          👉 화학 변화의 결과로 수소(H₂)와 산소(O₂)라는 <strong>새 물질</strong>이 만들어집니다.
+          &nbsp;<span style="color:var(--amber);font-size:0.68rem;">[9과16-01]</span>
+        </div>
+      </div>
+
+      <!-- 점화 결과: SVG 장치 안에 직접 표시됩니다 -->
+
+      <!-- 결과 저장 -->
+      <button class="btn-capture" id="btn-capture" aria-label="실험 결과를 이미지로 저장">
+        📷 결과 저장
+      </button>
+
+    </div><!-- /#tab-observe -->
+
+    <!-- ─── 반응식 탭 ─── -->
+    <div class="tab-pane" id="tab-equation" role="tabpanel" aria-labelledby="tab-btn-equation" hidden>
+
+      <div class="card">
+        <p class="card-title">🧪 반응식 완성하기</p>
+        <p class="eq-intro" id="eq-intro">물의 전기분해를 화학 반응식으로 써보세요. 빈칸에 계수를 입력하세요.</p>
+
+        <!-- 반응식 입력 행 -->
+        <div class="eq-row" aria-label="화학 반응식 입력">
+          <div class="eq-term">
+            <input class="eq-input" id="ci-h2o" type="number" min="1" max="9"
+                   aria-label="물 계수" placeholder="?">
+            <span class="eq-formula">H₂O</span>
+          </div>
+          <span class="eq-symbol">→</span>
+          <div class="eq-term">
+            <input class="eq-input" id="ci-h2" type="number" min="1" max="9"
+                   aria-label="수소 계수" placeholder="?">
+            <span class="eq-formula">H₂</span>
+          </div>
+          <span class="eq-symbol">+</span>
+          <div class="eq-term">
+            <input class="eq-input" id="ci-o2" type="number" min="1" max="9"
+                   aria-label="산소 계수" placeholder="?">
+            <span class="eq-formula">O₂</span>
+          </div>
+        </div>
+
+        <!-- 피드백 -->
+        <div class="eq-feedback" id="eq-feedback" role="alert" aria-live="polite"></div>
+
+        <!-- 고등학교 추가 문제 (기본 숨김) -->
+        <div class="eq-extra" id="eq-extra" style="display:none;">
+          <p class="eq-extra-title">각 전극에서 일어나는 반응의 종류는?</p>
+          <div class="eq-choice-row" style="padding: 8px 0 4px;">
+            <div class="eq-choice-item">
+              <span class="eq-choice-label">(+) 극</span>
+              <div class="eq-choice-btns" role="group" aria-label="양극 반응">
+                <button class="choice-btn" data-pole="plus" data-val="산화">산화</button>
+                <button class="choice-btn" data-pole="plus" data-val="환원">환원</button>
+              </div>
+            </div>
+            <div class="eq-choice-item">
+              <span class="eq-choice-label">(−) 극</span>
+              <div class="eq-choice-btns" role="group" aria-label="음극 반응">
+                <button class="choice-btn" data-pole="minus" data-val="산화">산화</button>
+                <button class="choice-btn" data-pole="minus" data-val="환원">환원</button>
+              </div>
+            </div>
+          </div>
+          <div class="eq-extra-fb" id="eq-extra-fb"></div>
+        </div>
+
+        <!-- 힌트 박스 -->
+        <div class="eq-hint-box" id="eq-hint-box" style="display:none;"></div>
+
+        <!-- 버튼 행 -->
+        <div class="eq-btn-row">
+          <button class="btn-eq-check" id="eq-check">정답 확인</button>
+          <button class="btn-eq-hint"  id="eq-hint-btn">💡 힌트</button>
+          <button class="btn-eq-reset" id="eq-reset">↺ 다시</button>
+        </div>
+      </div>
+
+    </div><!-- /#tab-equation -->
+
+    <!-- ─── 입자 모형 탭 ─── -->
+    <div class="tab-pane" id="tab-particle"
+         role="tabpanel" aria-labelledby="tab-btn-particle" hidden>
+
+      <div class="card">
+        <p class="card-title">⚛️ 입자 모형</p>
+        <p class="particle-note">
+          분자 하나하나 수준에서 전기분해가 어떻게 일어나는지 살펴보세요.
+        </p>
+
+        <!-- Canvas -->
+        <canvas id="particle-canvas" aria-label="분자 모형 애니메이션"></canvas>
+
+        <!-- 단계 설명 -->
+        <div class="particle-step-desc" id="particle-step-desc"
+             role="status" aria-live="polite">
+          ▶ 재생을 눌러 시작하세요
+        </div>
+
+        <!-- 재생 제어 -->
+        <div class="particle-controls">
+          <button class="btn-p-play"  id="particle-play"  aria-label="애니메이션 재생/정지">▶ 재생</button>
+          <button class="btn-p-reset" id="particle-reset" aria-label="처음부터 다시">↺ 처음</button>
+        </div>
+
+        <p class="particle-scale-note">
+          * 분자 하나 수준의 시각화예요. 실제 시험관 안에는 이런 분자가 수십조 개 있어요.
+        </p>
+      </div>
+
+    </div><!-- /#tab-particle -->
+
+    <!-- ─── 기록 탭 ─── -->
+    <div class="tab-pane" id="tab-log" role="tabpanel" aria-labelledby="tab-btn-log" hidden>
+
+      <div class="card">
+        <p class="card-title">📋 반복 실험 기록</p>
+
+        <!-- 표 영역 -->
+        <div class="log-table-wrap" id="log-table-wrap">
+          <table class="log-table" aria-label="반복 실험 기록표">
+            <thead>
+              <tr>
+                <th>회차</th>
+                <th>H₂ (mL)</th>
+                <th>O₂ (mL)</th>
+                <th>H₂:O₂</th>
+              </tr>
+            </thead>
+            <tbody id="log-tbody"></tbody>
+          </table>
+        </div>
+        <p class="log-empty" id="log-empty">
+          관찰 탭의 "기록하기" 버튼으로<br>데이터를 추가하세요.
+        </p>
+
+        <p class="log-note">
+          💡 평균이 <strong>2.00</strong>에 가까워지나요? 반복할수록 이론값(2:1)에 수렴해요. [9과16-02]
+        </p>
+        <button class="btn-log-clear" id="btn-log-clear" style="display:none;">
+          🗑 기록 초기화
+        </button>
+      </div>
+
+    </div><!-- /#tab-log -->
+
+  </main>
+  <!-- ─── /컨트롤 패널 ──────────────────────────────── -->
+
+
+  <!-- ─── 교사 패널 ────────────────────────────────── -->
+  <aside class="teacher-panel" id="teacher-panel" aria-label="교사용 정보">
+    <p class="tp-title">👨‍🏫 교사용 정보</p>
+
+    <!-- 성취기준 -->
+    <div>
+      <p class="tp-sec-title" style="margin-bottom:6px;">성취기준</p>
+      <span class="ac-badge" id="ac-mid1">[9과16-01]</span>
+      <span class="ac-badge" id="ac-mid2">[9과16-02]</span>
+      <span class="ac-badge" id="ac-high" style="display:none;">[12화학02-04]</span>
+      <p style="font-size:0.73rem; color:#92400E; margin-top:8px; line-height:1.45;" id="ac-desc">
+        물리 변화·화학 변화 구분, 화학 반응식, 계수비 해석
+      </p>
+    </div>
+
+    <!-- 추천 발문 -->
+    <div class="tp-section">
+      <p class="tp-sec-title">💬 추천 발문</p>
+      <div id="tp-questions">
+        <div class="q-item">① 두 관에 모이는 기체 양이 다른 이유는 무엇일까요?</div>
+        <div class="q-item">② 이 반응을 화학 반응식으로 써볼 수 있나요?</div>
+        <div class="q-item">③ 전압을 높이면 어떻게 달라지나요? 왜일까요?</div>
+        <div class="q-item">④ 이 변화는 물리 변화인가요, 화학 변화인가요? 근거는?</div>
+        <div class="q-item">⑤ 부피비가 실험마다 약간 다른 이유는 무엇일까요?</div>
+      </div>
+    </div>
+
+    <!-- 흔한 오개념 -->
+    <div class="tp-section">
+      <p class="tp-sec-title">⚠️ 흔한 오개념</p>
+      <div class="mc-item">
+        <strong>"두 관의 양이 같다"</strong> — H₂는 O₂의 정확히 두 배예요. 계수비(2:1)가 곧 부피비입니다.
+      </div>
+      <div class="mc-item">
+        <strong>"전기가 물을 밀어낸다"</strong> — 전기 에너지가 H₂O 분자의 결합을 끊어 다른 물질을 만드는 화학 변화입니다.
+      </div>
+      <div class="mc-item">
+        <strong>"순수한 물에서도 잘 된다"</strong> — 순수한 물은 전기가 거의 안 통해요. 황산나트륨 같은 전해질을 녹여야 반응이 잘 됩니다.
+      </div>
+    </div>
+
+    <!-- 실물 실험 안전 -->
+    <div class="tp-section">
+      <p class="tp-sec-title">🔬 실물 실험 시 안전</p>
+      <p class="safety-text">
+        • 수소: 공기 중 4~75% 농도에서 폭발 가능. 화기 금지·환기 필수.<br>
+        • 황산나트륨 수용액: 눈·점막 자극. 보호 안경 착용.<br>
+        • 9V 이상 전원 사용 시 전해질 농도·전극 상태 점검 필수.
+      </p>
+    </div>
+  </aside>
+
+  </div><!-- .control-wrapper -->
+
+</div><!-- .main -->
+
+
+<!-- toolbox-nav.js: 도구상자 복귀 링크 자동 주입 -->
+<script src="../../toolbox-nav.js"></script>
+
+<script>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   물 전기분해 가상실험 — 1단계 스크립트
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── 상수 ── */
+const MAX_VOL   = 25;    // mL (시험관 최대 용량)
+const PX_PER_ML = 242 / MAX_VOL; // SVG 픽셀/mL (관 높이 242px)
+const BASE_Y    = 270;   // 기체 영역 바닥 y 좌표 (SVG 단위)
+
+/* ── 상태 ── */
+const S = {
+  running:   false,
+  voltage:   6,
+  speed:     10,
+  h2:        0,    // mL
+  o2:        0,    // mL
+  lastTs:    null,
+  grade:     'middle',
+  teacher:   false,
+  sessionRatio: 1.0,  // 이번 회차 H₂:O₂ 비율 오차 (시작마다 새로 결정)
+};
+
+/* ── DOM ── */
+const $ = id => document.getElementById(id);
+const startBtn    = $('start-btn');
+const btnIcon     = $('btn-icon');
+const btnLabel    = $('btn-label');
+const resetBtn    = $('reset-btn');
+const voltSlider  = $('volt-slider');
+const voltDisplay = $('volt-display');
+const h2Num       = $('h2-num');
+const o2Num       = $('o2-num');
+const ratioVal    = $('ratio-val');
+const ratioNote   = $('ratio-note');
+const statusMsg   = $('status-msg');
+const speedBadge  = $('speed-badge');
+const svgVolt     = $('svg-volt');
+const h2Fill      = $('h2-fill');
+const o2Fill      = $('o2-fill');
+const o2Bub       = $('o2-bub');
+const h2Bub       = $('h2-bub');
+const hintGrade   = $('hint-grade');
+const teacherBtn  = $('teacher-btn');
+const teacherPan  = $('teacher-panel');
+const acHigh      = $('ac-high');
+const acDesc      = $('ac-desc');
+const tpQuestions = $('tp-questions');
+
+const speedBtns = document.querySelectorAll('.speed-btn');
+const gradeBtns = document.querySelectorAll('.grade-btn');
+
+/* ── 시뮬레이션 속도 계산 ──
+   - 전압 3V → 거의 0, 12V → 최대
+   - 반환값: O₂ mL/sec (실물 속도 기준, 가속배율은 tick에서 곱함)
+*/
+function getRate(volt) {
+  if (volt <= 3) return 0.001;
+  // 3V: ~0.003, 12V: ~0.018 mL/sec (실물 기준 단순화)
+  return 0.003 + 0.015 * ((volt - 3) / 9);
+}
+
+/* 자연 흔들림 ±2.5% */
+function jitter() { return 1 + (Math.random() - 0.5) * 0.05; }
+
+/* ── requestAnimationFrame 루프 ── */
+let rafId = null;
+
+function tick(ts) {
+  if (!S.running) return;
+  if (S.lastTs === null) S.lastTs = ts;
+
+  const dt = (ts - S.lastTs) / 1000;   // 실제 경과 초
+  S.lastTs = ts;
+
+  const o2Delta = getRate(S.voltage) * S.speed * dt;
+  const h2Delta = o2Delta * 2 * S.sessionRatio;
+
+  S.o2 = Math.min(MAX_VOL, S.o2 + o2Delta);
+  S.h2 = Math.min(MAX_VOL, S.h2 + h2Delta);
+
+  render();
+  updateBubbles(dt);  // 기포 발생량 연동
+  updateIgniteBtns(); // 점화·기록 버튼 상태 갱신
+
+  if (S.h2 >= MAX_VOL || S.o2 >= MAX_VOL) {
+    endExperiment();
+    return;
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+/* ── 화면 업데이트 ── */
+function render() {
+  // 숫자
+  h2Num.textContent = S.h2.toFixed(1);
+  o2Num.textContent = S.o2.toFixed(1);
+
+  // 비율
+  if (S.o2 > 0.6) {
+    const r = (S.h2 / S.o2).toFixed(2);
+    ratioVal.textContent = `${r} : 1`;
+    ratioNote.textContent = '이론값: 정확히 2 : 1 (±측정 오차)';
+  } else {
+    ratioVal.textContent = '— : 1';
+    ratioNote.textContent = '기체가 충분히 쌓이면 비율이 표시돼요';
+  }
+
+  // SVG 기체 채우기
+  // 실제 장치: 관 위쪽에 기체가 모이고 전해질이 아래로 밀림
+  // → 기체 rect의 y는 관 상단(TOP_Y=28)에 고정, height만 커짐
+  const TOP_Y = 28;
+  const o2H = S.o2 * PX_PER_ML;
+  const h2H = S.h2 * PX_PER_ML;
+  o2Fill.setAttribute('y',      TOP_Y);
+  o2Fill.setAttribute('height', o2H);
+  h2Fill.setAttribute('y',      TOP_Y);
+  h2Fill.setAttribute('height', h2H);
+}
+
+/* ── 시작 ── */
+function startExp() {
+  if (S.h2 >= MAX_VOL || S.o2 >= MAX_VOL) {
+    showMsg('시험관이 가득 찼어요. 초기화 후 다시 시작해 보세요.', false);
+    return;
+  }
+  // 이번 회차의 H₂:O₂ 비율 — 이론값 정확히 2:1 유지
+  S.sessionRatio = 1.0;
+  S.running = true;
+  S.lastTs  = null;
+  btnIcon.textContent  = '⏸';
+  btnLabel.textContent = '정지';
+  startBtn.classList.add('running');
+  startBtn.setAttribute('aria-label', '실험 정지');
+  hideMsg();
+  rafId = requestAnimationFrame(tick);
+}
+
+/* ── 정지 ── */
+function pauseExp() {
+  S.running = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  btnIcon.textContent  = '▶';
+  btnLabel.textContent = '계속';
+  startBtn.classList.remove('running');
+  startBtn.setAttribute('aria-label', '실험 계속');
+  clearBubbles();
+}
+
+/* ── 완료 (시험관 가득) ── */
+function endExperiment() {
+  S.running = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  clearBubbles();
+  startBtn.disabled = true;
+  btnIcon.textContent  = '✓';
+  btnLabel.textContent = '완료';
+  startBtn.classList.remove('running');
+  render();
+  showMsg('🎉 시험관이 가득 찼어요! 아래 단계(점화 시험·반응식)는 순서대로 추가됩니다. 지금은 초기화 후 다시 관찰해 보세요.', true);
+}
+
+/* ── 초기화 ── */
+function resetExp() {
+  S.running = false;
+  S.h2 = 0; S.o2 = 0; S.lastTs = null;
+  if (rafId) cancelAnimationFrame(rafId);
+  startBtn.disabled = false;
+  btnIcon.textContent  = '▶';
+  btnLabel.textContent = '시작';
+  startBtn.classList.remove('running');
+  startBtn.setAttribute('aria-label', '실험 시작');
+  clearBubbles();
+  render();
+  hideMsg();
+  // 점화 SVG 애니메이션·메시지 초기화
+  ['h2-anim-group','o2-anim-group','h2-msg-box','o2-msg-box'].forEach(id => {
+    const el = $(id);
+    if (el) el.classList.remove('active');
+  });
+  if (igniteResH2) igniteResH2.classList.remove('show');
+  if (igniteResO2) igniteResO2.classList.remove('show');
+}
+
+/* ── 동적 기포 시스템 ─────────────────────────────────
+   발생 속도(getRate * speed)에 연동:
+   · 생성 빈도  : 속도가 빠를수록 더 자주
+   · 기포 크기  : 속도가 빠를수록 더 크게
+   · 상승 속도  : 속도가 빠를수록 더 빠르게
+   · H₂는 O₂의 2배(계수비 반영)로 생성
+── ─────────────────────────────────────────────────── */
+const NS = 'http://www.w3.org/2000/svg';
+const MAX_RATE = 0.018 * 50; // getRate(12) * 50× = 최대 속도(mL/sec)
+const MAX_BUB  = { o2: 10, h2: 16 };
+
+// 살아있는 기포 배열 { el, x, y, vy, wx, wt }
+const bubs = { o2: [], h2: [] };
+
+// 발생 강도 0~1
+function intensity() {
+  const rate = getRate(S.voltage) * S.speed;
+  return Math.min(1, rate / MAX_RATE);
+}
+
+// 기포 하나 생성
+function spawnBub(tube) {
+  const isO2 = tube === 'o2';
+  // 관 x 범위 (전극 중심 ±20px 이내에서 랜덤)
+  const cx = isO2 ? 61 : 249;
+  const x  = cx + (Math.random() - 0.5) * 36;
+
+  const iv  = intensity();
+  const r   = 1.8 + iv * 3.8;               // 1.8 ~ 5.6 px
+  const vy  = -(28 + iv * 95);              // -28 ~ -123 px/sec (SVG 기준, 위가 -)
+  const col = isO2 ? '#FCA5A5' : '#FDE68A';
+  const op  = 0.65 + iv * 0.25;
+
+  const el = document.createElementNS(NS, 'circle');
+  el.setAttribute('cx', x);
+  el.setAttribute('cy', 265);              // 전극 위에서 출발
+  el.setAttribute('r',  r);
+  el.setAttribute('fill', col);
+  el.setAttribute('opacity', op);
+  el.style.pointerEvents = 'none';
+
+  const container = isO2 ? o2Bub : h2Bub;
+  container.appendChild(el);
+
+  return {
+    el, x, y: 265, vy,
+    wx: 0,           // 현재 수평 흔들림 속도
+    wt: Math.random() * Math.PI * 2  // 흔들림 위상
+  };
+}
+
+// tick 안에서 호출 — 기포 생성·이동·소멸
+function updateBubbles(dt) {
+  const iv = intensity();
+
+  // 생성 확률 (프레임당)
+  // O₂: iv^0.6 * 0.45, H₂: 2배
+  const probO2 = Math.pow(iv, 0.6) * 0.45;
+  const probH2 = probO2 * 1.9;
+
+  if (bubs.o2.length < MAX_BUB.o2 && S.o2 < MAX_VOL && Math.random() < probO2) {
+    bubs.o2.push(spawnBub('o2'));
+  }
+  if (bubs.h2.length < MAX_BUB.h2 && S.h2 < MAX_VOL && Math.random() < probH2) {
+    bubs.h2.push(spawnBub('h2'));
+  }
+
+  // 이동 & 소멸
+  ['o2', 'h2'].forEach(tube => {
+    const vol      = tube === 'o2' ? S.o2 : S.h2;
+    const boundary = 28 + vol * PX_PER_ML; // 기체/전해질 경계면
+
+    bubs[tube] = bubs[tube].filter(b => {
+      b.wt += dt * 3.5;
+      b.y  += b.vy * dt;
+      b.x  += Math.sin(b.wt) * 0.6;   // 부드러운 좌우 흔들림
+
+      b.el.setAttribute('cy', b.y);
+      b.el.setAttribute('cx', b.x);
+
+      // 경계면 도달 시 제거
+      if (b.y <= boundary) {
+        b.el.remove();
+        return false;
+      }
+      return true;
+    });
+  });
+}
+
+// 모든 기포 즉시 제거
+function clearBubbles() {
+  ['o2', 'h2'].forEach(tube => {
+    bubs[tube].forEach(b => b.el.remove());
+    bubs[tube] = [];
+  });
+}
+
+/* ── 상태 메시지 ── */
+function showMsg(text, done = false) {
+  statusMsg.textContent = text;
+  statusMsg.className   = 'status-msg show' + (done ? ' done' : '');
+}
+function hideMsg() {
+  statusMsg.className = 'status-msg';
+}
+
+/* ── 학년 UI 갱신 ── */
+function applyGrade(g) {
+  S.grade = g;
+  if (g === 'middle') {
+    hintGrade.innerHTML =
+      '👉 화학 변화의 결과로 수소(H₂)와 산소(O₂)라는 <strong>새 물질</strong>이 만들어집니다. <span style="color:var(--amber);font-size:0.68rem;">[9과16-01]</span>';
+    acHigh.style.display = 'none';
+    acDesc.textContent   = '물리 변화·화학 변화 구분, 화학 반응식, 계수비 해석';
+    tpQuestions.innerHTML = `
+      <div class="q-item">① 두 관에 모이는 기체 양이 다른 이유는 무엇일까요?</div>
+      <div class="q-item">② 이 반응을 화학 반응식으로 써볼 수 있나요?</div>
+      <div class="q-item">③ 전압을 높이면 어떻게 달라지나요? 왜일까요?</div>
+      <div class="q-item">④ 물리 변화와 화학 변화 중 무엇인가요? 근거는?</div>
+      <div class="q-item">⑤ 부피비가 실험마다 약간 다른 이유는 무엇일까요?</div>`;
+  } else {
+    hintGrade.innerHTML =
+      '👉 물(H₂O)의 공유 결합이 전기 에너지에 의해 끊어져 H₂와 O₂로 재조합됩니다. <span style="color:var(--amber);font-size:0.68rem;">[12화학02-04]</span>';
+    acHigh.style.display = 'inline-block';
+    acDesc.textContent   = '분자 구조·공유 결합, 전기분해 원리, 극성 공유 결합';
+    tpQuestions.innerHTML = `
+      <div class="q-item">① H₂O의 공유 결합이 어떻게 끊어지나요?</div>
+      <div class="q-item">② (+)극과 (−)극에서 각각 무슨 반응이 일어나나요?</div>
+      <div class="q-item">③ 계수비 2:1이 왜 부피비와 같을까요? (아보가드로 법칙)</div>
+      <div class="q-item">④ 전해질을 넣는 이유를 입자 수준으로 설명해 보세요.</div>
+      <div class="q-item">⑤ 이 반응에서 산화와 환원은 어느 극에서 일어나나요?</div>`;
+  }
+  localStorage.setItem('wep-grade', g);
+
+  // 반응식 탭: 학년에 따라 intro 문구 + 추가 문제 표시 여부 변경
+  const eqIntroEl = $('eq-intro');
+  if (eqIntroEl) {
+    if (g === 'middle') {
+      eqIntroEl.textContent = '물의 전기분해를 화학 반응식으로 써보세요. 빈칸에 계수를 입력하세요.';
+      eqExtra.style.display = 'none';
+    } else {
+      eqIntroEl.textContent = '반응식 계수를 완성하고, 각 전극에서 일어나는 반응의 종류도 골라보세요.';
+      eqExtra.style.display = 'block';
+    }
+    resetEquation();
+  }
+}
+
+/* ── 이벤트 연결 ── */
+startBtn.addEventListener('click', () => {
+  if (S.running) pauseExp(); else startExp();
+});
+
+resetBtn.addEventListener('click', resetExp);
+
+voltSlider.addEventListener('input', () => {
+  S.voltage = +voltSlider.value;
+  voltDisplay.textContent = `${S.voltage} V`;
+  voltSlider.setAttribute('aria-valuenow', S.voltage);
+  svgVolt.textContent = `${S.voltage} V`;
+  if (S.running) S.lastTs = null; // 부드러운 속도 전환
+});
+
+speedBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    S.speed = +btn.dataset.s;
+    speedBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    speedBadge.textContent = `⏱ ${S.speed}×`;
+    if (S.running) S.lastTs = null;
+  });
+});
+
+gradeBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    gradeBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    applyGrade(btn.dataset.grade);
+  });
+});
+
+teacherBtn.addEventListener('click', () => {
+  S.teacher = !S.teacher;
+  teacherPan.classList.toggle('open', S.teacher);
+  teacherBtn.classList.toggle('active', S.teacher);
+  teacherBtn.setAttribute('aria-expanded', S.teacher);
+  localStorage.setItem('wep-teacher', S.teacher ? '1' : '0');
+});
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   4단계 — 입자 모형 Canvas 애니메이션
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+(function () {
+  const cvs = document.getElementById('particle-canvas');
+  if (!cvs) return;
+  const ctx = cvs.getContext('2d');
+
+  /* 고해상도 처리 */
+  const DPR = window.devicePixelRatio || 1;
+  const LW = 236, LH = 210;
+  cvs.width  = Math.round(LW * DPR);
+  cvs.height = Math.round(LH * DPR);
+  cvs.style.width  = LW + 'px';
+  cvs.style.height = LH + 'px';
+  ctx.scale(DPR, DPR);
+
+  /* 원자 크기 */
+  const RO = 15, RH = 9.5;
+
+  /* 색상 */
+  const C = {
+    Ol:'#FCA5A5', Om:'#EF4444', Od:'#B91C1C',
+    Hl:'#E5E7EB', Hm:'#D1D5DB', Hd:'#9CA3AF',
+    bd:'#94A3B8'
+  };
+
+  /* Phase 지속(ms) */
+  const DUR = [2200, 1800, 2200, 2500, 2200];
+  const TOTAL = DUR.reduce((a,b)=>a+b, 0);
+
+  let running=false, raf=null, elapsed=0, lastTs=null;
+
+  /* 유틸 */
+  const eOut = t => 1-Math.pow(1-t,3);
+  const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+
+  function getPhase(t) {
+    let acc=0;
+    for (let i=0;i<DUR.length;i++){
+      if (t<acc+DUR[i]) return {phase:i, prog:(t-acc)/DUR[i]};
+      acc+=DUR[i];
+    }
+    return {phase:DUR.length-1, prog:1};
+  }
+
+  /* 라디알 그라디언트 */
+  function rgrad(x,y,r,lc,dc){
+    const g=ctx.createRadialGradient(x-r*.35,y-r*.35,r*.05,x,y,r);
+    g.addColorStop(0,lc); g.addColorStop(1,dc); return g;
+  }
+
+  /* 원자 */
+  function atom(x,y,r,lc,mc,dc,lbl,alpha=1){
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=rgrad(x,y,r,lc,dc); ctx.fill();
+    ctx.strokeStyle=dc; ctx.lineWidth=1.2; ctx.stroke();
+    if(lbl){
+      ctx.fillStyle='#fff';
+      ctx.font=`bold ${Math.round(r*.88)}px sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(lbl,x,y);
+    }
+    ctx.restore();
+  }
+
+  /* 결합선 */
+  function bond(x1,y1,x2,y2,{dashed=false,double=false,alpha=1,col=C.bd}={}){
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineCap='round';
+    if(dashed) ctx.setLineDash([3.5,3.5]);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    if(double){
+      const dx=-(y2-y1),dy=x2-x1,l=Math.sqrt(dx*dx+dy*dy)||1;
+      const nx=dx/l*3.5,ny=dy/l*3.5;
+      ctx.beginPath(); ctx.moveTo(x1+nx,y1+ny); ctx.lineTo(x2+nx,y2+ny); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* 텍스트 */
+  function lbl(x,y,txt,col='#64748B',sz=10){
+    ctx.save(); ctx.fillStyle=col;
+    ctx.font=`${sz}px 'Pretendard Variable',sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(txt,x,y); ctx.restore();
+  }
+
+  /* ── 분자 ── */
+  function h2o(cx,cy,alpha=1,wobble=0){
+    const bL=RO+RH+4;
+    const a1=-Math.PI*2/3, a2=-Math.PI/3;
+    const d=bL+wobble;
+    const H1x=cx+Math.cos(a1)*d, H1y=cy+Math.sin(a1)*d;
+    const H2x=cx+Math.cos(a2)*d, H2y=cy+Math.sin(a2)*d;
+    bond(cx,cy,H1x,H1y,{alpha,dashed:wobble>3.5});
+    bond(cx,cy,H2x,H2y,{alpha,dashed:wobble>3.5});
+    atom(H1x,H1y,RH,C.Hl,C.Hm,C.Hd,'H',alpha);
+    atom(H2x,H2y,RH,C.Hl,C.Hm,C.Hd,'H',alpha);
+    atom(cx,cy,   RO,C.Ol,C.Om,C.Od,'O',alpha);
+  }
+
+  function h2(cx,cy,alpha=1){
+    const g=RH+2;
+    bond(cx-g,cy,cx+g,cy,{alpha,col:C.Hd});
+    atom(cx-g,cy,RH,C.Hl,C.Hm,C.Hd,'H',alpha);
+    atom(cx+g,cy,RH,C.Hl,C.Hm,C.Hd,'H',alpha);
+  }
+
+  function o2(cx,cy,alpha=1){
+    const g=RO+2;
+    bond(cx-g,cy,cx+g,cy,{alpha,double:true,col:C.Od});
+    atom(cx-g,cy,RO,C.Ol,C.Om,C.Od,'O',alpha);
+    atom(cx+g,cy,RO,C.Ol,C.Om,C.Od,'O',alpha);
+  }
+
+  function electric(alpha){
+    if(alpha<=0) return;
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.font='20px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('⚡',LW/2,24);
+    ctx.fillStyle='#D97706';
+    ctx.font=`bold 9px 'Pretendard Variable',sans-serif`;
+    ctx.textBaseline='top'; ctx.fillText('전기 에너지',LW/2,38);
+    ctx.restore();
+  }
+
+  /* 단계 설명 */
+  const stepEl=document.getElementById('particle-step-desc');
+  function setDesc(t){ if(stepEl) stepEl.textContent=t; }
+
+  /* ── 메인 렌더 ── */
+  const CY=LH/2+14;
+  const X1=LW*.28, X2=LW*.72;   /* H₂O 위치 */
+  const P1=LW*.16, P2=LW*.44, P3=LW*.79;  /* 생성물 위치 */
+
+  function render(ts){
+    if(!running) return;
+    if(lastTs===null) lastTs=ts;
+    elapsed=(elapsed+(ts-lastTs))%TOTAL;
+    lastTs=ts;
+
+    const {phase,prog}=getPhase(elapsed);
+
+    ctx.clearRect(0,0,LW,LH);
+    ctx.fillStyle='#F8FAFC'; ctx.fillRect(0,0,LW,LH);
+
+    if(phase===0){
+      /* ① 2H₂O 등장 */
+      setDesc('① 물 분자 2개(2H₂O)가 있어요');
+      const a=clamp(prog*4,0,1);
+      h2o(X1,CY,a); h2o(X2,CY,a);
+      lbl(LW/2,CY+30,'2 H₂O','#64748B',10);
+
+    } else if(phase===1){
+      /* ② 전기 에너지 */
+      setDesc('② 전기 에너지가 투입돼요');
+      h2o(X1,CY); h2o(X2,CY);
+      electric(clamp(prog*3,0,1));
+      lbl(LW/2,CY+30,'2 H₂O','#64748B',10);
+
+    } else if(phase===2){
+      /* ③ 결합 진동 → 끊어짐 */
+      setDesc('③ 공유 결합이 끊어지고 있어요!');
+      const shake = prog<.65
+        ? Math.sin(prog*Math.PI*12)*5*clamp(prog/.3,0,1)
+        : 0;
+      h2o(X1,CY,1,shake); h2o(X2,CY,1,shake);
+      electric(clamp((1-prog)*3,0,1));
+
+    } else if(phase===3){
+      /* ④ 재배치 */
+      setDesc('④ 원자들이 새 물질로 재조합해요!');
+      const fIn =eOut(clamp(prog*1.5,0,1));
+      const fOut=clamp(1-prog*2,0,1);
+      if(fOut>0){ h2o(X1,CY,fOut); h2o(X2,CY,fOut); }
+      if(fIn >0){ h2(P1,CY,fIn); h2(P2,CY,fIn); o2(P3,CY,fIn); }
+
+    } else {
+      /* ⑤ 완성 */
+      setDesc('⑤ 2H₂O → 2H₂ + O₂  반응 완료!');
+      h2(P1,CY); h2(P2,CY); o2(P3,CY);
+      lbl(P1,CY+22,'H₂','#52525B',10);
+      lbl(P2,CY+22,'H₂','#52525B',10);
+      lbl(P3,CY+22,'O₂','#DC2626',10);
+      lbl(LW/2,8,'2H₂O → 2H₂ + O₂','#475569',10);
+    }
+
+    /* 고등학교 추가 표시 */
+    if(typeof S!=='undefined' && S.grade==='high' && phase>=2){
+      const a=clamp(((phase-2)*DUR[2]+prog*DUR[phase])/(DUR[2]+DUR[3]),0,1)*.8;
+      ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#1D4ED8';
+      ctx.font=`8.5px 'Pretendard Variable',sans-serif`;
+      ctx.textAlign='left';  ctx.textBaseline='top'; ctx.fillText('(−)극: 환원→H₂',5,8);
+      ctx.textAlign='right'; ctx.fillText('(+)극: 산화→O₂',LW-5,8);
+      ctx.restore();
+    }
+
+    raf=requestAnimationFrame(render);
+  }
+
+  /* 제어 */
+  const playBtn =$('particle-play');
+  const resetBtn=$('particle-reset');
+
+  function startP(){
+    running=true; lastTs=null;
+    if(playBtn) playBtn.textContent='⏸ 정지';
+    raf=requestAnimationFrame(render);
+  }
+  function pauseP(){
+    running=false;
+    if(raf) cancelAnimationFrame(raf);
+    if(playBtn) playBtn.textContent='▶ 재생';
+  }
+  function resetP(){
+    pauseP(); elapsed=0; lastTs=null;
+    ctx.fillStyle='#F8FAFC'; ctx.fillRect(0,0,LW,LH);
+    setDesc('▶ 재생을 눌러 시작하세요');
+  }
+
+  if(playBtn)  playBtn.addEventListener ('click',()=>running?pauseP():startP());
+  if(resetBtn) resetBtn.addEventListener('click', resetP);
+
+  /* 초기 */
+  ctx.fillStyle='#F8FAFC'; ctx.fillRect(0,0,LW,LH);
+})();
+
+/* 키보드 단축키 */
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); startBtn.click(); }
+  if (e.code === 'KeyR')  { resetBtn.click(); }
+});
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   2단계 — 탭 전환 + 반응식 빈칸 채우기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── 탭 전환 ── */
+const tabBtns  = document.querySelectorAll('.tab-btn');
+const tabPanes = document.querySelectorAll('.tab-pane');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    tabPanes.forEach(p => p.setAttribute('hidden', ''));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById('tab-' + btn.dataset.tab).removeAttribute('hidden');
+  });
+});
+
+/* ── 반응식 정답 + 힌트 정의 ── */
+const EQ_ANSWER = { h2o: 2, h2: 2, o2: 1 };   // 2H₂O → 2H₂ + O₂
+
+const HINTS = {
+  middle: [
+    '실험에서 측정한 H₂와 O₂의 부피비를 떠올려 보세요.',
+    'H₂ : O₂ 부피비 ≈ 2 : 1 → 계수도 같은 비율이에요.',
+    '정답: <strong>2</strong>H₂O → <strong>2</strong>H₂ + <strong>1</strong>O₂'
+  ],
+  high: [
+    '아보가드로 법칙: 같은 조건에서 기체 부피비 = 분자 수 비 = 계수비예요.',
+    'H₂ : O₂ ≈ 2 : 1 → 계수비도 2 : 1이에요.',
+    '정답: <strong>2</strong>H₂O → <strong>2</strong>H₂ + <strong>1</strong>O₂'
+  ]
+};
+const EXTRA_ANSWER = { plus: '산화', minus: '환원' };
+
+/* ── DOM 참조 ── */
+const ciH2o      = $('ci-h2o');
+const ciH2       = $('ci-h2');
+const ciO2       = $('ci-o2');
+const eqFeedback = $('eq-feedback');
+const eqHintBox  = $('eq-hint-box');
+const eqExtra    = $('eq-extra');
+const eqExtraFb  = $('eq-extra-fb');
+const eqCheck    = $('eq-check');
+const eqHintBtn  = $('eq-hint-btn');
+const eqResetBtn = $('eq-reset');
+
+/* ── 상태 ── */
+let hintLevel   = 0;
+let choiceState = { plus: null, minus: null };
+
+/* ── 정답 확인 ── */
+function checkEquation() {
+  const vals = {
+    h2o: parseInt(ciH2o.value),
+    h2:  parseInt(ciH2.value),
+    o2:  parseInt(ciO2.value),
+  };
+
+  // 빈 칸 확인
+  if ([vals.h2o, vals.h2, vals.o2].some(isNaN)) {
+    setEqFb('빈칸을 모두 채워주세요.', 'error');
+    return;
+  }
+
+  // 각 입력 채점
+  const items = [['ci-h2o','h2o'], ['ci-h2','h2'], ['ci-o2','o2']];
+  let allOk = true;
+  items.forEach(([id, key]) => {
+    const el  = $(id);
+    const ok  = vals[key] === EQ_ANSWER[key];
+    el.classList.toggle('correct',  ok);
+    el.classList.toggle('wrong',   !ok);
+    if (!ok) allOk = false;
+  });
+
+  if (allOk) {
+    // 측정 부피비 힌트 문구
+    const ratioTxt = S.o2 > 0.5
+      ? ` (이번 실험 H₂:O₂ ≈ ${(S.h2/S.o2).toFixed(2)}:1)`
+      : '';
+    setEqFb(
+      `✅ 정답이에요! 2H₂O → 2H₂ + O₂\n계수비 2:1 = 분자 수 비 = 부피비${ratioTxt}`,
+      'success'
+    );
+    // 고등 추가 문제 자동 채점
+    if (S.grade === 'high') checkExtra();
+  } else {
+    setEqFb('틀린 계수가 있어요. 힌트를 참고해 보세요.', 'error');
+  }
+}
+
+function setEqFb(msg, type) {
+  eqFeedback.textContent = msg;
+  eqFeedback.className   = 'eq-feedback ' + type;
+}
+
+/* ── 힌트 표시 ── */
+function showHint() {
+  const list = HINTS[S.grade] || HINTS.middle;
+  const idx  = Math.min(hintLevel, list.length - 1);
+  eqHintBox.innerHTML    = list[idx];
+  eqHintBox.style.display = 'block';
+  if (hintLevel < list.length) hintLevel++;
+}
+
+/* ── 초기화 ── */
+function resetEquation() {
+  [ciH2o, ciH2, ciO2].forEach(el => {
+    el.value = '';
+    el.classList.remove('correct', 'wrong');
+  });
+  eqFeedback.textContent = '';
+  eqFeedback.className   = 'eq-feedback';
+  eqHintBox.style.display = 'none';
+  eqHintBox.innerHTML    = '';
+  hintLevel              = 0;
+  choiceState            = { plus: null, minus: null };
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.remove('selected', 'correct-sel', 'wrong-sel');
+  });
+  eqExtraFb.textContent = '';
+}
+
+/* ── 고등 추가 문제 채점 ── */
+function checkExtra() {
+  let fb = '';
+  ['plus', 'minus'].forEach(pole => {
+    const selected = choiceState[pole];
+    const correct  = EXTRA_ANSWER[pole];
+    const label    = pole === 'plus' ? '(+)극' : '(−)극';
+    if (!selected) { fb += `${label}: 아직 선택하지 않았어요.  `; return; }
+
+    const ok = selected === correct;
+    // 해당 버튼에 시각적 피드백
+    document.querySelectorAll(`.choice-btn[data-pole="${pole}"]`).forEach(b => {
+      b.classList.remove('correct-sel', 'wrong-sel', 'selected');
+      if (b.dataset.val === selected) {
+        b.classList.add(ok ? 'correct-sel' : 'wrong-sel');
+      }
+    });
+    fb += ok
+      ? `${label}: ${correct} ✅  `
+      : `${label}: 다시 생각해 보세요 ❌  `;
+  });
+  eqExtraFb.innerHTML = fb;
+}
+
+/* ── 선택 버튼 ── */
+document.querySelectorAll('.choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pole = btn.dataset.pole;
+    choiceState[pole] = btn.dataset.val;
+    document.querySelectorAll(`.choice-btn[data-pole="${pole}"]`).forEach(b => {
+      b.classList.remove('selected', 'correct-sel', 'wrong-sel');
+    });
+    btn.classList.add('selected');
+  });
+});
+
+/* ── 이벤트 연결 ── */
+eqCheck.addEventListener('click', checkEquation);
+eqHintBtn.addEventListener('click', showHint);
+eqResetBtn.addEventListener('click', resetEquation);
+
+// 반응식 탭에서 Enter 키 제출
+[ciH2o, ciH2, ciO2].forEach(el => {
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') checkEquation(); });
+});
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   3단계 — 가상 점화 실험 + 반복 기록표
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const MIN_IGNITE = 3.0;   // 점화 최소 기체량 (mL)
+const MIN_RECORD = 0.5;   // 기록 최소 기체량 (mL)
+const MAX_LOG    = 10;    // 최대 기록 회차
+
+/* ── DOM ── */
+const btnIgniteH2   = $('btn-ignite-h2');   // HTML 버튼 (혹시 남아있을 경우 방어)
+const btnIgniteO2   = $('btn-ignite-o2');
+const svgBtnH2      = $('svg-btn-h2');       // SVG 버튼 그룹
+const svgBtnO2      = $('svg-btn-o2');
+const igniteResH2   = $('ignite-result-h2');
+const igniteResO2   = $('ignite-result-o2');
+const h2Flash       = $('h2-flash');
+const o2Flash       = $('o2-flash');
+const btnRecord     = $('btn-record');
+const logTbody      = $('log-tbody');
+const logEmpty      = $('log-empty');
+const btnLogClear   = $('btn-log-clear');
+
+/* ── 기록 배열 ── */
+const logData = [];
+
+/* ── 점화 ── */
+function ignite(tube) {
+  const isH2 = tube === 'h2';
+  const vol  = isH2 ? S.h2 : S.o2;
+  if (vol < MIN_IGNITE) return;
+
+  // 기체 소멸
+  if (isH2) { S.h2 = 0; } else { S.o2 = 0; }
+  render();
+
+  // SVG 애니메이션 + 메시지 박스
+  playIgniteAnim(tube);
+}
+
+/* ── SVG 점화 애니메이션 실행 ── */
+function playIgniteAnim(tube) {
+  const isH2   = tube === 'h2';
+  const animId = isH2 ? 'h2-anim-group' : 'o2-anim-group';
+  const msgId  = isH2 ? 'h2-msg-box'    : 'o2-msg-box';
+  const dur    = isH2 ? 2500 : 3300;
+
+  // 애니메이션 그룹
+  const animEl = $(animId);
+  if (animEl) {
+    animEl.classList.remove('active');
+    void animEl.offsetWidth;
+    animEl.classList.add('active');
+    setTimeout(() => animEl.classList.remove('active'), dur);
+  }
+
+  // 결과 메시지 박스 (애니메이션과 같이 표시, 조금 더 오래)
+  const msgEl = $(msgId);
+  if (msgEl) {
+    msgEl.classList.remove('active');
+    void msgEl.offsetWidth;
+    msgEl.classList.add('active');
+    setTimeout(() => msgEl.classList.remove('active'), dur + 400);
+  }
+}
+
+/* ── 버튼 상태 갱신 (render에서 호출) ── */
+function updateIgniteBtns() {
+  const h2ok = S.h2 >= MIN_IGNITE;
+  const o2ok = S.o2 >= MIN_IGNITE;
+
+  // SVG 버튼 활성/비활성
+  if (svgBtnH2) svgBtnH2.classList.toggle('disabled', !h2ok);
+  if (svgBtnO2) svgBtnO2.classList.toggle('disabled', !o2ok);
+
+  // 기록 버튼
+  if (btnRecord) btnRecord.disabled = S.h2 < MIN_RECORD || S.o2 < MIN_RECORD;
+}
+
+/* ── 기록 추가 ── */
+function addLog() {
+  if (S.h2 < MIN_RECORD || S.o2 < MIN_RECORD) return;
+  if (logData.length >= MAX_LOG) {
+    alert(`최대 ${MAX_LOG}회차까지 기록할 수 있어요.`);
+    return;
+  }
+  logData.push({ h2: S.h2, o2: S.o2, ratio: S.h2 / S.o2 });
+  renderLog();
+
+  // 버튼 애니메이션: 초록 펄스 + 텍스트 잠시 변경
+  if (btnRecord) {
+    const orig = btnRecord.textContent;
+    btnRecord.textContent = '✓ 기록됨!';
+    btnRecord.classList.remove('flash');
+    void btnRecord.offsetWidth;          // reflow → 애니메이션 재시작
+    btnRecord.classList.add('flash');
+    setTimeout(() => {
+      btnRecord.textContent = orig;
+      btnRecord.classList.remove('flash');
+    }, 950);
+  }
+}
+
+/* ── 기록 초기화 ── */
+function clearLog() {
+  logData.length = 0;
+  renderLog();
+}
+
+/* ── 표 렌더링 ── */
+function renderLog() {
+  if (!logTbody) return;
+  logTbody.innerHTML = '';
+
+  if (logData.length === 0) {
+    logEmpty.style.display   = 'block';
+    btnLogClear.style.display = 'none';
+    return;
+  }
+
+  logEmpty.style.display    = 'none';
+  btnLogClear.style.display = 'block';
+
+  logData.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td>${i + 1}</td>` +
+      `<td>${d.h2.toFixed(1)}</td>` +
+      `<td>${d.o2.toFixed(1)}</td>` +
+      `<td>${d.ratio.toFixed(2)}</td>`;
+    logTbody.appendChild(tr);
+  });
+
+  // 평균 행
+  const n      = logData.length;
+  const avgH2  = logData.reduce((s, d) => s + d.h2,    0) / n;
+  const avgO2  = logData.reduce((s, d) => s + d.o2,    0) / n;
+  const avgRat = logData.reduce((s, d) => s + d.ratio, 0) / n;
+
+  const avgTr = document.createElement('tr');
+  avgTr.className = 'avg-row';
+  avgTr.innerHTML =
+    `<td>평균</td>` +
+    `<td>${avgH2.toFixed(1)}</td>` +
+    `<td>${avgO2.toFixed(1)}</td>` +
+    `<td>${avgRat.toFixed(2)}</td>`;
+  logTbody.appendChild(avgTr);
+}
+
+/* ── 이벤트 연결 ── */
+function bindSvgIgniteBtn(el, tube) {
+  if (!el) return;
+  el.addEventListener('click', () => {
+    if (!el.classList.contains('disabled')) ignite(tube);
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!el.classList.contains('disabled')) ignite(tube);
+    }
+  });
+}
+bindSvgIgniteBtn(svgBtnH2, 'h2');
+bindSvgIgniteBtn(svgBtnO2, 'o2');
+
+if (btnIgniteH2) btnIgniteH2.addEventListener('click', () => ignite('h2'));
+if (btnIgniteO2) btnIgniteO2.addEventListener('click', () => ignite('o2'));
+if (btnRecord)   btnRecord.addEventListener('click', addLog);
+if (btnLogClear) btnLogClear.addEventListener('click', clearLog);
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   5단계 — 결과 캡처/저장
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+async function captureResult() {
+  const CW = 560, CH = 380;
+  const cap = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  cap.width  = CW * dpr;
+  cap.height = CH * dpr;
+  const cc = cap.getContext('2d');
+  cc.scale(dpr, dpr);
+
+  /* 배경 */
+  cc.fillStyle = '#FFFFFF';
+  cc.fillRect(0, 0, CW, CH);
+
+  /* 노트북 라인 */
+  cc.strokeStyle = '#ECEAE0';
+  cc.lineWidth = 1;
+  for (let y = 32; y < CH; y += 32) {
+    cc.beginPath(); cc.moveTo(0, y); cc.lineTo(CW, y); cc.stroke();
+  }
+
+  /* 제목 */
+  cc.fillStyle = '#1C1917';
+  cc.font = 'bold 17px sans-serif';
+  cc.textAlign = 'left';
+  cc.fillText('⚗️ 물 전기분해 가상실험 결과', 20, 28);
+
+  /* 날짜 */
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit'})
+    + '  ' + now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+  cc.fillStyle = '#78716C';
+  cc.font = '12px sans-serif';
+  cc.textAlign = 'right';
+  cc.fillText(dateStr, CW - 20, 28);
+
+  /* 구분선 */
+  cc.strokeStyle = '#D97706';
+  cc.lineWidth = 2;
+  cc.beginPath(); cc.moveTo(20, 40); cc.lineTo(CW - 20, 40); cc.stroke();
+
+  /* SVG → 이미지 */
+  const svgEl = document.getElementById('device-svg');
+  let svgDrawn = false;
+  if (svgEl) {
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const encoded = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+      await new Promise((res) => {
+        const img = new Image();
+        img.onload = () => {
+          const svgH = 240, svgW = svgH * (310 / 472);
+          cc.drawImage(img, 18, 50, svgW, svgH);
+          svgDrawn = true;
+          res();
+        };
+        img.onerror = res;
+        img.src = encoded;
+      });
+    } catch (_) {}
+  }
+
+  /* 오른쪽: 부피 수치 */
+  const rx = svgDrawn ? 195 : 20;
+  let ry = 58;
+
+  cc.fillStyle = '#1C1917';
+  cc.font = 'bold 13px sans-serif';
+  cc.textAlign = 'left';
+  cc.fillText('발생 기체 부피', rx, ry); ry += 22;
+
+  cc.font = '13px sans-serif';
+  cc.fillStyle = '#52525B';
+  cc.fillText(`▲ H₂ (수소, −극)  ${S.h2.toFixed(1)} mL`, rx, ry); ry += 19;
+  cc.fillStyle = '#EF4444';
+  cc.fillText(`● O₂ (산소, +극)  ${S.o2.toFixed(1)} mL`, rx, ry); ry += 19;
+  cc.fillStyle = '#1C1917';
+  const ratioTxt = S.o2 > 0.1 ? (S.h2 / S.o2).toFixed(2) : '—';
+  cc.fillText(`H₂ : O₂  =  ${ratioTxt} : 1`, rx, ry); ry += 28;
+
+  /* 기록표 평균 */
+  if (logData.length > 0) {
+    cc.fillStyle = '#1C1917';
+    cc.font = 'bold 13px sans-serif';
+    cc.fillText(`반복 실험 기록 (${logData.length}회차)`, rx, ry); ry += 20;
+
+    cc.font = '12px sans-serif';
+    logData.forEach((d, i) => {
+      cc.fillStyle = '#52525B';
+      cc.fillText(`  ${i+1}회: H₂ ${d.h2.toFixed(1)} / O₂ ${d.o2.toFixed(1)} / 비율 ${d.ratio.toFixed(2)}`, rx, ry);
+      ry += 17;
+    });
+
+    const avgH2  = logData.reduce((s,d)=>s+d.h2,0) / logData.length;
+    const avgO2  = logData.reduce((s,d)=>s+d.o2,0) / logData.length;
+    const avgRat = logData.reduce((s,d)=>s+d.ratio,0) / logData.length;
+    cc.fillStyle = '#D97706';
+    cc.font = 'bold 12px sans-serif';
+    cc.fillText(`  평균: H₂ ${avgH2.toFixed(1)} / O₂ ${avgO2.toFixed(1)} / 비율 ${avgRat.toFixed(2)}`, rx, ry);
+    ry += 24;
+  }
+
+  /* 반응식 */
+  const lineY = Math.max(svgDrawn ? 302 : ry + 8, ry + 8);
+  cc.strokeStyle = '#E5E2D9'; cc.lineWidth = 1;
+  cc.beginPath(); cc.moveTo(20, lineY); cc.lineTo(CW - 20, lineY); cc.stroke();
+
+  cc.fillStyle = '#1C1917';
+  cc.font = 'bold 14px sans-serif';
+  cc.textAlign = 'left';
+  cc.fillText('2H₂O  →  2H₂  +  O₂', 20, lineY + 18);
+  cc.font = '11px sans-serif';
+  cc.fillStyle = '#78716C';
+  cc.fillText('계수비 = 분자 수 비 = 부피비', 20, lineY + 36);
+  cc.fillStyle = '#D97706';
+  cc.font = 'bold 10px sans-serif';
+  cc.fillText('[9과16-02]', 20, lineY + 52);
+
+  /* 학년 */
+  cc.fillStyle = '#A8A29E'; cc.font = '10px sans-serif';
+  cc.textAlign = 'left';
+  cc.fillText(S.grade === 'high' ? '고등학교 모드 [12화학02-04]' : '중학교 모드', 120, lineY + 52);
+
+  /* 하단 출처 */
+  cc.fillStyle = '#C4BEAF'; cc.font = '10px sans-serif';
+  cc.textAlign = 'right';
+  cc.fillText('과학 도구상자 — 물 전기분해 가상실험', CW - 20, CH - 10);
+
+  /* 다운로드 */
+  const link = document.createElement('a');
+  const ts = now.toISOString().slice(0, 16).replace(/[T:]/g, '-');
+  link.download = `물전기분해_결과_${ts}.png`;
+  link.href = cap.toDataURL('image/png');
+  link.click();
+}
+
+/* 캡처 버튼 */
+const btnCapture = $('btn-capture');
+if (btnCapture) {
+  btnCapture.addEventListener('click', () => {
+    const orig = btnCapture.textContent;
+    btnCapture.textContent = '⏳ 저장 중…';
+    btnCapture.disabled = true;
+    captureResult().finally(() => {
+      btnCapture.textContent = orig;
+      btnCapture.disabled = false;
+    });
+  });
+}
+
+/* ── 초기화 ── */
+(function init() {
+  // 저장값 복원
+  const savedGrade   = localStorage.getItem('wep-grade');
+  const savedTeacher = localStorage.getItem('wep-teacher');
+
+  if (savedGrade) {
+    gradeBtns.forEach(b => {
+      const on = b.dataset.grade === savedGrade;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    applyGrade(savedGrade);
+  } else {
+    applyGrade('middle');
+  }
+
+  if (savedTeacher === '1') {
+    S.teacher = true;
+    teacherPan.classList.add('open');
+    teacherBtn.classList.add('active');
+    teacherBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  render(); // 초기 0mL 상태 표시
+  svgVolt.textContent = `${S.voltage} V`;
+})();
+</script>
+
+</body>
+</html>
