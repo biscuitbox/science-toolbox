@@ -229,6 +229,22 @@
     "sessions": "1차시",
     "materials": [],
     "achievementStandard": ["9과16-01", "9과16-02", "12화학02-04"]
+    },
+    {
+    "id": "strobe-photo",
+    "name": "다중섬광사진",
+    "description": "움직이는 물체를 일정 간격으로 겹쳐 찍어 운동 분석",
+    "category": "physics",
+    "subcategory": "",
+    "path": "physics/strobe-photo/",
+    "tags": ["운동", "속력", "등속운동", "자유낙하", "가속도", "그래프", "카메라", "다중섬광", "잔상"],
+    "level": "중3",
+    "featured": false,
+    "activityType": "탐구활동",
+    "target": "중3 운동과 에너지 단원 학생",
+    "sessions": "1차시",
+    "materials": ["밝은 물체(흰 공·LED)", "대비되는 배경", "카메라 있는 노트북/태블릿/크롬북", "(선택) 30cm 또는 1m 자"],
+    "achievementStandard": ["9과19-01", "9과19-02"]
     }
   ]
 }
