@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>다중섬광사진 - 운동 분석 카메라</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+<style>
+  :root{
+    --paper:#f4efe4; --paper2:#fbf8f1; --ink:#2b2b2b; --muted:#6b675e;
+    --border2:#d8cfbb; --accent:#2563b8; --accent-dark:#1c4d8f; --accent-soft:#e7eef9;
+    --stage-bg:#0f1216; --warn-bg:#fdeaea; --warn-border:#e3a3a3; --ok:#1f7a44;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Pretendard',system-ui,sans-serif;font-size:16px;line-height:1.55;color:var(--ink);
+    background:repeating-linear-gradient(transparent, transparent 31px, #e6ddca 31px, #e6ddca 32px), var(--paper);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:16px 16px 48px;}
+  header.page-head{text-align:center;padding:8px 0 14px;}
+  header.page-head h1{font-family:'Gowun Batang',serif;font-size:1.7rem;margin:.2em 0 .15em;color:var(--accent-dark);letter-spacing:-.5px;}
+  header.page-head p.sub{margin:0;color:var(--muted);font-size:.98rem;}
+
+  .teacher-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:4px 0 12px;font-size:.92rem;color:var(--muted);}
+  .switch{position:relative;display:inline-block;width:46px;height:26px;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider-sw{position:absolute;cursor:pointer;inset:0;background:#cfc6b3;border-radius:26px;transition:background .3s;}
+  .slider-sw:before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .3s;}
+  .switch input:checked + .slider-sw{background:var(--accent);}
+  .switch input:checked + .slider-sw:before{transform:translateX(20px);}
+  .switch input:focus-visible + .slider-sw{outline:3px solid var(--accent-soft);outline-offset:2px;}
+
+  .teacher-info{display:none;border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:12px;padding:14px 16px;margin:0 0 16px;font-size:.95rem;}
+  .teacher-info.show{display:block;}
+  .teacher-info h2{font-family:'Gowun Batang',serif;font-size:1.05rem;margin:.1em 0 .5em;color:var(--accent-dark);}
+  .std-codes{display:flex;flex-wrap:wrap;gap:6px;margin:.4em 0;}
+  .std-codes .code{font-weight:700;font-size:.85rem;background:#fff;border:1.5px solid var(--accent);color:var(--accent-dark);border-radius:999px;padding:2px 10px;}
+  .teacher-info ul{margin:.4em 0 0;padding-left:1.2em;}
+  .teacher-info li{margin:.2em 0;}
+
+  .stage{position:relative;width:100%;max-width:560px;margin:0 auto;background:var(--stage-bg);border-radius:14px;overflow:hidden;border:1px solid #2a2f36;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}
+  #liveVideo{z-index:1;}
+  #composite{z-index:2;display:none;}
+  #overlay{z-index:3;pointer-events:none;display:none;}
+  #marks{z-index:4;pointer-events:none;display:none;}
+  .stage.recording #liveVideo{display:none;}
+  .stage.recording #composite,.stage.has-result #composite{display:block;}
+  .stage.has-result #liveVideo{display:none;}
+  .stage.has-result #marks{display:block;}
+  .stage.picking #marks{pointer-events:auto;cursor:crosshair;}
+  .placeholder{z-index:0;color:#9aa3ad;text-align:center;padding:24px;font-size:1rem;}
+  .placeholder .big{font-size:2.4rem;display:block;margin-bottom:8px;}
+
+  .rec-badge{position:absolute;top:10px;left:10px;z-index:6;display:none;align-items:center;gap:7px;background:rgba(15,18,22,.78);color:#fff;border-radius:999px;padding:5px 12px;font-size:.85rem;font-weight:600;}
+  .stage.recording .rec-badge{display:flex;}
+  .rec-dot{width:11px;height:11px;border-radius:50%;background:#e23b3b;}
+  .stat-bar{position:absolute;bottom:0;left:0;right:0;z-index:6;background:rgba(15,18,22,.72);color:#eef2f6;display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center;padding:7px 12px;font-size:.86rem;}
+  .stat-bar b{color:#fff;font-weight:700;}
+  .stat-bar .sep{opacity:.4;}
+
+  .panel{background:var(--paper2);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-top:16px;box-shadow:0 1px 0 #fff inset;}
+  .panel h2{font-family:'Gowun Batang',serif;font-size:1.05rem;margin:0 0 12px;color:var(--ink);display:flex;align-items:center;gap:7px;}
+  .panel h2 .ic{font-size:1.1rem;}
+  .panel.locked{opacity:.5;}
+  .panel.locked .lock-note{display:block;}
+  .lock-note{display:none;font-size:.88rem;color:var(--muted);font-weight:400;margin-left:auto;}
+
+  .seg{display:flex;gap:0;border:1.5px solid var(--accent);border-radius:11px;overflow:hidden;margin-bottom:6px;}
+  .seg label{flex:1;cursor:pointer;}
+  .seg input{position:absolute;opacity:0;pointer-events:none;}
+  .seg .opt{display:block;padding:10px 12px;text-align:center;font-weight:600;font-size:.95rem;color:var(--accent-dark);background:#fff;transition:background .2s,color .2s;}
+  .seg label:not(:last-child) .opt{border-right:1.5px solid var(--accent);}
+  .seg input:checked + .opt{background:var(--accent);color:#fff;}
+  .seg input:focus-visible + .opt{outline:3px solid var(--accent-soft);outline-offset:-3px;}
+  .mode-desc{font-size:.88rem;color:var(--muted);margin:2px 0 0;}
+
+  .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  button.act{font-weight:600;font-size:1rem;cursor:pointer;border-radius:10px;padding:11px 16px;border:1.5px solid var(--accent);background:#fff;color:var(--accent-dark);transition:background .2s,color .2s,opacity .2s;display:inline-flex;align-items:center;gap:7px;min-height:44px;}
+  button.act:hover{background:var(--accent-soft);}
+  button.act.primary{background:var(--accent);color:#fff;}
+  button.act.primary:hover{background:var(--accent-dark);}
+  button.act.bg{border-color:var(--ok);color:var(--ok);}
+  button.act.bg:hover{background:#e8f5ee;}
+  button.act.bg.on{background:var(--ok);color:#fff;}
+  button.act.danger{border-color:#c0504d;color:#a13f3c;}
+  button.act.danger:hover{background:#fbeceb;}
+  button.act.small{font-size:.9rem;padding:8px 12px;min-height:38px;}
+  button.act:disabled{opacity:.42;cursor:not-allowed;}
+  button.act:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px;}
+
+  .field{margin:14px 0 0;}
+  .field label{display:block;font-weight:600;margin-bottom:6px;font-size:.95rem;}
+  .field .hint{color:var(--muted);font-weight:400;font-size:.85rem;}
+  .field input[type=range]{width:100%;accent-color:var(--accent);height:30px;}
+  select,input[type=number]{font-size:1rem;padding:9px 10px;border-radius:9px;border:1.5px solid var(--border2);background:#fff;color:var(--ink);min-height:44px;}
+  select:focus-visible,input:focus-visible{outline:3px solid var(--accent-soft);outline-offset:1px;}
+
+  .row2{display:flex;flex-wrap:wrap;gap:14px;}
+  .row2 .field{flex:1 1 200px;margin-top:0;}
+  .field.compact select{width:100%;}
+
+  .check-row{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:6px;}
+  .check{display:inline-flex;align-items:center;gap:8px;font-size:.96rem;cursor:pointer;}
+  .check input{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
+  .check input:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px;}
+  .inline-num{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:.95rem;flex-wrap:wrap;}
+  .inline-num input[type=number]{width:90px;}
+
+  .msg{margin-top:12px;border-radius:10px;padding:11px 14px;font-size:.93rem;display:none;}
+  .msg.show{display:block;}
+  .msg.warn{background:var(--warn-bg);border:1.5px solid var(--warn-border);color:#8c2f2f;}
+  .msg.info{background:var(--accent-soft);border:1.5px solid #b9cdec;color:var(--accent-dark);}
+  .msg.ok{background:#e8f5ee;border:1.5px solid #a9d7bd;color:#1f5e3a;}
+
+  /* 분석 결과 */
+  .cal-input{display:none;margin-top:12px;align-items:center;gap:8px;flex-wrap:wrap;font-size:.95rem;}
+  .cal-input.show{display:flex;}
+  .cal-status{margin-top:8px;font-size:.92rem;color:var(--ok);font-weight:600;}
+  .data-wrap{margin-top:14px;overflow-x:auto;}
+  table.data{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums;min-width:380px;}
+  table.data th,table.data td{border:1px solid var(--border2);padding:6px 9px;text-align:center;}
+  table.data thead th{background:var(--accent-soft);color:var(--accent-dark);}
+  table.data td.idx{color:var(--muted);}
+  .accel-box{display:none;margin-top:14px;padding:12px 14px;border-radius:10px;background:#fff;border:1.5px solid var(--accent);}
+  .accel-box.show{display:block;}
+  .accel-box .big{font-size:1.3rem;font-weight:700;color:var(--accent-dark);font-variant-numeric:tabular-nums;}
+  .accel-box .cmp{font-size:.9rem;color:var(--muted);}
+  .chart-wrap{margin-top:14px;}
+  .chart-wrap canvas{width:100%;height:auto;background:#fff;border:1px solid var(--border2);border-radius:10px;}
+  .empty-hint{color:var(--muted);font-size:.92rem;margin-top:10px;}
+
+  .guide{font-size:.95rem;}
+  .guide ol{padding-left:1.3em;margin:.3em 0;}
+  .guide li{margin:.35em 0;}
+  .guide .tip{color:var(--muted);font-size:.88rem;}
+  .diff-only{display:none;}
+  body.mode-diff .diff-only{display:block;}
+  body.mode-diff .lighten-only{display:none;}
+
+  details.howto{margin-top:8px;}
+  details.howto summary{cursor:pointer;font-weight:600;color:var(--accent-dark);padding:6px 0;font-size:.98rem;}
+  details.howto summary:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px;}
+  .val{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent-dark);}
+
+  @media print{
+    body{background:#fff;}
+    .teacher-row,.teacher-info,header.page-head p.sub,.col-left,.btn-row,.seg,input[type=range],.check-row,.cal-input,.inline-num,.lock-note,.empty-hint,.field .hint{display:none !important;}
+    .dashboard{display:block;}
+    .col-center,.col-right{width:100%;}
+    .stage{max-width:100%;border:1px solid #999;break-inside:avoid;}
+    .panel{border:none;box-shadow:none;padding:6px 0;margin:6px 0;}
+    table.data th,table.data td{border:1px solid #999;}
+  }
+  @media (max-width:480px){
+    header.page-head h1{font-size:1.4rem;}
+    button.act{flex:1 1 calc(50% - 8px);justify-content:center;}
+  }
+
+  /* ──── 대시보드 레이아웃 ──── */
+  .dashboard{display:grid;gap:14px;align-items:start;margin-top:14px;
+    grid-template-columns:175px 1fr 190px;}
+  .col-left,.col-center,.col-right{display:flex;flex-direction:column;gap:10px;min-width:0;}
+
+  /* 패널 압축 */
+  .dashboard .panel{margin-top:0;padding:10px 12px;font-size:13px;}
+  .dashboard .panel h2{font-size:.86rem;margin-bottom:7px;gap:4px;}
+  .dashboard .panel h2 .ic{font-size:.95rem;}
+  .dashboard .panel.locked{opacity:.45;}
+  .dashboard .mode-desc{font-size:.74rem;}
+  .dashboard .seg .opt{padding:6px 7px;font-size:.78rem;}
+  .dashboard .field{margin-top:8px;}
+  .dashboard .field label{font-size:.78rem;margin-bottom:3px;display:block;}
+  .dashboard .field .hint{font-size:.71rem;}
+  .dashboard button.act{font-size:.78rem;padding:5px 8px;min-height:32px;gap:3px;border-radius:7px;border-width:1.5px;}
+  .dashboard button.act.small{font-size:.74rem;padding:4px 7px;min-height:28px;}
+  .dashboard .check{font-size:.78rem;gap:5px;}
+  .dashboard .check input{width:14px;height:14px;}
+  .dashboard .check-row{gap:6px 12px;margin-top:4px;}
+  .dashboard input[type=range]{height:20px;}
+  .dashboard select,.dashboard input[type=number]{font-size:.78rem;padding:4px 6px;min-height:30px;}
+  .dashboard .inline-num{font-size:.78rem;gap:4px;margin-top:6px;}
+  .dashboard .inline-num input[type=number]{width:64px;}
+  .dashboard .val{font-size:inherit;}
+  .dashboard .msg{font-size:.8rem;padding:7px 9px;margin-top:6px;}
+  .dashboard .cal-status{font-size:.77rem;margin-top:5px;}
+  .dashboard .accel-box{padding:7px 9px;margin-top:8px;}
+  .dashboard .accel-box .big{font-size:1rem;}
+  .dashboard .accel-box .cmp{font-size:.74rem;}
+  .dashboard table.data{font-size:.76rem;min-width:0;}
+  .dashboard table.data th,.dashboard table.data td{padding:3px 4px;}
+  .dashboard .data-wrap{margin-top:6px;overflow-x:auto;}
+  .dashboard .empty-hint{font-size:.77rem;margin-top:0;}
+  .dashboard .chart-wrap label{font-size:.77rem;margin-bottom:4px;display:block;}
+  .dashboard .std-codes .code{font-size:.72rem;padding:1px 6px;}
+  .dashboard .teacher-info ul{font-size:.8rem;}
+  .dashboard .lock-note{font-size:.75rem;}
+  .dashboard .btn-row{gap:5px;margin-top:8px;}
+  .dashboard .row2{gap:6px;margin-top:6px;}
+
+  /* 모바일: 세로 스택, 카메라 → 조작 → 분석 순 */
+  @media(max-width:900px){
+    .dashboard{grid-template-columns:1fr;}
+    .col-center{order:-1;}
+  }
+</style>
+</head>
+<body class="mode-diff">
+<div class="wrap">
+
+  <header class="page-head">
+    <h1>📸 다중섬광사진</h1>
+    <p class="sub">움직이는 물체를 일정한 시간 간격으로 한 장에 겹쳐 찍어 운동을 분석해요</p>
+  </header>
+
+  <div class="teacher-row">
+    <label for="teacherToggle">교사용 정보 보기</label>
+    <span class="switch"><input type="checkbox" id="teacherToggle" /><span class="slider-sw"></span></span>
+  </div>
+
+  <section class="teacher-info" id="teacherInfo" aria-hidden="true">
+    <h2>📚 교육과정 연계 (2022 개정)</h2>
+    <div class="std-codes"><span class="code">9과19-01</span><span class="code">9과19-02</span></div>
+    <ul>
+      <li><b>[9과19-01]</b> 직선상에서 움직이는 물체의 운동을 그래프로 나타내고 해석할 수 있다.</li>
+      <li><b>[9과19-02]</b> 자유 낙하하는 물체의 운동에서 시간에 따른 속력의 변화가 일정함을 분석할 수 있다.</li>
+      <li class="tip">교육과정 적용 고려사항: "운동에 대한 기록과 자료의 해석·분석에 사진기나 운동 센서 등 다양한 디지털 탐구 도구를 활용한다."</li>
+    </ul>
+    <p style="margin:.6em 0 0;"><b>분석 포인트</b> — 점 사이 간격이 <b>일정</b>하면 등속운동, 점점 <b>벌어지면</b> 속력 증가(가속·자유낙하). 자유낙하면 표의 ‘속력 변화량’이 거의 일정하게 나와요. 길이 보정을 하면 가속도 g(이론값 9.8m/s²)를 직접 도출할 수 있습니다.</p>
+  </section>
+
+  <div class="dashboard">
+  <div class="col-left">
+<!-- 촬영 모드 -->
+  <section class="panel controls">
+    <h2><span class="ic">🎚️</span> 촬영 모드</h2>
+    <div class="seg" role="radiogroup" aria-label="촬영 모드">
+      <label><input type="radio" name="mode" id="modeDiff" value="diff" checked /><span class="opt">☀️ 일반 조명 (배경 빼기)</span></label>
+      <label><input type="radio" name="mode" id="modeLighten" value="lighten" /><span class="opt">🌙 어두운 방 (밝은 물체)</span></label>
+    </div>
+    <p class="mode-desc" id="modeDesc">밝은 교실용. 빈 화면을 ‘배경 찍기’로 먼저 저장하면, 이후 움직인 물체만 도장처럼 쌓여요.</p>
+
+    <div class="field">
+      <label>촬영 방향 <span class="hint">자유낙하(위아래 운동)는 세로가 유리해요.</span></label>
+      <div class="seg" role="radiogroup" aria-label="촬영 방향">
+        <label><input type="radio" name="orient" id="orientLand" value="land" checked /><span class="opt">↔️ 가로</span></label>
+        <label><input type="radio" name="orient" id="orientPort" value="port" /><span class="opt">↕️ 세로 (낙하)</span></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 조작 -->
+  <section class="panel controls">
+    <h2><span class="ic">🎛️</span> 촬영 조작</h2>
+    <div class="btn-row">
+      <button class="act" id="btnCam" type="button">🎥 카메라 켜기</button>
+      <button class="act bg diff-only" id="btnBg" type="button" disabled>🖼️ 배경 찍기</button>
+      <button class="act primary" id="btnStart" type="button" disabled>● 촬영 시작</button>
+      <button class="act" id="btnStop" type="button" disabled>■ 정지</button>
+      <button class="act danger" id="btnClear" type="button" disabled>🧹 지우기</button>
+      <button class="act" id="btnSave" type="button" disabled>💾 사진 저장</button>
+    </div>
+
+    <div class="field" id="camSelectField" style="display:none;">
+      <label for="camSelect">카메라 선택</label>
+      <select id="camSelect" aria-label="카메라 선택"></select>
+    </div>
+
+    <div class="field">
+      <label for="interval">섬광 간격 (Δt) — <span class="val" id="intervalLabel">0.10초</span>
+        <span class="hint">간격마다 한 장씩 겹쳐 찍어요. 빠른 물체일수록 간격을 짧게.</span></label>
+      <input type="range" id="interval" min="30" max="500" step="10" value="100" aria-label="섬광 간격 밀리초" />
+    </div>
+
+    <div class="field diff-only">
+      <label for="sensitivity">움직임 감도 — <span class="val" id="sensLabel">보통</span>
+        <span class="hint">그림자·조명 흔들림으로 지저분하면 ←낮춤, 물체가 잘 안 잡히면 →높임.</span></label>
+      <input type="range" id="sensitivity" min="1" max="100" step="1" value="50" aria-label="움직임 감도" />
+    </div>
+  </section>
+
+    </div>
+  <div class="col-center">
+<div class="stage" id="stage">
+    <div class="placeholder" id="placeholder">
+      <span class="big">🎥</span>
+      아래 <b>‘카메라 켜기’</b> 버튼을 눌러 시작하세요.<br>
+      <span style="font-size:.85rem;color:#7d8893;">카메라 사용 권한을 허용해 주세요.</span>
+    </div>
+    <video id="liveVideo" playsinline muted></video>
+    <canvas id="composite"></canvas>
+    <canvas id="overlay"></canvas>
+    <canvas id="marks"></canvas>
+    <div class="rec-badge"><span class="rec-dot"></span>촬영 중</div>
+    <div class="stat-bar" id="statBar" style="display:none;">
+      <span>노출 횟수 <b id="statCount">0</b></span><span class="sep">·</span>
+      <span>간격 Δt <b id="statDt">0.10</b>초</span><span class="sep">·</span>
+      <span>총 시간 <b id="statTotal">0.0</b>초</span>
+    </div>
+  </div>
+
+  <div class="msg warn" id="errMsg" role="alert"></div>
+  <div class="msg ok" id="okMsg" role="status"></div>
+
+  <!-- 사용법 -->
+  <section class="panel">
+    <details class="howto">
+      <summary>📖 사용법 (펼치기/접기)</summary>
+      <div class="guide">
+        <div class="diff-only">
+          <p style="font-weight:600;margin:.2em 0;">☀️ 일반 조명 (배경 빼기) — 밝은 교실용</p>
+          <ol>
+            <li>카메라를 <b>고정</b>해요(흔들리면 안 됩니다). 자유낙하면 ‘촬영 방향: 세로’로 두세요.</li>
+            <li>화면에 아무것도 없는 상태에서 <b>‘배경 찍기’</b>.</li>
+            <li>‘촬영 시작’ 후 물체를 떨어뜨리거나 굴린다.</li>
+            <li>‘정지’ → 아래 <b>운동 분석</b>에서 위치를 찍어 표·그래프를 봅니다.</li>
+          </ol>
+          <p class="tip">💡 배경과 대비되는 물체일수록 깔끔해요. 지저분하면 ‘감도’를 낮춰 보세요.</p>
+        </div>
+        <div class="lighten-only">
+          <p style="font-weight:600;margin:.2em 0;">🌙 어두운 방 (밝은 물체)</p>
+          <ol>
+            <li><b>어두운 곳</b>에서 <b>밝은 물체</b>(흰 공·LED)를 준비해요.</li>
+            <li>카메라 고정 후 ‘촬영 시작’ 직후 물체를 움직여요.</li>
+            <li>‘정지’ → 운동 분석에서 위치를 찍어 표·그래프를 봅니다.</li>
+          </ol>
+        </div>
+        <p style="font-weight:600;margin:.6em 0 .2em;">📊 자유낙하 분석</p>
+        <ol>
+          <li>(선택) <b>길이 보정</b>: 화면에 함께 찍힌 자·기준 물체의 양 끝 두 점을 찍고 실제 길이를 입력 → 실제 단위·가속도 g가 나와요.</li>
+          <li><b>위치 찍기</b>: 떨어진 공의 위치를 순서대로 찍어요.</li>
+          <li>표의 <b>속력 변화량</b>이 거의 일정 → 자유낙하의 증거. 그래프는 일정하게 올라가는 직선이 됩니다.</li>
+        </ol>
+        <p class="tip">⚠️ 화면은 깜빡이지 않아요. 잔상이 부드럽게 쌓이는 방식이라 안전합니다.</p>
+      </div>
+    </details>
+  </section>
+
+  </div>
+  <div class="col-right">
+<!-- 분석 보조 도구(눈금) -->
+  <section class="panel controls">
+    <h2><span class="ic">📐</span> 눈금 보조선</h2>
+    <div class="check-row">
+      <label class="check"><input type="checkbox" id="chkGrid" /> 🔲 눈금 격자</label>
+      <label class="check"><input type="checkbox" id="chkRuler" /> 📏 길이 기준자</label>
+      <label class="check"><input type="checkbox" id="chkSaveOverlay" checked /> 저장 시 보조선 포함</label>
+    </div>
+    <div class="row2" style="margin-top:12px;">
+      <div class="field" style="margin-top:0;flex:1 1 220px;">
+        <label for="gridSize">격자 칸 크기 — <span class="val" id="gridSizeLabel">40px</span></label>
+        <input type="range" id="gridSize" min="20" max="120" step="5" value="40" aria-label="격자 칸 크기" />
+      </div>
+      <div class="field compact" style="margin-top:0;flex:0 0 150px;">
+        <label for="rulerDir">기준자 방향</label>
+        <select id="rulerDir" aria-label="기준자 방향">
+          <option value="h">가로 (아래)</option>
+          <option value="v">세로 (왼쪽)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- 운동 분석 -->
+  <section class="panel controls locked" id="analysisPanel">
+    <h2><span class="ic">📊</span> 운동 분석 <span class="lock-note">— 먼저 촬영해서 사진을 만든 뒤 사용할 수 있어요</span></h2>
+
+    <p class="empty-hint" style="margin-top:0;">사진 속 물체의 위치를 순서대로 찍으면 구간거리·속력·속력 변화량과 시간–속력 그래프가 자동으로 만들어져요.</p>
+
+    <!-- 1) 길이 보정 -->
+    <div class="field" style="margin-top:8px;">
+      <label>① 길이 보정 <span class="hint">(선택) 실제 단위·가속도 g를 구하려면 필요해요.</span></label>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="act bg small" id="btnCal" type="button" disabled>📏 기준 길이 보정</button>
+      </div>
+      <div class="cal-input" id="calInput">
+        <span>찍은 두 점의 실제 길이 =</span>
+        <input type="number" id="calLen" min="0" step="0.5" style="width:90px;" aria-label="기준 실제 길이" />
+        <select id="calUnit" aria-label="단위" style="min-height:40px;"><option value="cm">cm</option><option value="m">m</option></select>
+        <button class="act primary small" id="btnCalApply" type="button">적용</button>
+      </div>
+      <div class="cal-status" id="calStatus"></div>
+    </div>
+
+    <!-- 2) 위치 찍기 -->
+    <div class="field">
+      <label>② 위치 찍기 <span class="hint">사진 위 물체의 중심을 지나간 순서대로 톡톡 찍어요.</span></label>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="act primary small" id="btnMark" type="button" disabled>📍 위치 찍기 시작</button>
+        <button class="act small" id="btnUndo" type="button" disabled>↩️ 마지막 취소</button>
+        <button class="act danger small" id="btnClearPts" type="button" disabled>🗑️ 점 모두 지우기</button>
+      </div>
+    </div>
+
+    <!-- 3) 분석 Δt -->
+    <div class="inline-num">
+      <label for="anaDt">분석에 사용하는 Δt =</label>
+      <input type="number" id="anaDt" min="0.01" step="0.01" value="0.10" aria-label="분석 시간 간격 초" />
+      <span>초</span>
+      <span class="hint">촬영할 때 쓴 섬광 간격과 같게 두세요(자동 설정됨).</span>
+    </div>
+
+    <!-- 결과 표 -->
+    <div class="data-wrap" id="dataWrap"></div>
+
+    <!-- 가속도 -->
+    <div class="accel-box" id="accelBox">
+      <div>추정 가속도 <span class="big" id="accelVal">–</span></div>
+      <div class="cmp" id="accelCmp"></div>
+    </div>
+
+    <!-- 그래프 -->
+    <div class="chart-wrap" id="chartWrap" style="display:none;">
+      <label style="font-weight:600;font-size:.95rem;display:block;margin-bottom:6px;">시간–속력 그래프</label>
+      <canvas id="chart" width="640" height="280" aria-label="시간 속력 그래프"></canvas>
+    </div>
+  </section>
+
+    </div>
+</div>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  var $=function(id){return document.getElementById(id);};
+  var stage=$('stage'), video=$('liveVideo'), composite=$('composite'), overlay=$('overlay'), marks=$('marks');
+  var placeholder=$('placeholder'), statBar=$('statBar'), statCount=$('statCount'), statDt=$('statDt'), statTotal=$('statTotal');
+  var btnCam=$('btnCam'), btnBg=$('btnBg'), btnStart=$('btnStart'), btnStop=$('btnStop'), btnClear=$('btnClear'), btnSave=$('btnSave');
+  var camSelectField=$('camSelectField'), camSelect=$('camSelect');
+  var interval=$('interval'), intervalLabel=$('intervalLabel'), sensitivity=$('sensitivity'), sensLabel=$('sensLabel'), modeDesc=$('modeDesc');
+  var chkGrid=$('chkGrid'), chkRuler=$('chkRuler'), chkSaveOverlay=$('chkSaveOverlay'), gridSize=$('gridSize'), gridSizeLabel=$('gridSizeLabel'), rulerDir=$('rulerDir');
+  var errMsg=$('errMsg'), okMsg=$('okMsg'), teacherToggle=$('teacherToggle'), teacherInfo=$('teacherInfo');
+  var analysisPanel=$('analysisPanel'), btnCal=$('btnCal'), calInput=$('calInput'), calLen=$('calLen'), calUnit=$('calUnit'), btnCalApply=$('btnCalApply'), calStatus=$('calStatus');
+  var btnMark=$('btnMark'), btnUndo=$('btnUndo'), btnClearPts=$('btnClearPts'), anaDt=$('anaDt');
+  var dataWrap=$('dataWrap'), accelBox=$('accelBox'), accelVal=$('accelVal'), accelCmp=$('accelCmp'), chartWrap=$('chartWrap'), chart=$('chart');
+
+  var cctx=composite.getContext('2d'), octx=overlay.getContext('2d'), mctx=marks.getContext('2d');
+  var work=document.createElement('canvas'), wctx=work.getContext('2d',{willReadFrequently:true});
+  var stampCv=document.createElement('canvas'), sctx=stampCv.getContext('2d');
+  var bgCv=document.createElement('canvas'), bgCtx=bgCv.getContext('2d');
+  var chCtx=chart.getContext('2d');
+
+  var MAXW=960;
+  var PW=640, PH=480;
+  var crop={sx:0,sy:0,sw:640,sh:480};
+  var stream=null, captureTimer=null, exposureCount=0;
+  var mode='diff', orient='land';
+  var bgData=null, stampData=null;
+
+  // 분석 상태
+  var pickMode=null;            // null | 'cal' | 'measure'
+  var calPoints=[];             // [{x,y},{x,y}]
+  var metersPerPx=null;         // 보정 결과
+  var points=[];                // 측정 점들 {x,y}
+
+  function showError(t){errMsg.textContent=t;errMsg.classList.add('show');}
+  function clearError(){errMsg.classList.remove('show');errMsg.textContent='';}
+  function showOk(t){okMsg.textContent=t;okMsg.classList.add('show');}
+  function clearOk(){okMsg.classList.remove('show');okMsg.textContent='';}
+  function intervalMs(){return parseInt(interval.value,10);}
+  function threshold(){return Math.max(12, Math.round(150 - parseInt(sensitivity.value,10)*1.3));}
+  function sensWord(){var v=+sensitivity.value;return v<34?'낮음':v<67?'보통':'높음';}
+  function dtSec(){var v=parseFloat(anaDt.value);return (isNaN(v)||v<=0)?0.1:v;}
+
+  function computeGeometry(){
+    var vw=video.videoWidth||640, vh=video.videoHeight||480;
+    if(orient==='port'){
+      // 영상 중앙의 세로 띠(폭:높이 = 3:4)만 잘라 세로 화면으로
+      var targetW=Math.min(vw, Math.round(vh*3/4));
+      crop={sx:Math.round((vw-targetW)/2), sy:0, sw:targetW, sh:vh};
+    } else {
+      crop={sx:0, sy:0, sw:vw, sh:vh};
+    }
+    var cw=crop.sw, ch=crop.sh, scale=Math.min(1, MAXW/cw);
+    PW=Math.round(cw*scale); PH=Math.round(ch*scale);
+    [composite,overlay,marks,work,stampCv,bgCv].forEach(function(c){c.width=PW;c.height=PH;});
+    stampData=sctx.createImageData(PW,PH);
+    stage.style.aspectRatio=PW+'/'+PH;
+  }
+
+  function drawSource(ctx){ ctx.drawImage(video, crop.sx,crop.sy,crop.sw,crop.sh, 0,0,PW,PH); }
+
+  function listCameras(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices) return;
+    navigator.mediaDevices.enumerateDevices().then(function(devs){
+      var cams=devs.filter(function(d){return d.kind==='videoinput';});
+      if(cams.length<=1){camSelectField.style.display='none';return;}
+      camSelect.innerHTML='';
+      cams.forEach(function(c,i){var o=document.createElement('option');o.value=c.deviceId;o.textContent=c.label||('카메라 '+(i+1));camSelect.appendChild(o);});
+      camSelectField.style.display='block';
+    });
+  }
+
+  function startCamera(deviceId){
+    clearError();
+    if(location.protocol!=='https:'&&location.hostname!=='localhost'){
+      showError('카메라는 보안 연결(https)에서만 작동해요. GitHub Pages 주소(https)로 열어 주세요.');return;
+    }
+    var constraints={audio:false, video: deviceId?{deviceId:{exact:deviceId}}:{facingMode:{ideal:'environment'}}};
+    if(stream){stream.getTracks().forEach(function(t){t.stop();});}
+    navigator.mediaDevices.getUserMedia(constraints).then(function(s){
+      stream=s; video.srcObject=s; video.play();
+      video.onloadedmetadata=function(){
+        computeGeometry(); placeholder.style.display='none';
+        btnCam.textContent='🔄 카메라 다시 잡기';
+        afterCameraReady(); listCameras();
+      };
+    }).catch(function(err){
+      var m='카메라를 열 수 없어요. ';
+      if(err&&err.name==='NotAllowedError') m+='브라우저에서 카메라 권한을 허용해 주세요.';
+      else if(err&&err.name==='NotFoundError') m+='사용 가능한 카메라가 없어요.';
+      else m+='('+(err&&err.name?err.name:'알 수 없는 오류')+')';
+      showError(m);
+    });
+  }
+
+  function afterCameraReady(){
+    if(mode==='diff'){btnBg.disabled=false;btnStart.disabled=true;showOk('카메라 준비 완료. 빈 화면을 ‘배경 찍기’로 저장하세요.');}
+    else {btnStart.disabled=false;clearOk();}
+  }
+
+  function captureBackground(){
+    if(!video.videoWidth) return;
+    drawSource(wctx);
+    bgData=wctx.getImageData(0,0,PW,PH);
+    bgCtx.putImageData(bgData,0,0);
+    cctx.globalCompositeOperation='source-over'; cctx.drawImage(bgCv,0,0);
+    stage.classList.remove('recording'); // 배경 미리보기지만 분석은 아직
+    btnStart.disabled=false; btnClear.disabled=false;
+    showOk('배경을 저장했어요. ‘촬영 시작’을 누르고 물체를 움직이세요.');
+  }
+
+  function captureFrame(){
+    if(!video.videoWidth) return;
+    if(mode==='lighten'){
+      cctx.globalCompositeOperation='lighten'; drawSource(cctx);
+    } else {
+      drawSource(wctx);
+      var cur=wctx.getImageData(0,0,PW,PH).data, bg=bgData.data, out=stampData.data, thr=threshold();
+      for(var i=0;i<cur.length;i+=4){
+        var d=Math.abs(cur[i]-bg[i])+Math.abs(cur[i+1]-bg[i+1])+Math.abs(cur[i+2]-bg[i+2]);
+        if(d>thr){out[i]=cur[i];out[i+1]=cur[i+1];out[i+2]=cur[i+2];out[i+3]=255;} else {out[i+3]=0;}
+      }
+      sctx.putImageData(stampData,0,0);
+      cctx.globalCompositeOperation='source-over'; cctx.drawImage(stampCv,0,0);
+    }
+    exposureCount++; updateStats();
+  }
+
+  function updateStats(){var dt=intervalMs()/1000;statCount.textContent=exposureCount;statDt.textContent=dt.toFixed(2);statTotal.textContent=(exposureCount*dt).toFixed(1);}
+
+  function baseComposite(){
+    cctx.globalCompositeOperation='source-over';
+    if(mode==='diff'&&bgData){cctx.drawImage(bgCv,0,0);} else {cctx.fillStyle='#000';cctx.fillRect(0,0,PW,PH);}
+  }
+
+  function startRecording(){
+    if(!stream) return;
+    if(mode==='diff'&&!bgData){showError('먼저 ‘배경 찍기’를 눌러 빈 화면을 저장하세요.');return;}
+    clearError();clearOk(); resetAnalysis();
+    baseComposite(); exposureCount=0; updateStats();
+    stage.classList.add('recording'); stage.classList.remove('has-result');
+    statBar.style.display='flex';
+    captureFrame(); captureTimer=setInterval(captureFrame, intervalMs());
+    setBusy(true);
+  }
+
+  function stopRecording(){
+    if(captureTimer){clearInterval(captureTimer);captureTimer=null;}
+    stage.classList.remove('recording'); stage.classList.add('has-result');
+    setBusy(false); btnStart.disabled=false; btnStop.disabled=true;
+    // 분석에 쓰는 Δt를 촬영 간격으로 자동 설정
+    anaDt.value=(intervalMs()/1000).toFixed(2);
+    enableAnalysis(true);
+    showOk('촬영 완료! 아래 ‘운동 분석’에서 위치를 찍어 보세요.');
+  }
+
+  function setBusy(on){
+    btnStart.disabled=on; btnStop.disabled=!on; btnClear.disabled=false; btnSave.disabled=false;
+    btnBg.disabled=on; interval.disabled=on; sensitivity.disabled=on;
+    $('modeDiff').disabled=on; $('modeLighten').disabled=on; $('orientLand').disabled=on; $('orientPort').disabled=on;
+  }
+
+  function clearAll(){
+    if(captureTimer){clearInterval(captureTimer);captureTimer=null;}
+    exposureCount=0; updateStats();
+    stage.classList.remove('recording');
+    if(mode==='diff'&&bgData){baseComposite();} else {cctx.globalCompositeOperation='source-over';cctx.clearRect(0,0,PW,PH);}
+    stage.classList.remove('has-result');
+    statBar.style.display='none';
+    btnStart.disabled=!stream||(mode==='diff'&&!bgData);
+    btnStop.disabled=true; btnSave.disabled=true;
+    interval.disabled=false; sensitivity.disabled=false;
+    $('modeDiff').disabled=false; $('modeLighten').disabled=false; $('orientLand').disabled=false; $('orientPort').disabled=false;
+    btnBg.disabled=!stream;
+    resetAnalysis(); enableAnalysis(false);
+  }
+
+  function switchMode(m){
+    mode=m;
+    document.body.classList.toggle('mode-diff', m==='diff');
+    document.body.classList.toggle('mode-lighten', m==='lighten');
+    modeDesc.textContent = m==='diff'
+      ? '밝은 교실용. 빈 화면을 ‘배경 찍기’로 먼저 저장하면, 이후 움직인 물체만 도장처럼 쌓여요.'
+      : '어두운 방용. 밝은 물체(흰 공·LED)의 잔상이 위치마다 쌓여요. 배경 찍기 없이 바로 촬영.';
+    hardReset(); try{localStorage.setItem('strobe_mode',m);}catch(e){}
+  }
+  function switchOrient(o){ orient=o; if(stream) computeGeometry(); chkGrid.checked=false; chkRuler.checked=false; hardReset(); try{localStorage.setItem('strobe_orient',o);}catch(e){} }
+
+  function hardReset(){
+    if(captureTimer){clearInterval(captureTimer);captureTimer=null;}
+    bgData=null; exposureCount=0; updateStats();
+    cctx.globalCompositeOperation='source-over'; cctx.clearRect(0,0,PW,PH);
+    octx.clearRect(0,0,overlay.width,overlay.height); overlay.style.display='none';
+    stage.classList.remove('recording'); stage.classList.remove('has-result');
+    statBar.style.display='none';
+    btnStop.disabled=true; btnClear.disabled=true; btnSave.disabled=true;
+    interval.disabled=false; sensitivity.disabled=false;
+    clearError(); clearOk();
+    if(stream) afterCameraReady(); else {btnBg.disabled=true;btnStart.disabled=true;}
+    resetAnalysis(); enableAnalysis(false);
+  }
+
+  /* ---------------- 눈금 보조선 ---------------- */
+  function drawOverlay(){
+    octx.clearRect(0,0,overlay.width,overlay.height);
+    var show=chkGrid.checked||chkRuler.checked;
+    overlay.style.display=show?'block':'none';
+    if(!show) return;
+    var step=parseInt(gridSize.value,10);
+    var scale=composite.width/(stage.clientWidth||composite.width);
+    var stepPx=step*scale;
+    if(chkGrid.checked){
+      octx.strokeStyle='rgba(120,190,255,0.55)'; octx.lineWidth=Math.max(1,scale); octx.beginPath();
+      for(var x=0;x<=overlay.width;x+=stepPx){octx.moveTo(x,0);octx.lineTo(x,overlay.height);}
+      for(var y=0;y<=overlay.height;y+=stepPx){octx.moveTo(0,y);octx.lineTo(overlay.width,y);}
+      octx.stroke();
+    }
+    if(chkRuler.checked){
+      var cm=parseFloat(cmPerCellVal()), hasCm=!isNaN(cm)&&cm>0;
+      octx.strokeStyle='#ffd24d'; octx.lineWidth=Math.max(1.5,1.5*scale);
+      octx.font='700 '+(15*scale)+'px Pretendard, sans-serif'; octx.textBaseline='middle';
+      var idx=0;
+      if(rulerDir.value==='v'){
+        var barX=22*scale;
+        octx.fillStyle='rgba(15,18,22,0.78)'; octx.fillRect(0,0,40*scale,overlay.height);
+        octx.fillStyle='#ffd24d'; octx.beginPath();
+        for(var ry=0;ry<=overlay.height;ry+=stepPx){
+          octx.moveTo(barX-6*scale,ry);octx.lineTo(barX+8*scale,ry);
+          if(idx%2===0){octx.fillText(hasCm?(idx*cm).toFixed(0):String(idx), barX+11*scale, ry);}
+          idx++;
+        }
+        octx.stroke();
+        octx.fillStyle='#fff'; octx.font='600 '+(12*scale)+'px Pretendard, sans-serif';
+        octx.save(); octx.translate(13*scale, 8*scale); octx.fillText(hasCm?'cm':'칸',0,0); octx.restore();
+      } else {
+        var barY=overlay.height-30*scale;
+        octx.fillStyle='rgba(15,18,22,0.78)'; octx.fillRect(0,barY-6*scale,overlay.width,36*scale);
+        octx.fillStyle='#ffd24d'; octx.beginPath();
+        for(var rx=0;rx<=overlay.width;rx+=stepPx){
+          octx.moveTo(rx,barY-6*scale);octx.lineTo(rx,barY+8*scale);
+          if(idx%2===0){octx.fillText(hasCm?(idx*cm).toFixed(0)+'cm':String(idx), rx+3*scale, barY+16*scale);}
+          idx++;
+        }
+        octx.stroke();
+        octx.fillStyle='#fff'; octx.font='600 '+(13*scale)+'px Pretendard, sans-serif';
+        octx.fillText(hasCm?'기준자 (cm)':'기준자 (칸)', 6*scale, barY-14*scale);
+      }
+    }
+  }
+  // (눈금 기준자용 1칸=cm 입력은 분석 보정과 분리; 여기선 미사용 시 빈값)
+  function cmPerCellVal(){ return ''; }
+
+  /* ---------------- 운동 분석 ---------------- */
+  function enableAnalysis(on){
+    analysisPanel.classList.toggle('locked', !on);
+    btnCal.disabled=!on; btnMark.disabled=!on;
+    btnUndo.disabled=!on||points.length===0;
+    btnClearPts.disabled=!on||points.length===0;
+  }
+
+  function resetAnalysis(){
+    pickMode=null; calPoints=[]; metersPerPx=null; points=[];
+    calInput.classList.remove('show'); calStatus.textContent=''; calLen.value='';
+    stage.classList.remove('picking');
+    btnMark.classList.remove('on'); btnMark.textContent='📍 위치 찍기 시작';
+    btnCal.classList.remove('on');
+    redrawMarks(); renderTable();
+  }
+
+  // 화면 클릭 → 캔버스 비트맵 좌표
+  function toBitmap(ev){
+    var r=marks.getBoundingClientRect();
+    var x=(ev.clientX-r.left)/r.width*PW;
+    var y=(ev.clientY-r.top)/r.height*PH;
+    return {x:Math.max(0,Math.min(PW,x)), y:Math.max(0,Math.min(PH,y))};
+  }
+
+  marks.addEventListener('pointerdown', function(ev){
+    if(!pickMode) return;
+    ev.preventDefault();
+    var p=toBitmap(ev);
+    if(pickMode==='cal'){
+      calPoints.push(p);
+      if(calPoints.length>=2){
+        calPoints=calPoints.slice(0,2);
+        pickMode=null; stage.classList.remove('picking'); btnCal.classList.remove('on');
+        calInput.classList.add('show'); calLen.focus();
+      }
+      redrawMarks();
+    } else if(pickMode==='measure'){
+      points.push(p); redrawMarks(); renderTable();
+      btnUndo.disabled=false; btnClearPts.disabled=false;
+    }
+  });
+
+  function redrawMarks(){
+    mctx.clearRect(0,0,marks.width,marks.height);
+    var R=Math.max(5, PW*0.012), lw=Math.max(2, PW*0.004);
+    // 보정 선
+    if(calPoints.length){
+      mctx.strokeStyle='#36c'; mctx.fillStyle='#36c'; mctx.lineWidth=lw;
+      if(calPoints.length===2){
+        mctx.beginPath(); mctx.moveTo(calPoints[0].x,calPoints[0].y); mctx.lineTo(calPoints[1].x,calPoints[1].y); mctx.stroke();
+      }
+      calPoints.forEach(function(p){ mctx.beginPath(); mctx.arc(p.x,p.y,R*0.8,0,7); mctx.fill(); });
+    }
+    // 측정 점
+    if(points.length){
+      mctx.strokeStyle='rgba(255,210,77,0.9)'; mctx.lineWidth=lw;
+      mctx.beginPath();
+      points.forEach(function(p,i){ if(i===0)mctx.moveTo(p.x,p.y); else mctx.lineTo(p.x,p.y); });
+      mctx.stroke();
+      mctx.font='700 '+Math.max(11,PW*0.026)+'px Pretendard, sans-serif'; mctx.textAlign='center'; mctx.textBaseline='middle';
+      points.forEach(function(p,i){
+        mctx.fillStyle='#e23b3b'; mctx.beginPath(); mctx.arc(p.x,p.y,R,0,7); mctx.fill();
+        mctx.fillStyle='#fff'; mctx.fillText(String(i+1), p.x, p.y);
+      });
+    }
+  }
+
+  function applyCalibration(){
+    if(calPoints.length<2) return;
+    var len=parseFloat(calLen.value);
+    if(isNaN(len)||len<=0){ calStatus.style.color='#a13f3c'; calStatus.textContent='실제 길이를 입력하세요.'; return; }
+    var meters=calUnit.value==='m'?len:len/100;
+    var dpx=Math.hypot(calPoints[0].x-calPoints[1].x, calPoints[0].y-calPoints[1].y);
+    if(dpx<2){ calStatus.style.color='#a13f3c'; calStatus.textContent='두 점이 너무 가까워요. 다시 찍어 주세요.'; return; }
+    metersPerPx=meters/dpx;
+    calStatus.style.color=''; calStatus.textContent='보정 완료 ✓ — 기준 '+len+calUnit.value+' 적용됨';
+    calInput.classList.remove('show');
+    renderTable();
+  }
+
+  function linReg(xs,ys){
+    var n=xs.length, mx=0,my=0,i;
+    for(i=0;i<n;i++){mx+=xs[i];my+=ys[i];} mx/=n; my/=n;
+    var num=0,den=0;
+    for(i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);den+=(xs[i]-mx)*(xs[i]-mx);}
+    return den===0?0:num/den;
+  }
+
+  function renderTable(){
+    var dt=dtSec(), cal=metersPerPx!=null;
+    if(points.length<2){
+      dataWrap.innerHTML='<p class="empty-hint">위치를 2개 이상 찍으면 표가 만들어져요.</p>';
+      accelBox.classList.remove('show'); chartWrap.style.display='none';
+      return;
+    }
+    var distU=cal?'거리(cm)':'거리(px)', vU=cal?'속력(m/s)':'속력(px/s)', dvU=cal?'변화량(m/s)':'변화량(px/s)';
+    var html='<table class="data"><thead><tr><th>구간</th><th>'+distU+'</th><th>'+vU+'</th><th>'+dvU+'</th></tr></thead><tbody>';
+    var speeds=[], times=[];
+    for(var i=1;i<points.length;i++){
+      var dpx=Math.hypot(points[i].x-points[i-1].x, points[i].y-points[i-1].y);
+      var distDisp, v, vReal;
+      if(cal){ var m=dpx*metersPerPx; distDisp=(m*100).toFixed(1); vReal=m/dt; v=vReal.toFixed(2); }
+      else { distDisp=dpx.toFixed(0); vReal=dpx/dt; v=vReal.toFixed(0); }
+      speeds.push(vReal); times.push((i-0.5)*dt);
+      var dv = i>=2 ? (speeds[i-1]-speeds[i-2]) : null;
+      var dvDisp = dv==null?'–':(cal?dv.toFixed(2):dv.toFixed(0));
+      html+='<tr><td class="idx">'+i+'→'+(i+1)+'</td><td>'+distDisp+'</td><td>'+v+'</td><td>'+dvDisp+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    dataWrap.innerHTML=html;
+
+    // 가속도 추정 (보정 + 구간 2개 이상)
+    if(cal && speeds.length>=2){
+      var a=linReg(times, speeds); // m/s per s = m/s^2
+      accelVal.textContent=a.toFixed(1)+' m/s²';
+      var diff=Math.abs(a-9.8);
+      accelCmp.textContent='이론값 9.8 m/s² 와 차이 '+diff.toFixed(1)+' m/s² '+(diff<1.5?'— 잘 나왔어요!':'— 카메라 고정·보정·Δt를 점검해 보세요.');
+      accelBox.classList.add('show');
+    } else {
+      accelBox.classList.remove('show');
+      if(!cal && speeds.length>=2){ /* 보정 없으면 g 미표시 */ }
+    }
+    drawChart(times, speeds, cal);
+    chartWrap.style.display='block';
+  }
+
+  function drawChart(times, speeds, cal){
+    var W=chart.width, H=chart.height, padL=58, padB=40, padT=16, padR=14;
+    chCtx.clearRect(0,0,W,H);
+    var x0=padL, y0=H-padB, x1=W-padR, y1=padT;
+    var tmax=Math.max.apply(null,times)*1.1||1, vmax=Math.max.apply(null,speeds)*1.15||1;
+    // 축
+    chCtx.strokeStyle='#999'; chCtx.lineWidth=1; chCtx.beginPath();
+    chCtx.moveTo(x0,y1); chCtx.lineTo(x0,y0); chCtx.lineTo(x1,y0); chCtx.stroke();
+    chCtx.fillStyle='#555'; chCtx.font='12px Pretendard, sans-serif';
+    chCtx.textAlign='center'; chCtx.fillText('시간 (s)', (x0+x1)/2, H-8);
+    chCtx.save(); chCtx.translate(14,(y0+y1)/2); chCtx.rotate(-Math.PI/2);
+    chCtx.fillText(cal?'속력 (m/s)':'속력 (px/s)',0,0); chCtx.restore();
+    // 눈금
+    chCtx.textAlign='right'; chCtx.textBaseline='middle'; chCtx.strokeStyle='#eee';
+    for(var g=0;g<=4;g++){
+      var vy=y0-(y0-y1)*g/4, vv=vmax*g/4;
+      chCtx.beginPath(); chCtx.moveTo(x0,vy); chCtx.lineTo(x1,vy); chCtx.strokeStyle='#eee'; chCtx.stroke();
+      chCtx.fillStyle='#777'; chCtx.fillText(vv.toFixed(cal?1:0), x0-6, vy);
+    }
+    var sx=function(t){return x0+(x1-x0)*t/tmax;}, sy=function(v){return y0-(y0-y1)*v/vmax;};
+    // 추세선
+    if(cal && speeds.length>=2){
+      var a=linReg(times,speeds), b=0, mx=0,my=0,i;
+      for(i=0;i<times.length;i++){mx+=times[i];my+=speeds[i];} mx/=times.length;my/=speeds.length;
+      b=my-a*mx;
+      chCtx.strokeStyle='rgba(37,99,184,0.5)'; chCtx.lineWidth=2; chCtx.beginPath();
+      chCtx.moveTo(sx(0), sy(b)); chCtx.lineTo(sx(tmax), sy(a*tmax+b)); chCtx.stroke();
+    }
+    // 점·선
+    chCtx.strokeStyle='var(--accent)'; chCtx.strokeStyle='#2563b8'; chCtx.lineWidth=2; chCtx.beginPath();
+    times.forEach(function(t,i){ var px=sx(t),py=sy(speeds[i]); if(i===0)chCtx.moveTo(px,py); else chCtx.lineTo(px,py); });
+    chCtx.stroke();
+    chCtx.fillStyle='#e23b3b';
+    times.forEach(function(t,i){ chCtx.beginPath(); chCtx.arc(sx(t),sy(speeds[i]),4,0,7); chCtx.fill(); });
+  }
+
+  /* ---------------- 저장 ---------------- */
+  function savePNG(){
+    var ex=document.createElement('canvas'); ex.width=PW; ex.height=PH;
+    var ctx=ex.getContext('2d');
+    if(mode==='lighten'){ctx.fillStyle='#000';ctx.fillRect(0,0,PW,PH);}
+    ctx.drawImage(composite,0,0);
+    if(chkSaveOverlay.checked&&overlay.style.display!=='none'){ctx.drawImage(overlay,0,0);}
+    if(stage.classList.contains('has-result')&&points.length){ctx.drawImage(marks,0,0);}
+    var d=new Date();
+    var name='다중섬광사진_'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.png';
+    var link=document.createElement('a'); link.download=name; link.href=ex.toDataURL('image/png'); link.click();
+  }
+
+  /* ---------------- 이벤트 ---------------- */
+  btnCam.addEventListener('click',function(){startCamera(camSelect.value||null);});
+  camSelect.addEventListener('change',function(){startCamera(camSelect.value);});
+  btnBg.addEventListener('click',captureBackground);
+  btnStart.addEventListener('click',startRecording);
+  btnStop.addEventListener('click',stopRecording);
+  btnClear.addEventListener('click',clearAll);
+  btnSave.addEventListener('click',savePNG);
+
+  $('modeDiff').addEventListener('change',function(){if(this.checked)switchMode('diff');});
+  $('modeLighten').addEventListener('change',function(){if(this.checked)switchMode('lighten');});
+  $('orientLand').addEventListener('change',function(){if(this.checked)switchOrient('land');});
+  $('orientPort').addEventListener('change',function(){if(this.checked)switchOrient('port');});
+
+  interval.addEventListener('input',function(){intervalLabel.textContent=(intervalMs()/1000).toFixed(2)+'초';updateStats();});
+  sensitivity.addEventListener('input',function(){sensLabel.textContent=sensWord();});
+  gridSize.addEventListener('input',function(){gridSizeLabel.textContent=gridSize.value+'px';drawOverlay();});
+  chkGrid.addEventListener('change',drawOverlay);
+  chkRuler.addEventListener('change',drawOverlay);
+  rulerDir.addEventListener('change',drawOverlay);
+  window.addEventListener('resize',function(){drawOverlay();redrawMarks();});
+
+  // 분석 버튼
+  btnCal.addEventListener('click',function(){
+    if(pickMode==='cal'){ pickMode=null; stage.classList.remove('picking'); btnCal.classList.remove('on'); return; }
+    calPoints=[]; metersPerPx=null; calStatus.textContent=''; calInput.classList.remove('show');
+    pickMode='cal'; stage.classList.add('picking'); btnCal.classList.add('on'); btnMark.classList.remove('on'); btnMark.textContent='📍 위치 찍기 시작';
+    redrawMarks(); showOk('기준 물체의 양 끝 두 점을 찍으세요.');
+  });
+  btnCalApply.addEventListener('click',applyCalibration);
+  btnMark.addEventListener('click',function(){
+    if(pickMode==='measure'){ pickMode=null; stage.classList.remove('picking'); btnMark.classList.remove('on'); btnMark.textContent='📍 위치 찍기 시작'; clearOk(); return; }
+    pickMode='measure'; stage.classList.add('picking'); btnMark.classList.add('on'); btnMark.textContent='✏️ 찍는 중 (누르면 종료)'; btnCal.classList.remove('on');
+    showOk('사진 위 물체의 위치를 지나간 순서대로 찍으세요.');
+  });
+  btnUndo.addEventListener('click',function(){ points.pop(); redrawMarks(); renderTable(); if(points.length===0){btnUndo.disabled=true;btnClearPts.disabled=true;} });
+  btnClearPts.addEventListener('click',function(){ points=[]; redrawMarks(); renderTable(); btnUndo.disabled=true; btnClearPts.disabled=true; });
+  anaDt.addEventListener('input',renderTable);
+
+  teacherToggle.addEventListener('change',function(){
+    teacherInfo.classList.toggle('show',teacherToggle.checked);
+    teacherInfo.setAttribute('aria-hidden',teacherToggle.checked?'false':'true');
+    try{localStorage.setItem('strobe_teacher',teacherToggle.checked?'1':'0');}catch(e){}
+  });
+
+  // 초기화
+  try{
+    if(localStorage.getItem('strobe_teacher')==='1'){teacherToggle.checked=true;teacherInfo.classList.add('show');teacherInfo.setAttribute('aria-hidden','false');}
+    if(localStorage.getItem('strobe_mode')==='lighten'){$('modeLighten').checked=true;}
+    if(localStorage.getItem('strobe_orient')==='port'){$('orientPort').checked=true;}
+  }catch(e){}
+  mode=document.querySelector('input[name=mode]:checked').value;
+  orient=document.querySelector('input[name=orient]:checked').value;
+  document.body.classList.toggle('mode-diff',mode==='diff');
+  document.body.classList.toggle('mode-lighten',mode==='lighten');
+  modeDesc.textContent = mode==='diff'
+    ? '밝은 교실용. 빈 화면을 ‘배경 찍기’로 먼저 저장하면, 이후 움직인 물체만 도장처럼 쌓여요.'
+    : '어두운 방용. 밝은 물체(흰 공·LED)의 잔상이 위치마다 쌓여요. 배경 찍기 없이 바로 촬영.';
+  intervalLabel.textContent=(intervalMs()/1000).toFixed(2)+'초';
+  gridSizeLabel.textContent=gridSize.value+'px';
+  sensLabel.textContent=sensWord();
+  enableAnalysis(false);
+})();
+</script>
+</body>
+</html>
