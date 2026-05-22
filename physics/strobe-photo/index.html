@@ -62,7 +62,7 @@
   .rec-badge{position:absolute;top:10px;left:10px;z-index:6;display:none;align-items:center;gap:7px;background:rgba(15,18,22,.78);color:#fff;border-radius:999px;padding:5px 12px;font-size:.85rem;font-weight:600;}
   .stage.recording .rec-badge{display:flex;}
   .rec-dot{width:11px;height:11px;border-radius:50%;background:#e23b3b;}
-  .stat-bar{position:absolute;bottom:0;left:0;right:0;z-index:6;background:rgba(15,18,22,.72);color:#eef2f6;display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center;padding:7px 12px;font-size:.86rem;}
+  .stat-bar{position:absolute;top:0;left:0;right:0;z-index:6;background:rgba(15,18,22,.72);color:#eef2f6;display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center;padding:7px 12px;font-size:.86rem;}
   .stat-bar b{color:#fff;font-weight:700;}
   .stat-bar .sep{opacity:.4;}
 
@@ -513,6 +513,7 @@
       stream=s; video.srcObject=s; video.play();
       video.onloadedmetadata=function(){
         computeGeometry(); placeholder.style.display='none';
+        chkGrid.checked=false; chkRuler.checked=false; drawOverlay();
         btnCam.textContent='🔄 카메라 다시 잡기';
         afterCameraReady(); listCameras();
       };
