@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>이온의 이동 — 가상실험</title>
+
+<!-- 폰트: 사이트 디자인 시스템(본문 Pretendard / 제목 Gowun Batang) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --accent:#b8730f;            /* 화학 = 호박색 */
+  --accent-strong:#9c5f08;
+  --paper:#f4ecda;             /* 페이지 배경(종이색) */
+  --paper-2:#efe5cf;
+  --ink:#2e2a24;
+  --muted:#6f6655;
+  --border2:#d8c9a8;
+  --line:#e3d6b8;              /* 노트북 가로줄 */
+  --cu:#2f6fb0;                /* Cu²⁺ 파랑(양이온) */
+  --mn:#7d3aa6;                /* MnO₄⁻ 보라(음이온) */
+  --pos:#c0392b;              /* (+)극 */
+  --neg:#34495e;              /* (−)극 */
+  --good:#2e7d32;
+  --bad:#b23b3b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Pretendard",system-ui,sans-serif;font-size:16px;line-height:1.6;color:var(--ink);
+  background:
+    repeating-linear-gradient(transparent, transparent 31px, var(--line) 31px, var(--line) 32px),
+    var(--paper);
+  padding:24px 16px 56px;
+}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-family:"Gowun Batang",serif;font-size:1.9rem;margin:.2em 0 .15em;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 16px}
+
+/* ── 실험 선택(세그먼트) ───────────────────────── */
+.expbar{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.expbtn{
+  flex:1 1 220px;text-align:left;border:1.5px solid var(--border2);background:#fff8ec;
+  border-radius:12px;padding:11px 14px;cursor:pointer;font-family:inherit;font-size:1rem;
+  transition:background .3s ease,border-color .3s ease;
+}
+.expbtn b{display:block;font-family:"Gowun Batang",serif;font-size:1.05rem}
+.expbtn small{color:var(--muted)}
+.expbtn:hover{background:#fdeccf}
+.expbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.expbtn[aria-pressed="true"] small{color:rgba(255,255,255,.9)}
+.expbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ── 실험 장치(캔버스) ─────────────────────────── */
+.stage{position:relative;background:var(--paper-2);border:1.5px solid var(--border2);
+  border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(90,70,30,.08)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:manipulation}
+.statusbar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.95rem;color:var(--muted);min-height:1.5em}
+.statusbar .dot{width:10px;height:10px;border-radius:50%;background:#bbb;flex:none}
+.statusbar.on .dot{background:var(--good)}
+
+/* ── 범례 ─────────────────────────────────────── */
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+.chip{display:flex;align-items:center;gap:8px;border:1.5px solid var(--border2);border-radius:999px;
+  padding:6px 12px;background:#fff8ec;font-size:.92rem}
+.chip.hide{display:none}
+.swatch{width:18px;height:18px;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+.swatch.cu{background:var(--cu)} .swatch.mn{background:var(--mn)}
+.swatch.hollow{background:#fff;border:1.5px solid #7a7468;color:#6f6655}
+
+/* ── 컨트롤 ──────────────────────────────────── */
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+button{font-family:inherit;font-size:1rem;cursor:pointer;border:1.5px solid var(--border2);
+  background:#fff8ec;color:var(--ink);border-radius:10px;padding:10px 16px;
+  transition:background .3s ease,border-color .3s ease}
+button:hover{background:#fdeccf}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+button.primary:hover{background:var(--accent-strong)}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+button .state{font-size:.8em;opacity:.85}
+
+/* ── 예측 패널 ──────────────────────────────── */
+.predict{border:1.5px dashed var(--accent);border-radius:12px;padding:14px 16px;margin:8px 0 4px;background:#fff8ec}
+.predict h2{font-family:"Gowun Batang",serif;font-size:1.1rem;margin:0 0 4px}
+.predict p{margin:.2em 0 .8em;color:var(--muted);font-size:.92rem}
+.prow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+.prow.hide{display:none}
+.prow .who{min-width:104px;font-weight:600}
+.choice{padding:7px 13px}
+.choice[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.result{font-weight:700;margin-left:4px}
+.result.good{color:var(--good)} .result.bad{color:var(--bad)}
+
+/* ── 교사용 정보 ──────────────────────────────── */
+.teacher{border:1px dashed var(--muted);border-radius:12px;padding:14px 16px;margin-top:18px;
+  background:rgba(255,255,255,.5);font-size:.92rem}
+.teacher h2{font-size:1rem;margin:0 0 6px}
+.code{font-family:ui-monospace,monospace;background:#efe2c4;padding:1px 7px;border-radius:5px}
+.teacher ul{margin:.4em 0;padding-left:1.2em}
+.teacher .warn{color:var(--bad);font-weight:600}
+.foot{margin-top:22px;font-size:.8rem;color:var(--muted)}
+
+@media (max-width:420px){
+  h1{font-size:1.55rem}
+  .prow .who{min-width:auto;width:100%}
+}
+@media print{
+  body{background:#fff}
+  .controls,.predict,.expbar{display:none}
+  .stage{box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>이온의 이동</h1>
+  <p class="sub">질산칼륨 수용액으로 적신 거름종이 위에 색이 있는 용액을 떨어뜨리고, 전기력을 걸면 어떻게 될까요?</p>
+
+  <!-- 실험 선택 -->
+  <div class="expbar" role="group" aria-label="실험 선택">
+    <button class="expbtn" id="expMn" data-exp="mn" aria-pressed="true">
+      <b>실험 ① 과망간산칼륨</b><small>보라색 KMnO₄ 한 방울</small>
+    </button>
+    <button class="expbtn" id="expCu" data-exp="cu" aria-pressed="false">
+      <b>실험 ② 황산구리</b><small>파란색 CuSO₄ 한 방울</small>
+    </button>
+  </div>
+
+  <!-- 예측 패널 (실험 선택 바로 아래) -->
+  <section class="predict" id="predict">
+    <h2>🔮 먼저 예측해 보기</h2>
+    <p>전원을 켜기 전에, 이 색의 이온이 어느 극으로 끌려갈지 골라 보세요. (전하의 부호로 판단!)</p>
+    <div class="prow" id="rowCu">
+      <span class="who">Cu²⁺ (파랑)</span>
+      <button class="choice" data-sp="cu" data-pick="-">(−)극으로</button>
+      <button class="choice" data-sp="cu" data-pick="+">(+)극으로</button>
+      <span class="result" id="resCu"></span>
+    </div>
+    <div class="prow" id="rowMn">
+      <span class="who">MnO₄⁻ (보라)</span>
+      <button class="choice" data-sp="mn" data-pick="-">(−)극으로</button>
+      <button class="choice" data-sp="mn" data-pick="+">(+)극으로</button>
+      <span class="result" id="resMn"></span>
+    </div>
+  </section>
+
+  <!-- 실험 장치 -->
+  <div class="stage">
+    <canvas id="cv" aria-label="이온 이동 실험 장치"></canvas>
+    <div class="statusbar" id="status">
+      <span class="dot"></span><span id="statusText"></span>
+    </div>
+  </div>
+
+  <!-- 범례 -->
+  <div class="legend">
+    <span class="chip cu" id="chipCu"><span class="swatch cu">＋</span> 파란색 · Cu²⁺ (양이온)</span>
+    <span class="chip mn" id="chipMn"><span class="swatch mn">－</span> 보라색 · MnO₄⁻ (음이온)</span>
+    <span class="chip" id="chipK"><span class="swatch hollow">＋</span> K⁺ (색 없는 양이온) · 이온 보기에서 표시</span>
+    <span class="chip" id="chipSO4"><span class="swatch hollow">－</span> SO₄²⁻ (색 없는 음이온) · 이온 보기에서 표시</span>
+  </div>
+
+  <!-- 컨트롤 -->
+  <div class="controls">
+    <button id="power" class="primary" aria-pressed="false">⚡ 전원 켜기</button>
+    <button id="flip">🔁 극성 반전</button>
+    <button id="ions" aria-pressed="false">🔬 이온 보기 <span class="state">(꺼짐)</span></button>
+    <button id="labels" aria-pressed="false">🏷️ 이온식 라벨 <span class="state">(꺼짐)</span></button>
+    <button id="reset">↺ 다시</button>
+    <button id="predictToggle" aria-pressed="true">🔮 예측 모드 <span class="state">(켜짐)</span></button>
+    <button id="teacherToggle" aria-pressed="false">👩‍🏫 교사용 정보</button>
+  </div>
+
+  <!-- 교사용 정보 -->
+  <section class="teacher" id="teacher" hidden>
+    <h2>교사용 정보</h2>
+    <p>성취기준 <span class="code">[9과11-04]</span> 물질을 이루는 입자는 원자, 분자, 이온 등으로 존재할 수 있음을 알고, 이온은 전하를 띠고 있음을 설명할 수 있다. · 탐구 활동: 전기력을 이용한 실험으로 이온의 이동 관찰하기.</p>
+    <ul>
+      <li><b>두 실험 구성:</b> 거름종이는 질산칼륨(K⁺·NO₃⁻) 수용액으로 적셔 전류가 흐르게 한다. ① 과망간산칼륨 KMnO₄ → 보라색 MnO₄⁻(음이온, (+)극) + 색 없는 K⁺(양이온, (−)극). ② 황산구리 CuSO₄ → 파란색 Cu²⁺(양이온, (−)극) + 색 없는 SO₄²⁻(음이온, (+)극). ‘이온 보기’를 켜면 색 없는 짝이온도 함께 나타나, 한 화합물이 양이온·음이온으로 나뉘어 반대 극으로 감을 보여준다.</li>
+      <li><b>핵심 추론(상·중 수준):</b> 색이 (+)극으로 가면 음전하, (−)극으로 가면 양전하 — <i>이동 방향을 근거로</i> 전하의 부호를 설명하게 한다.</li>
+      <li><b>다룸의 범위:</b> 이온은 “전자를 잃으면 양이온, 얻으면 음이온” 수준까지만. 이동도·세기 등 정량 요소는 다루지 않는다.</li>
+      <li><b>활동 흐름:</b> 실험① 예측→관찰→이온 보기 → 실험②도 같은 순서 → 두 결과를 비교해 양이온·음이온을 정리.</li>
+      <li class="warn">⚠️ 실물 실험 시: 과망간산칼륨은 산화제로 착색·자극이 있으므로 장갑 착용, 교사 감독 하에 소량만 사용.</li>
+    </ul>
+  </section>
+
+  <p class="foot">실제 실험 모형 재구성(직접 작성 일러스트, 외부 자료 미사용). · 화학 · [9과11-04]</p>
+</div>
+
+<!-- 사이트 복귀 링크 자동 주입 (카테고리/도구명 = 2단계 깊이) -->
+<script src="../../toolbox-nav.js"></script>
+
+<script>
+(() => {
+  "use strict";
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+
+  const state = {
+    exp:'mn',            // 'mn'(과망간산칼륨) | 'cu'(황산구리)
+    power:false,
+    leftIsNeg:true,      // 왼쪽 전극이 (−)인가
+    showIons:false, showLabels:false,
+    predict:true, pick:null, done:false
+  };
+  // 종류별 메타. ch: 전하 부호, color, label
+  const META = {
+    mn:{ch:-1, color:'rgba(125,58,166,.5)', dot:'#7d3aa6', label:'MnO₄⁻', sym:'−',
+        cCh:+1, cLabel:'K⁺',   cSym:'+'},
+    cu:{ch:+1, color:'rgba(47,111,176,.5)', dot:'#2f6fb0', label:'Cu²⁺',  sym:'+',
+        cCh:-1, cLabel:'SO₄²⁻', cSym:'−'}
+  };
+
+  // ── 지오메트리 ─────────────────────────────────
+  let W=700,H=320,DPR=1; const geo={}; let fibers=[];
+  function layout(){
+    const cssW = cv.clientWidth || 700;
+    W=cssW; H=Math.max(260, Math.min(340, cssW*0.46));
+    DPR=window.devicePixelRatio||1;
+    cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+    geo.trayL=14; geo.trayR=W-14;
+    geo.bandT=44; geo.bandB=H-30;
+    geo.elL=geo.trayL+34; geo.elR=geo.trayR-34;
+    geo.cx=W/2; geo.cy=(geo.bandT+geo.bandB)/2;
+    // 거름종이 섬유 질감(정지 점들, 깜빡임 없음)
+    fibers=[];
+    for(let i=0;i<70;i++){
+      fibers.push({x:geo.elL+Math.random()*(geo.elR-geo.elL),
+                   y:geo.bandT-6+Math.random()*((geo.bandB+6)-(geo.bandT-6)),
+                   r:0.6+Math.random()*1.2});
+    }
+  }
+
+  // ── 입자(활성 실험 1종 + 색 없는 짝이온) ─────────
+  const N=80; const particles=[];     // 색이 보이는 이온
+  const NC=36; const counter=[];      // 색 없는 짝이온
+  function spawn(){
+    particles.length=0; counter.length=0;
+    const m=META[state.exp], sp=40;
+    const rnd=(s)=>({
+      x:geo.cx+(Math.random()*2-1)*sp,
+      y:geo.cy+(Math.random()*2-1)*(geo.bandB-geo.bandT)*0.32,
+      vx:0,vy:0,ch:s
+    });
+    for(let i=0;i<N;i++) particles.push(rnd(m.ch));
+    for(let i=0;i<NC;i++) counter.push(rnd(m.cCh));
+  }
+  function targetX(ch){
+    const negX=state.leftIsNeg?geo.elL:geo.elR;
+    const posX=state.leftIsNeg?geo.elR:geo.elL;
+    return ch>0?negX:posX;
+  }
+  const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+
+  function stepArr(arr,dt){
+    const speed=58;
+    for(const p of arr){
+      if(state.power){
+        const tx=targetX(p.ch), dir=Math.sign(tx-p.x), dist=Math.abs(tx-p.x);
+        const v=dir*speed*Math.min(1,dist/40);
+        p.vx+=(v-p.vx)*Math.min(1,dt*6);
+        p.vy+=((Math.random()*2-1)*14-p.vy)*Math.min(1,dt*3);
+      }else{
+        p.vx+=(Math.random()*2-1)*18-p.vx*dt*1.2-(p.x-geo.cx)*dt*0.25;
+        p.vy+=(Math.random()*2-1)*18-p.vy*dt*1.2-(p.y-geo.cy)*dt*0.25;
+      }
+      p.x=clamp(p.x+p.vx*dt, geo.elL+10, geo.elR-10);
+      p.y=clamp(p.y+p.vy*dt, geo.bandT+8, geo.bandB-8);
+    }
+  }
+  function update(dt){
+    stepArr(particles,dt);
+    stepArr(counter,dt);            // 짝이온도 항상 같은 물리로 이동(켜면 바로 일관된 위치)
+    if(state.power && state.predict) checkPrediction();
+  }
+  function centroidOf(arr){let s=0;for(const p of arr)s+=p.x;return arr.length?s/arr.length:geo.cx;}
+  function centroidX(){return centroidOf(particles);}
+
+  function checkPrediction(){
+    if(state.done||!state.pick) return;
+    const ch=META[state.exp].ch, tx=targetX(ch);
+    if(Math.abs(centroidX()-tx)<70){
+      state.done=true;
+      const correct = ch>0?'-':'+';                 // 양이온→(−), 음이온→(+)
+      const ok = state.pick===correct;
+      const el=document.getElementById(state.exp==='cu'?'resCu':'resMn');
+      const txt = ch>0?'(−)극':'(+)극';
+      el.textContent = ok?`✓ 맞아요! → ${txt}`:`✗ 다시 보면… → ${txt}`;
+      el.className='result '+(ok?'good':'bad');
+    }
+  }
+
+  // ── 스프라이트(부드러운 구름) ───────────────────
+  const sprite={};
+  function makeSprite(color){
+    const s=64,c=document.createElement('canvas');c.width=c.height=s;
+    const g=c.getContext('2d');
+    const grad=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+    grad.addColorStop(0,color);grad.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=grad;g.beginPath();g.arc(s/2,s/2,s/2,0,Math.PI*2);g.fill();return c;
+  }
+  function ensureSprites(){
+    if(!sprite.mn){sprite.mn=makeSprite(META.mn.color);sprite.cu=makeSprite(META.cu.color);}
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
+  // 이온식 라벨용 알약 배지(큰 글씨 + 배경으로 가독성 확보)
+  function drawBadge(text, cx, cy, bg, fg, size, border){
+    ctx.font='700 '+size+'px "Gowun Batang", serif';
+    const padX=12, h=size+12;
+    const w=ctx.measureText(text).width + padX*2;
+    const minC=geo.elL+6+w/2, maxC=geo.elR-6-w/2;
+    const c=Math.max(minC, Math.min(maxC, cx));     // 종이 밖으로 안 나가게
+    ctx.save();
+    ctx.shadowColor='rgba(40,30,10,.25)';ctx.shadowBlur=6;ctx.shadowOffsetY=2;
+    roundRect(c-w/2, cy-h/2, w, h, h/2);
+    ctx.fillStyle=bg;ctx.fill();
+    ctx.restore();
+    if(border){ctx.lineWidth=1.5;ctx.strokeStyle=border;roundRect(c-w/2,cy-h/2,w,h,h/2);ctx.stroke();}
+    ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(text, c, cy+1);
+  }
+  function drawElectrode(x,sign){
+    const isPos=sign==='+';
+    ctx.fillStyle=isPos?'#c0392b':'#34495e';
+    const w=18,top=geo.bandT-10,h=(geo.bandB-geo.bandT)+20;
+    roundRect(x-w/2,top,w,h,6);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='700 20px Pretendard, sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(isPos?'+':'−',x,top+18);
+    ctx.fillStyle=isPos?'#c0392b':'#34495e';ctx.font='700 13px Pretendard, sans-serif';
+    ctx.fillText(isPos?'(+)극':'(−)극',x,geo.bandB+16);
+  }
+
+  function draw(){
+    ensureSprites();
+    // 실험대(어두운 배경) → 거름종이가 도드라지게
+    const desk=ctx.createLinearGradient(0,0,0,H);
+    desk.addColorStop(0,'#cdbb95'); desk.addColorStop(1,'#bfa97f');
+    ctx.fillStyle=desk; ctx.fillRect(0,0,W,H);
+
+    // 질산칼륨으로 적신 거름종이(밝은 색 + 테두리 + 그림자)
+    ctx.save();
+    ctx.shadowColor='rgba(60,45,15,.28)';ctx.shadowBlur=12;ctx.shadowOffsetY=4;
+    roundRect(geo.trayL,geo.bandT-12,geo.trayR-geo.trayL,(geo.bandB-geo.bandT)+24,12);
+    ctx.fillStyle='#faf6ec';ctx.fill();
+    ctx.restore();
+    ctx.lineWidth=1.5;ctx.strokeStyle='#b6a074';
+    roundRect(geo.trayL,geo.bandT-12,geo.trayR-geo.trayL,(geo.bandB-geo.bandT)+24,12);ctx.stroke();
+    // 섬유 질감
+    ctx.fillStyle='rgba(150,130,90,.18)';
+    for(const f of fibers){ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}
+    // 거름종이 라벨(중앙 아래)
+    ctx.fillStyle='#8a7c5c';ctx.font='italic 12px Pretendard, sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('질산칼륨 수용액으로 적신 거름종이', geo.cx, geo.bandB+10);
+
+    // 전극
+    drawElectrode(geo.elL, state.leftIsNeg?'-':'+');
+    drawElectrode(geo.elR, state.leftIsNeg?'+':'-');
+
+    // 색 구름
+    const img = state.exp==='cu'?sprite.cu:sprite.mn;
+    for(const p of particles){ctx.globalAlpha=.45;ctx.drawImage(img,p.x-22,p.y-22,44,44);}
+    ctx.globalAlpha=1;
+
+    // 이온 입자(옵션) + 기호
+    if(state.showIons){
+      const m=META[state.exp];
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      // 색이 보이는 이온(채워진 원)
+      for(const p of particles){
+        ctx.beginPath();ctx.arc(p.x,p.y,6.5,0,Math.PI*2);ctx.fillStyle=m.dot;ctx.fill();
+        ctx.fillStyle='#fff';ctx.font='700 9px Pretendard, sans-serif';
+        ctx.fillText(m.sym,p.x,p.y+.5);
+      }
+      // 색 없는 짝이온(외곽선만 — '눈에 안 보이는 이온')
+      ctx.lineWidth=1.4;
+      for(const p of counter){
+        ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,.62)';ctx.fill();
+        ctx.strokeStyle='#7a7468';ctx.stroke();
+        ctx.fillStyle='#6f6655';ctx.font='700 9px Pretendard, sans-serif';
+        ctx.fillText(m.cSym,p.x,p.y+.5);
+      }
+    }
+    // 이온식 라벨(옵션) — 큰 알약 배지로 표시
+    if(state.showLabels){
+      const m=META[state.exp];
+      drawBadge(m.label, centroidX(), geo.bandT+10, m.dot, '#fff', 24);
+      if(state.showIons){   // 짝이온도 보일 때만 짝이온 라벨
+        drawBadge(m.cLabel, centroidOf(counter), geo.bandT+48, '#fff', '#5b5345', 20, '#7a7468');
+      }
+    }
+  }
+
+  let last=performance.now();
+  function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop);}
+
+  function refreshStatus(){
+    const bar=document.getElementById('status'),txt=document.getElementById('statusText');
+    if(state.power){
+      bar.classList.add('on');
+      txt.textContent = state.exp==='mn'
+        ? '전원 켜짐 — 보라색(음이온 MnO₄⁻)이 (+)극으로 이동합니다.'
+        : '전원 켜짐 — 파란색(양이온 Cu²⁺)이 (−)극으로 이동합니다.';
+    }else{
+      bar.classList.remove('on');
+      txt.textContent='전원이 꺼져 있습니다. 색이 제자리에서 천천히 퍼집니다.';
+    }
+  }
+  function refreshExpUI(){
+    document.getElementById('expMn').setAttribute('aria-pressed', state.exp==='mn');
+    document.getElementById('expCu').setAttribute('aria-pressed', state.exp==='cu');
+    document.getElementById('chipMn').classList.toggle('hide', state.exp!=='mn');
+    document.getElementById('chipCu').classList.toggle('hide', state.exp!=='cu');
+    document.getElementById('chipK').classList.toggle('hide', state.exp!=='mn');
+    document.getElementById('chipSO4').classList.toggle('hide', state.exp!=='cu');
+    document.getElementById('rowMn').classList.toggle('hide', state.exp!=='mn');
+    document.getElementById('rowCu').classList.toggle('hide', state.exp!=='cu');
+  }
+  function clearPrediction(){
+    state.pick=null;state.done=false;
+    document.getElementById('resCu').textContent='';
+    document.getElementById('resMn').textContent='';
+    document.querySelectorAll('.choice').forEach(b=>b.setAttribute('aria-pressed',false));
+  }
+  function fullReset(){
+    state.power=false;
+    const pw=document.getElementById('power');
+    pw.setAttribute('aria-pressed',false);pw.textContent='⚡ 전원 켜기';
+    clearPrediction();spawn();refreshStatus();
+  }
+
+  // ── 컨트롤 ─────────────────────────────────────
+  document.getElementById('expMn').addEventListener('click',()=>{state.exp='mn';refreshExpUI();fullReset();});
+  document.getElementById('expCu').addEventListener('click',()=>{state.exp='cu';refreshExpUI();fullReset();});
+
+  const power=document.getElementById('power');
+  power.addEventListener('click',()=>{
+    state.power=!state.power;power.setAttribute('aria-pressed',state.power);
+    power.textContent=state.power?'⏻ 전원 끄기':'⚡ 전원 켜기';refreshStatus();
+  });
+  document.getElementById('flip').addEventListener('click',()=>{
+    state.leftIsNeg=!state.leftIsNeg;state.done=false;
+    document.getElementById('resCu').textContent='';
+    document.getElementById('resMn').textContent='';refreshStatus();
+  });
+  function toggleBtn(id,key,on,off){
+    const b=document.getElementById(id);
+    b.addEventListener('click',()=>{state[key]=!state[key];b.setAttribute('aria-pressed',state[key]);
+      b.querySelector('.state').textContent=state[key]?on:off;});
+  }
+  toggleBtn('ions','showIons','(켜짐)','(꺼짐)');
+  toggleBtn('labels','showLabels','(켜짐)','(꺼짐)');
+  document.getElementById('reset').addEventListener('click',fullReset);
+
+  const predictBtn=document.getElementById('predictToggle');
+  predictBtn.addEventListener('click',()=>{
+    state.predict=!state.predict;predictBtn.setAttribute('aria-pressed',state.predict);
+    predictBtn.querySelector('.state').textContent=state.predict?'(켜짐)':'(꺼짐)';
+    document.getElementById('predict').hidden=!state.predict;
+  });
+  document.querySelectorAll('.choice').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(btn.dataset.sp!==state.exp) return;     // 활성 실험만
+      state.pick=btn.dataset.pick;
+      document.querySelectorAll(`.choice[data-sp="${state.exp}"]`)
+        .forEach(b=>b.setAttribute('aria-pressed',b===btn));
+    });
+  });
+
+  const teacherBtn=document.getElementById('teacherToggle');
+  teacherBtn.addEventListener('click',()=>{
+    const open=document.getElementById('teacher').hidden;
+    document.getElementById('teacher').hidden=!open;teacherBtn.setAttribute('aria-pressed',open);
+  });
+
+  // ── 시작 ───────────────────────────────────────
+  let rT;
+  window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(layout,150);});
+  layout();spawn();refreshExpUI();refreshStatus();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
