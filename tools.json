@@ -245,6 +245,20 @@
     "sessions": "1차시",
     "materials": ["밝은 물체(흰 공·LED)", "대비되는 배경", "카메라 있는 노트북/태블릿/크롬북", "(선택) 30cm 또는 1m 자"],
     "achievementStandard": ["9과19-01", "9과19-02"]
+    },
+    {
+    "id": "ion-movement",
+    "name": "이온의 이동",
+    "description": "전기력으로 이온이 양 끝 극으로 갈라지는 가상실험",
+    "category": "chemistry",
+    "path": "chemistry/ion-movement/",
+    "tags": ["이온", "양이온", "음이온", "전기력", "전하", "가상실험"],
+    "level": "중2",
+    "activityType": "시뮬레이션",
+    "achievementStandard": ["9과11-04"],
+    "target": "중2 과학(물질의 구성) 학생",
+    "sessions": "1차시",
+    "materials": ["크롬북/태블릿"]
     }
   ]
 }
