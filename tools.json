@@ -259,6 +259,22 @@
     "target": "중2 과학(물질의 구성) 학생",
     "sessions": "1차시",
     "materials": ["크롬북/태블릿"]
+    },
+    {
+    "id": "seat-shuffle",
+    "name": "자리 바꾸기",
+    "description": "명단을 붙여넣어 1줄·2줄·자유 배치로 자리를 랜덤 배정",
+    "category": "classroom",
+    "subcategory": "",
+    "path": "classroom/seat-shuffle/",
+    "tags": ["자리바꾸기", "자리배치", "랜덤", "학급운영", "좌석"],
+    "level": "전 학년",
+    "featured": false,
+    "activityType": "참조",
+    "target": "담임·교과 교사",
+    "sessions": "수시",
+    "materials": [],
+    "achievementStandard": []
     }
   ]
 }
