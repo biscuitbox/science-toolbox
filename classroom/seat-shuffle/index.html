@@ -1,1 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자리 바꾸기</title>
 
+<!-- 폰트: 프로젝트 공통 (Pretendard 본문 + Gowun Batang 제목) -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+
+<style>
+  :root{
+    --paper:#FBF8F1;
+    --card:#FFFDF8;
+    --ink:#2D2A26;
+    --muted:#8B8579;
+    --border:#E4DCCB;
+    --line:#EFE7D6;
+    --accent:#6D28D9;          /* classroom 퍼플 */
+    --accent-soft:#EDE7FB;
+    --accent-deep:#581C87;
+    --male:#1D4ED8;
+    --female:#BE185D;
+    --warn-bg:#FEF3C7;
+    --warn-bd:#F59E0B;
+    --ok:#15803D;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(45,42,38,.06), 0 8px 24px rgba(45,42,38,.06);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink);
+    background:var(--paper);
+    /* 노트 룰링 느낌 */
+    background-image:repeating-linear-gradient(
+      to bottom, transparent 0, transparent 35px,
+      var(--line) 35px, var(--line) 36px);
+    -webkit-text-size-adjust:100%;
+  }
+
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 18px 80px;}
+
+  h1{
+    font-family:"Gowun Batang",serif;
+    font-weight:700;
+    font-size:2rem;
+    margin:0 0 4px;
+    letter-spacing:-.01em;
+  }
+  .sub{color:var(--muted);margin:0 0 24px;font-size:1rem;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:var(--shadow);
+  }
+  .card > h2{
+    font-family:"Gowun Batang",serif;
+    font-size:1.2rem;
+    margin:0 0 4px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .card > h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:1.7em;height:1.7em;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:.85rem;font-weight:700;
+    font-family:Pretendard,sans-serif;flex:none;
+  }
+  .hint{color:var(--muted);font-size:.92rem;margin:2px 0 14px;}
+
+  label{font-weight:600;font-size:.95rem;display:block;margin-bottom:6px;}
+
+  textarea,select,input[type=text],input[type=number]{
+    font-family:inherit;font-size:1rem;color:var(--ink);
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;width:100%;
+  }
+  textarea{min-height:170px;resize:vertical;line-height:1.7;}
+  textarea:focus,select:focus,input:focus,button:focus-visible,.seat:focus-visible{
+    outline:3px solid var(--accent-soft);outline-offset:1px;border-color:var(--accent);
+  }
+
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .row > *{flex:1 1 140px;min-width:0;}
+
+  .btn{
+    font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;
+    border:1px solid var(--border);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 16px;display:inline-flex;align-items:center;
+    gap:7px;justify-content:center;transition:background .2s,border-color .2s;
+  }
+  .btn:hover{background:#F6F1E6;}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn.primary:hover{background:var(--accent-deep);}
+  .btn.big{font-size:1.12rem;padding:14px 22px;width:100%;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  /* 토글 칩 (자리 형태) */
+  .chips{display:flex;gap:10px;flex-wrap:wrap;}
+  .chip{
+    font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;
+    border:1.5px solid var(--border);background:#fff;color:var(--ink);
+    border-radius:999px;padding:9px 16px;display:inline-flex;align-items:center;gap:7px;
+  }
+  .chip[aria-pressed="true"]{
+    background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep);
+  }
+  .chip .mk{font-weight:700;}
+
+  .switch-list{display:flex;flex-direction:column;gap:10px;}
+  .switch{
+    display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+    padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
+  }
+  .switch input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--accent);}
+  .switch .t{font-weight:600;}
+  .switch .d{color:var(--muted);font-size:.9rem;font-weight:400;}
+
+  /* 학생 칩(결석 토글) */
+  .roster{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .stu{
+    font-size:.95rem;border:1px solid var(--border);border-radius:999px;
+    padding:6px 12px;background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;color:var(--ink);
+  }
+  .stu .g{font-size:.72rem;font-weight:700;border-radius:4px;padding:1px 5px;}
+  .stu .g.m{color:var(--male);background:#E5EDFB;}
+  .stu .g.f{color:var(--female);background:#FBE5F0;}
+  .stu.absent{opacity:.5;text-decoration:line-through;background:#F1ECE2;}
+  .stu.absent::before{content:"결석";font-size:.7rem;color:var(--muted);text-decoration:none;}
+
+  /* 자리표 */
+  .board-strip{
+    text-align:center;font-weight:700;letter-spacing:.3em;color:#fff;
+    background:linear-gradient(var(--accent),var(--accent-deep));
+    border-radius:8px;padding:9px;margin:0 auto 18px;max-width:520px;
+  }
+  .grid-scroll{overflow-x:auto;padding-bottom:6px;}
+  .grid{display:grid;row-gap:10px;column-gap:10px;justify-content:center;margin:0 auto;width:max-content;}
+  .grid.deskgap{column-gap:30px;}
+  .desk{display:grid;gap:6px;}
+  .seat{
+    font-family:inherit;font-size:1rem;cursor:pointer;text-align:center;
+    border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--ink);
+    min-width:88px;min-height:64px;padding:8px 6px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3px;line-height:1.25;transition:background .25s;
+  }
+  .seat .nm{font-weight:600;word-break:keep-all;}
+  .seat .tag{font-size:.72rem;color:var(--muted);}
+  .seat .gb{font-size:.7rem;font-weight:700;border-radius:4px;padding:0 5px;margin-top:2px;}
+  .seat .gb.m{color:var(--male);background:#E5EDFB;}
+  .seat .gb.f{color:var(--female);background:#FBE5F0;}
+  .seat.empty{background:#F4EFE4;border-style:dashed;color:var(--muted);}
+  .seat.aisle{border:none;background:transparent;cursor:pointer;min-height:64px;}
+  .seat.aisle .nm{color:#CFC6B4;font-size:.8rem;}
+  .seat.fixed{border-color:var(--accent);border-style:solid;background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent);}
+  .seat.fixed .lock{font-size:.74rem;color:var(--accent-deep);font-weight:700;}
+  .seat.pickable:hover{background:#F6F1E6;}
+  .seat.selectable{border-color:var(--accent);}
+
+  /* 섞기 연출: 한 명씩 부드럽게 등장 (깜빡임 없음) */
+  .seat.assigned-seat{transition:opacity .45s ease, transform .45s ease;}
+  .seat.reveal-hide{opacity:0;transform:scale(.9);}
+
+  /* 카운트다운 오버레이 */
+  .countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    z-index:60;pointer-events:none;}
+  .countdown.on{display:flex;}
+  .countdown .n{
+    font-family:"Gowun Batang",serif;font-size:7rem;font-weight:700;color:var(--accent);
+    background:var(--card);border:3px solid var(--accent);border-radius:50%;
+    width:1.7em;height:1.7em;display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow);animation:cdpop .7s ease;
+  }
+  @keyframes cdpop{0%{transform:scale(.6);opacity:0;}35%{transform:scale(1);opacity:1;}100%{transform:scale(1);opacity:1;}}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:.85rem;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .legend .sw{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border);display:inline-block;}
+  .legend .sw.fx{background:var(--accent-soft);border-color:var(--accent);}
+  .legend .sw.em{background:#F4EFE4;border-style:dashed;}
+
+  /* 떨어뜨리기 쌍 */
+  .pairadd{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
+  .pairadd > div{flex:1 1 130px;}
+  .seplist{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .septag{
+    display:inline-flex;align-items:center;gap:8px;background:#FDEEEE;border:1px solid #F3C9C9;
+    color:#9B2C2C;border-radius:999px;padding:5px 8px 5px 12px;font-size:.9rem;
+  }
+  .septag button{border:none;background:#F3C9C9;color:#7B1D1D;border-radius:50%;
+    width:20px;height:20px;cursor:pointer;font-size:.9rem;line-height:1;}
+
+  .mode-banner{
+    display:none;align-items:center;gap:10px;background:var(--accent-soft);
+    border:1px solid var(--accent);color:var(--accent-deep);border-radius:10px;
+    padding:10px 14px;margin-bottom:14px;font-weight:600;
+  }
+  .mode-banner.on{display:flex;}
+
+  .msg{margin-top:12px;padding:11px 14px;border-radius:10px;font-size:.95rem;display:none;}
+  .msg.show{display:block;}
+  .msg.warn{background:var(--warn-bg);border:1px solid var(--warn-bd);}
+  .msg.err{background:#FDEEEE;border:1px solid #F3C9C9;color:#9B2C2C;}
+  .msg.ok{background:#E7F6ED;border:1px solid #A7D8BC;color:var(--ok);}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .actions .btn{flex:1 1 130px;}
+
+  /* 모달 (고정 자리 학생 선택) */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(45,42,38,.45);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:50;
+  }
+  .modal-bg.on{display:flex;}
+  .modal{
+    background:var(--card);border-radius:var(--radius);max-width:380px;width:100%;
+    max-height:80vh;overflow:auto;padding:20px;box-shadow:var(--shadow);
+  }
+  .modal h3{font-family:"Gowun Batang",serif;margin:0 0 12px;font-size:1.1rem;}
+  .modal .opt{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);
+    border-radius:10px;margin-bottom:8px;cursor:pointer;width:100%;background:#fff;
+    font-family:inherit;font-size:1rem;text-align:left;color:var(--ink);
+  }
+  .modal .opt:hover{background:#F6F1E6;}
+  .modal .opt.clear{color:#9B2C2C;justify-content:center;font-weight:600;}
+
+  .foot{color:var(--muted);font-size:.82rem;text-align:center;margin-top:30px;}
+
+  @media (max-width:640px){
+    h1{font-size:1.6rem;}
+    .wrap{padding:20px 12px 70px;}
+    .card{padding:16px;}
+    .seat{min-width:74px;font-size:.92rem;}
+  }
+
+  /* 인쇄: 자리표만 깔끔하게 */
+  @media print{
+    body{background:#fff;}
+    .wrap{max-width:none;padding:0;}
+    .no-print{display:none !important;}
+    #resultCard{border:none;box-shadow:none;padding:0;}
+    .seat{box-shadow:none;}
+    .board-strip{color:#000;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>자리 바꾸기</h1>
+  <p class="sub">학생 명단을 붙여넣고, 자리 모양을 고르고, 규칙을 정한 뒤 한 번에 배치합니다.</p>
+
+  <!-- ① 학생 명단 -->
+  <section class="card no-print">
+    <h2><span class="num">1</span> 학생 명단</h2>
+    <p class="hint">한 줄에 한 명씩 붙여넣으세요. 성별을 적으면(예: <b>홍길동 남</b> 또는 <b>김영희(여)</b>) ‘남녀 골고루 섞기’에 사용됩니다. 성별은 안 적어도 됩니다.</p>
+    <textarea id="rosterInput" placeholder="홍길동&#10;김철수 남&#10;이영희(여)&#10;박민준 M&#10;…"></textarea>
+    <div class="actions" style="margin-top:12px;">
+      <button class="btn" id="loadBtn">명단 불러오기</button>
+      <button class="btn" id="sampleBtn">예시 채우기</button>
+    </div>
+    <div id="rosterArea" style="display:none;">
+      <p class="hint" style="margin:16px 0 0;">아래에서 <b>오늘 빠지는 학생</b>을 눌러 결석 처리할 수 있어요. <span id="countTxt"></span></p>
+      <div class="roster" id="roster"></div>
+    </div>
+  </section>
+
+  <!-- ② 자리 모양 -->
+  <section class="card no-print">
+    <h2><span class="num">2</span> 자리 모양</h2>
+    <p class="hint">책상 배치를 고르세요. ‘자유 배치’는 칸을 눌러 통로(빈 공간)로 바꿀 수 있어요.</p>
+    <div class="chips" role="group" aria-label="자리 모양 선택">
+      <button class="chip" data-mode="single" aria-pressed="true"><span class="mk">▯</span> 1줄씩 (1인 책상)</button>
+      <button class="chip" data-mode="pair"><span class="mk">▯▯</span> 2줄씩 (짝꿍)</button>
+      <button class="chip" data-mode="free"><span class="mk">⊞</span> 자유 배치</button>
+    </div>
+    <div class="row" style="margin-top:16px;max-width:420px;">
+      <div>
+        <label for="rowsIn" id="rowsLabel">줄 수 (앞→뒤)</label>
+        <input type="number" id="rowsIn" min="1" max="12" value="4">
+      </div>
+      <div>
+        <label for="colsIn" id="colsLabel">분단 수 (좌→우)</label>
+        <input type="number" id="colsIn" min="1" max="12" value="3">
+      </div>
+    </div>
+    <p class="hint" id="capacityTxt" style="margin-top:12px;"></p>
+  </section>
+
+  <!-- ③ 규칙 -->
+  <section class="card no-print">
+    <h2><span class="num">3</span> 규칙 정하기</h2>
+
+    <label style="margin-bottom:8px;">고정 자리</label>
+    <p class="hint" style="margin-top:0;">아래 ‘고정 자리 지정’을 켜고 자리표의 칸을 누르면, 그 칸에 특정 학생을 못 박아 둘 수 있어요(시력·키 배려 등). 고정한 학생은 랜덤에서 빠집니다.</p>
+    <button class="btn" id="fixToggleBtn">🔒 고정 자리 지정 켜기</button>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+
+    <label>특정 학생끼리 떨어뜨리기</label>
+    <p class="hint" style="margin-top:0;">서로 짝/바로 옆·앞뒤에 앉지 않게 할 두 명을 고르세요.</p>
+    <div class="pairadd">
+      <div><select id="sepA" aria-label="떨어뜨릴 학생 1"></select></div>
+      <div><select id="sepB" aria-label="떨어뜨릴 학생 2"></select></div>
+      <button class="btn" id="sepAddBtn">추가</button>
+    </div>
+    <div class="seplist" id="sepList"></div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+
+    <div class="switch-list">
+      <label class="switch">
+        <input type="checkbox" id="optGender">
+        <span><span class="t">남녀 골고루 섞기</span><br><span class="d">짝/옆자리가 되도록 남·여를 번갈아 배치합니다(성별을 적은 명단에서만).</span></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="optPrev">
+        <span><span class="t">이전 짝꿍 피하기</span><br><span class="d">직전 배치에서 짝·옆이었던 학생들이 또 붙지 않도록 합니다(이 브라우저에 저장).</span></span>
+      </label>
+    </div>
+  </section>
+
+  <!-- ④ 자리표 -->
+  <section class="card" id="resultCard">
+    <h2 class="no-print"><span class="num">4</span> 자리표</h2>
+
+    <div class="mode-banner no-print" id="fixBanner">
+      🔒 고정 자리 지정 중 — 칸을 눌러 학생을 지정하세요.
+      <button class="btn" id="fixDoneBtn" style="margin-left:auto;padding:6px 12px;">완료</button>
+    </div>
+
+    <div id="captureArea" style="background:var(--card);padding:6px 4px 10px;">
+      <div class="board-strip">🟦 칠 판</div>
+      <div class="grid-scroll">
+        <div class="grid" id="grid" aria-label="자리표"></div>
+      </div>
+    </div>
+
+    <div class="legend no-print">
+      <span><span class="sw fx"></span> 🔒 고정 자리</span>
+      <span><span class="sw em"></span> 빈자리</span>
+      <span><span class="gb m" style="font-size:.7rem;border-radius:4px;padding:0 5px;color:var(--male);background:#E5EDFB;">남</span> / <span class="gb f" style="font-size:.7rem;border-radius:4px;padding:0 5px;color:var(--female);background:#FBE5F0;">여</span> 성별 표시</span>
+    </div>
+
+    <div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+    <button class="btn primary big no-print" id="shuffleBtn" style="margin-top:18px;">🎲 자리 섞기</button>
+
+    <div class="actions no-print">
+      <button class="btn" id="printBtn">🖨️ 인쇄</button>
+      <button class="btn" id="imgBtn">🖼️ 이미지로 저장</button>
+    </div>
+  </section>
+
+  <p class="foot">학급 운영용 도구 · 교과 외 활동(성취기준 없음)</p>
+</div>
+
+<!-- 고정 자리 학생 선택 모달 -->
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h3 id="modalTitle">이 자리에 앉을 학생</h3>
+    <div id="modalOpts"></div>
+  </div>
+</div>
+
+<!-- 섞기 카운트다운 -->
+<div class="countdown" id="countdown" aria-hidden="true"></div>
+
+<!-- 복귀 링크 (사이트 루트 자동 계산) -->
+<script src="../../toolbox-nav.js"></script>
+
+<!-- 이미지 저장용 (학교망 차단 시 인쇄로 안내) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+"use strict";
+
+/* ---------- 상태 ---------- */
+const S = {
+  students: [],          // {id,name,gender:'M'|'F'|null,present:true}
+  mode: "single",        // single | pair | free
+  rows: 4, cols: 3,
+  cells: {},             // "r-c" -> {active, fixed:id|null, assigned:id|null}
+  separations: [],       // [[idA,idB], ...]
+  optGender: false,
+  optPrev: false,
+  fixMode: false,
+};
+const PREV_KEY = "seatShuffle_prevAdjacency_v1";
+
+const $ = (s)=>document.querySelector(s);
+const cellKey = (r,c)=>r+"-"+c;
+const stuById = (id)=>S.students.find(s=>s.id===id);
+
+/* ---------- 명단 파싱 ---------- */
+function parseRoster(text){
+  const out=[];
+  text.split(/\r?\n/).forEach((raw,i)=>{
+    let line=raw.trim();
+    if(!line) return;
+    let gender=null;
+    // 끝쪽 성별 표기 추출: (남) / 남 / M / ♀ 등
+    const m=line.match(/[\s(/,·\-]+(남자|여자|남|여|M|F|m|f|♂|♀)\)?\s*$/);
+    if(m){
+      const g=m[1];
+      gender=/남|M|m|♂/.test(g) ? "M" : "F";
+      line=line.slice(0,m.index).replace(/[\s(/,·\-]+$/,"").trim();
+    }
+    if(line) out.push({id:"s"+i+"_"+Math.random().toString(36).slice(2,7),name:line,gender,present:true});
+  });
+  return out;
+}
+
+function loadRoster(){
+  const list=parseRoster($("#rosterInput").value);
+  if(list.length===0){ flash("명단이 비어 있어요. 한 줄에 한 명씩 적어 주세요.","warn"); return; }
+  S.students=list;
+  renderRoster();
+  refreshSepSelects();
+  buildGrid();
+  $("#rosterArea").style.display="block";
+}
+
+function renderRoster(){
+  const box=$("#roster"); box.innerHTML="";
+  S.students.forEach(s=>{
+    const b=document.createElement("button");
+    b.className="stu"+(s.present?"":" absent");
+    b.type="button";
+    b.innerHTML = s.name + (s.gender? ' <span class="g '+(s.gender==="M"?"m":"f")+'">'+(s.gender==="M"?"남":"여")+'</span>':'');
+    b.setAttribute("aria-pressed", s.present?"false":"true");
+    b.title="누르면 결석/참석 전환";
+    b.onclick=()=>{ s.present=!s.present; renderRoster(); refreshSepSelects(); updateCapacity(); };
+    box.appendChild(b);
+  });
+  const present=S.students.filter(s=>s.present).length;
+  $("#countTxt").textContent="전체 "+S.students.length+"명 · 참석 "+present+"명";
+  updateCapacity();
+}
+
+/* ---------- 자리 모양 ---------- */
+function setMode(mode){
+  S.mode=mode;
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.mode===mode?"true":"false"));
+  // 라벨/기본값 살짝 조정
+  if(mode==="pair"){ $("#colsLabel").textContent="책상 묶음 수 (좌→우)"; }
+  else { $("#colsLabel").textContent="분단 수 (좌→우)"; }
+  buildGrid();
+}
+
+function buildGrid(){
+  S.rows=clampInt($("#rowsIn").value,1,12,4);
+  S.cols=clampInt($("#colsIn").value,1,12,3);
+  // 칸 만들기 (자유 배치의 통로 상태는 유지)
+  const old=S.cells; S.cells={};
+  for(let r=0;r<S.rows;r++){
+    for(let c=0;c<S.cols;c++){
+      const k=cellKey(r,c);
+      const prev=old[k];
+      S.cells[k]={ active: prev? prev.active : true, fixed: null, assigned:null };
+    }
+  }
+  renderGrid();
+  updateCapacity();
+}
+
+function pairColsExpand(){
+  // pair 모드: 한 묶음(=cols 한 칸)을 좌석 2칸으로 펼침
+  return S.mode==="pair";
+}
+
+function activeSeatKeys(){
+  // 좌석으로 쓰이는 칸 키 목록
+  return Object.keys(S.cells).filter(k=>S.cells[k].active);
+}
+
+function updateCapacity(){
+  const seats=activeSeatKeys().length;
+  const present=S.students.filter(s=>s.present).length;
+  let t="좌석 "+seats+"칸 · 참석 학생 "+present+"명. ";
+  if(present>seats) t+="⚠️ 자리가 "+(present-seats)+"칸 부족해요. 줄·분단을 늘려 주세요.";
+  else if(seats>present) t+="빈자리 "+(seats-present)+"칸이 생깁니다.";
+  else t+="딱 맞아요.";
+  $("#capacityTxt").textContent=t;
+}
+
+/* ---------- 자리표 렌더 ---------- */
+function renderGrid(){
+  const grid=$("#grid");
+  grid.innerHTML="";
+  grid.style.gridTemplateColumns="repeat("+S.cols+", auto)";
+  grid.classList.toggle("deskgap", S.mode!=="free"); // 1줄·2줄은 분단 사이 간격
+  for(let r=0;r<S.rows;r++){
+    for(let c=0;c<S.cols;c++){
+      const k=cellKey(r,c);
+      const cell=S.cells[k];
+      if(S.mode==="pair"){
+        // 한 칸을 2인 책상(가로 2좌석)으로
+        const desk=document.createElement("div");
+        desk.className="desk";
+        desk.style.gridTemplateColumns="repeat(2,auto)";
+        desk.appendChild(makeSeat(k,0));
+        desk.appendChild(makeSeat(k,1));
+        grid.appendChild(desk);
+      } else {
+        grid.appendChild(makeSeat(k,null));
+      }
+    }
+  }
+}
+
+// pair 모드는 한 셀에 좌석 2개(sub 0/1)를 둔다. 데이터는 fixed/assigned를 배열로 보관.
+function ensurePairSlots(cell){
+  if(!Array.isArray(cell.fixed)) cell.fixed=[null,null];
+  if(!Array.isArray(cell.assigned)) cell.assigned=[null,null];
+}
+
+function makeSeat(k,sub){
+  const cell=S.cells[k];
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.className="seat";
+  btn.dataset.k=k;
+  if(sub!==null) btn.dataset.sub=sub;
+
+  // 자유 배치: 통로 칸
+  if(!cell.active){
+    btn.className+=" aisle";
+    btn.innerHTML='<span class="nm">통로</span>';
+    btn.setAttribute("aria-label","통로 (눌러서 좌석으로)");
+    btn.onclick=()=>onSeatClick(k,sub);
+    return btn;
+  }
+
+  let fixedId=null, assignedId=null;
+  if(S.mode==="pair"){ ensurePairSlots(cell); fixedId=cell.fixed[sub]; assignedId=cell.assigned[sub]; }
+  else { fixedId=cell.fixed; assignedId=cell.assigned; }
+
+  const showId = fixedId || assignedId;
+  if(fixedId) btn.className+=" fixed";
+  if(assignedId && !fixedId) btn.className+=" assigned-seat";
+
+  if(showId){
+    const s=stuById(showId);
+    btn.innerHTML='<span class="nm">'+(s?escapeHtml(s.name):"?")+'</span>'+
+      (fixedId?'<span class="lock">🔒 고정</span>':'')+
+      (s&&s.gender?'<span class="gb '+(s.gender==="M"?"m":"f")+'">'+(s.gender==="M"?"남":"여")+'</span>':'');
+    btn.setAttribute("aria-label",(s?s.name:"")+(fixedId?" 고정 자리":""));
+  } else {
+    btn.className+=" empty";
+    btn.innerHTML='<span class="nm">빈자리</span>';
+    btn.setAttribute("aria-label","빈자리");
+  }
+
+  if(S.fixMode){ btn.className+=" pickable selectable"; btn.title="눌러서 고정 학생 지정/해제"; }
+  btn.onclick=()=>onSeatClick(k,sub);
+  return btn;
+}
+
+function onSeatClick(k,sub){
+  const cell=S.cells[k];
+  if(S.fixMode){
+    if(!cell.active){ flash("통로 칸에는 고정할 수 없어요.","warn"); return; }
+    openFixModal(k,sub);
+    return;
+  }
+  // 고정 모드가 아니고 자유 배치이면: 좌석<->통로 전환
+  if(S.mode==="free"){
+    cell.active=!cell.active;
+    if(!cell.active){ cell.fixed=null; cell.assigned=null; }
+    renderGrid(); updateCapacity();
+  }
+}
+
+/* ---------- 고정 자리 모달 ---------- */
+let fixTarget=null;
+function openFixModal(k,sub){
+  fixTarget={k,sub};
+  const box=$("#modalOpts"); box.innerHTML="";
+  // 현재 고정 안 된 참석 학생만
+  const usedFixed=collectFixedIds();
+  S.students.filter(s=>s.present).forEach(s=>{
+    const already=usedFixed.has(s.id);
+    const cur = currentFixedAt(k,sub)===s.id;
+    const b=document.createElement("button");
+    b.className="opt"; b.type="button";
+    b.innerHTML=escapeHtml(s.name)+(s.gender?'  <span class="g '+(s.gender==="M"?"m":"f")+'" style="font-size:.72rem;font-weight:700;border-radius:4px;padding:1px 5px;color:'+(s.gender==="M"?"var(--male)":"var(--female)")+';background:'+(s.gender==="M"?"#E5EDFB":"#FBE5F0")+';">'+(s.gender==="M"?"남":"여")+'</span>':'')+
+      (cur?'  ✓':'')+(already&&!cur?'  <span style="color:var(--muted);font-size:.82rem;">(다른 칸 고정됨)</span>':'');
+    b.disabled=already&&!cur;
+    b.onclick=()=>{ setFixedAt(k,sub,s.id); closeModal(); };
+    box.appendChild(b);
+  });
+  const clear=document.createElement("button");
+  clear.className="opt clear"; clear.type="button"; clear.textContent="이 자리 고정 해제";
+  clear.onclick=()=>{ setFixedAt(k,sub,null); closeModal(); };
+  box.appendChild(clear);
+  $("#modalBg").classList.add("on");
+}
+function closeModal(){ $("#modalBg").classList.remove("on"); renderGrid(); }
+function currentFixedAt(k,sub){
+  const cell=S.cells[k];
+  if(S.mode==="pair"){ ensurePairSlots(cell); return cell.fixed[sub]; }
+  return cell.fixed;
+}
+function setFixedAt(k,sub,id){
+  const cell=S.cells[k];
+  if(S.mode==="pair"){ ensurePairSlots(cell); cell.fixed[sub]=id; }
+  else cell.fixed=id;
+}
+function collectFixedIds(){
+  const set=new Set();
+  Object.values(S.cells).forEach(c=>{
+    if(Array.isArray(c.fixed)) c.fixed.forEach(x=>{if(x)set.add(x);});
+    else if(c.fixed) set.add(c.fixed);
+  });
+  return set;
+}
+
+/* ---------- 떨어뜨리기 쌍 ---------- */
+function refreshSepSelects(){
+  [ "#sepA","#sepB" ].forEach(sel=>{
+    const el=$(sel); const keep=el.value;
+    el.innerHTML='<option value="">학생 선택</option>';
+    S.students.forEach(s=>{
+      const o=document.createElement("option"); o.value=s.id; o.textContent=s.name;
+      el.appendChild(o);
+    });
+    el.value=keep;
+  });
+  renderSepList();
+}
+function addSeparation(){
+  const a=$("#sepA").value, b=$("#sepB").value;
+  if(!a||!b){ flash("두 학생을 모두 골라 주세요.","warn"); return; }
+  if(a===b){ flash("서로 다른 학생을 골라 주세요.","warn"); return; }
+  if(S.separations.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a))){ flash("이미 추가된 짝이에요.","warn"); return; }
+  S.separations.push([a,b]);
+  $("#sepA").value=""; $("#sepB").value="";
+  renderSepList();
+}
+function renderSepList(){
+  const box=$("#sepList"); box.innerHTML="";
+  S.separations.forEach((p,i)=>{
+    const a=stuById(p[0]), b=stuById(p[1]);
+    if(!a||!b){ return; }
+    const t=document.createElement("span"); t.className="septag";
+    t.innerHTML=escapeHtml(a.name)+" ⇎ "+escapeHtml(b.name)+' <button type="button" aria-label="삭제">×</button>';
+    t.querySelector("button").onclick=()=>{ S.separations.splice(i,1); renderSepList(); };
+    box.appendChild(t);
+  });
+}
+
+/* ---------- 배치 알고리즘 ---------- */
+// 좌석 슬롯 목록: {k,sub,r,c} (pair는 sub 0/1, 그 외 sub=null)
+function seatSlots(){
+  const slots=[];
+  for(let r=0;r<S.rows;r++) for(let c=0;c<S.cols;c++){
+    const k=cellKey(r,c); if(!S.cells[k].active) continue;
+    if(S.mode==="pair"){ slots.push({k,sub:0,r,c},{k,sub:1,r,c}); }
+    else slots.push({k,sub:null,r,c});
+  }
+  return slots;
+}
+// 두 슬롯이 인접/짝인지 (떨어뜨리기·이전짝꿍 판정 대상)
+function adjacentSlots(a,b){
+  if(S.mode==="pair"){
+    if(a.k===b.k) return true;                    // 같은 책상=짝
+  }
+  if(a.r===b.r && Math.abs(a.c-b.c)===1) return true; // 좌우
+  if(a.c===b.c && Math.abs(a.r-b.r)===1) return true; // 앞뒤
+  if(S.mode==="pair" && a.r===b.r){
+    // pair에서 옆 책상과 붙는 경계도 인접으로
+    if(Math.abs(a.c-b.c)===1) return true;
+  }
+  return false;
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+function loadPrevAdjacency(){
+  try{ const v=localStorage.getItem(PREV_KEY); return v?new Set(JSON.parse(v)):new Set(); }
+  catch(e){ return new Set(); }
+}
+function savePrevAdjacency(set){
+  try{ localStorage.setItem(PREV_KEY, JSON.stringify([...set])); }catch(e){}
+}
+const pairKey=(x,y)=> x<y? x+"|"+y : y+"|"+x;
+
+function runShuffle(){
+  if(S.students.length===0){ flash("먼저 학생 명단을 불러오세요.","warn"); return; }
+  if(S.fixMode){ flash("고정 자리 지정을 ‘완료’한 뒤 섞어 주세요.","warn"); return; }
+
+  const slots=seatSlots();
+  const present=S.students.filter(s=>s.present);
+  const fixedIds=collectFixedIds();
+  const freeStudents=present.filter(s=>!fixedIds.has(s.id));
+
+  if(present.length>slots.length){
+    flash("자리가 모자라요. 참석 "+present.length+"명, 좌석 "+slots.length+"칸. 줄·분단을 늘려 주세요.","err"); return;
+  }
+
+  // 고정 슬롯 매핑
+  const fixedSlotOf={}; // slotIndex -> studentId
+  const freeSlotIdx=[];
+  slots.forEach((sl,i)=>{
+    let fid=null;
+    if(S.mode==="pair"){ ensurePairSlots(S.cells[sl.k]); fid=S.cells[sl.k].fixed[sl.sub]; }
+    else fid=S.cells[sl.k].fixed;
+    if(fid && fixedIds.has(fid) && stuById(fid) && stuById(fid).present){ fixedSlotOf[i]=fid; }
+    else freeSlotIdx.push(i);
+  });
+
+  // 인접쌍(슬롯 인덱스) 미리 계산
+  const adjPairs=[];
+  for(let i=0;i<slots.length;i++) for(let j=i+1;j<slots.length;j++){
+    if(adjacentSlots(slots[i],slots[j])) adjPairs.push([i,j]);
+  }
+  const sepSet=new Set(S.separations.map(p=>pairKey(p[0],p[1])));
+  const prevSet=S.optPrev? loadPrevAdjacency() : new Set();
+
+  let best=null, bestScore=-Infinity, hardOK=false;
+  const tries=600;
+  for(let t=0;t<tries;t++){
+    const pool=shuffle(freeStudents.slice());
+    const assign={}; // slotIndex -> studentId
+    Object.assign(assign,fixedSlotOf);
+    let p=0;
+    freeSlotIdx.forEach(idx=>{ assign[idx]= p<pool.length? pool[p++].id : null; });
+
+    // 평가
+    let hardViolate=false, prevPenalty=0, genderPenalty=0;
+    for(const [i,j] of adjPairs){
+      const ai=assign[i], aj=assign[j];
+      if(!ai||!aj) continue;
+      const kk=pairKey(ai,aj);
+      if(sepSet.has(kk)) hardViolate=true;             // 떨어뜨리기 = 절대 위반
+      if(prevSet.has(kk)) prevPenalty++;               // 이전 짝꿍 = 감점
+      if(S.optGender){
+        const a=stuById(ai), b=stuById(aj);
+        if(a&&b&&a.gender&&b.gender&&a.gender===b.gender) genderPenalty++; // 같은 성끼리 붙으면 감점
+      }
+    }
+    const score = -(prevPenalty*5) - genderPenalty;
+    if(!hardViolate){
+      hardOK=true;
+      if(score>bestScore){ bestScore=score; best=assign; }
+      if(score===0) break; // 완벽
+    } else if(best===null && bestScore===-Infinity){
+      // 아직 hard 만족 해를 못 찾았을 때를 대비한 임시 보관 없음(떨어뜨리기는 꼭 지킴)
+    }
+  }
+
+  if(!hardOK){
+    flash("‘떨어뜨리기’ 조건을 모두 만족하는 배치를 찾지 못했어요. 떨어뜨릴 짝을 줄이거나 자리를 늘려 보세요.","err");
+    return;
+  }
+
+  // 결과 반영
+  Object.values(S.cells).forEach(c=>{ if(Array.isArray(c.assigned)) c.assigned=[null,null]; else c.assigned=null; });
+  slots.forEach((sl,i)=>{
+    const id=best[i]||null;
+    if(S.mode==="pair"){ ensurePairSlots(S.cells[sl.k]); S.cells[sl.k].assigned[sl.sub]=id; }
+    else S.cells[sl.k].assigned=id;
+  });
+  renderGrid();
+
+  // 이번 인접관계 저장(이전 짝꿍 피하기용)
+  if(S.optPrev){
+    const newSet=new Set();
+    for(const [i,j] of adjPairs){
+      const ai=best[i], aj=best[j];
+      if(ai&&aj) newSet.add(pairKey(ai,aj));
+    }
+    savePrevAdjacency(newSet);
+  }
+
+  // 결과 메시지
+  let extra=[];
+  if(S.separations.length) extra.push("떨어뜨리기 "+S.separations.length+"쌍 반영");
+  if(bestScore<0){
+    if(S.optPrev||S.optGender) extra.push("일부 조건은 완전히는 못 맞췄어요(자리가 빠듯하면 생길 수 있어요)");
+  }
+  const fmsg="자리를 새로 섞었어요." + (extra.length? " ("+extra.join(" · ")+")":"");
+  playCountdownAndReveal(()=>flash(fmsg, bestScore<0?"warn":"ok"));
+}
+
+/* ---------- 섞기 연출: 3·2·1 카운트다운 후 한 명씩 등장 ---------- */
+function setShuffleEnabled(on){ $("#shuffleBtn").disabled=!on; }
+function playCountdownAndReveal(done){
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  const seats = Array.prototype.slice.call(document.querySelectorAll(".seat.assigned-seat"));
+  shuffle(seats); // 등장 순서 무작위 (두근두근)
+  if(reduce || seats.length===0){ if(done) done(); return; }
+
+  seats.forEach(s=>s.classList.add("reveal-hide"));   // 일단 숨김(고정·빈자리는 그대로 보임)
+  setShuffleEnabled(false);
+
+  const cd=$("#countdown");
+  let n=3;
+  (function tick(){
+    if(n>0){
+      cd.classList.add("on");
+      cd.innerHTML='<div class="n">'+n+'</div>';
+      n--;
+      setTimeout(tick,700);
+    } else {
+      cd.classList.remove("on"); cd.innerHTML="";
+      const gap=Math.max(60, Math.min(140, Math.round(2600/seats.length)));
+      seats.forEach((s,i)=> setTimeout(()=>s.classList.remove("reveal-hide"), i*gap));
+      setTimeout(()=>{ setShuffleEnabled(true); if(done) done(); }, seats.length*gap+250);
+    }
+  })();
+}
+
+/* ---------- 저장 ---------- */
+function doPrint(){ window.print(); }
+async function doImage(){
+  if(typeof html2canvas==="undefined"){
+    flash("이미지 저장 기능을 불러오지 못했어요(학교망 차단일 수 있어요). 대신 ‘인쇄 → PDF로 저장’을 이용하세요.","warn");
+    return;
+  }
+  try{
+    const target=$("#captureArea");
+    const canvas=await html2canvas(target,{backgroundColor:"#FFFDF8",scale:2});
+    const a=document.createElement("a");
+    a.download="자리표.png";
+    a.href=canvas.toDataURL("image/png");
+    a.click();
+    flash("자리표를 이미지(PNG)로 저장했어요.","ok");
+  }catch(e){
+    flash("이미지 저장에 실패했어요. ‘인쇄 → PDF로 저장’을 이용해 주세요.","warn");
+  }
+}
+
+/* ---------- 유틸 ---------- */
+function clampInt(v,min,max,def){ v=parseInt(v,10); if(isNaN(v))return def; return Math.max(min,Math.min(max,v)); }
+function escapeHtml(s){ return (s+"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+let flashTimer=null;
+function flash(text,kind){
+  const el=$("#msg");
+  el.textContent=text;
+  el.className="msg show "+(kind||"");
+  clearTimeout(flashTimer);
+  flashTimer=setTimeout(()=>{ el.classList.remove("show"); }, 6000);
+}
+
+/* ---------- 이벤트 연결 ---------- */
+$("#loadBtn").onclick=loadRoster;
+$("#sampleBtn").onclick=()=>{
+  $("#rosterInput").value=
+    "김서연 여\n이도윤 남\n박지우 여\n최하준 남\n정수아 여\n강시우 남\n조유나 여\n윤지호 남\n임채원 여\n오시윤 남\n한예린 여\n신준서 남\n배하은 여\n홍지안 남\n문서준 남\n양다은 여";
+  loadRoster();
+};
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>setMode(c.dataset.mode));
+$("#rowsIn").oninput=buildGrid;
+$("#colsIn").oninput=buildGrid;
+$("#sepAddBtn").onclick=addSeparation;
+$("#optGender").onchange=e=>S.optGender=e.target.checked;
+$("#optPrev").onchange=e=>S.optPrev=e.target.checked;
+$("#fixToggleBtn").onclick=()=>{
+  S.fixMode=!S.fixMode;
+  $("#fixBanner").classList.toggle("on",S.fixMode);
+  $("#fixToggleBtn").textContent = S.fixMode? "🔒 고정 자리 지정 끄기" : "🔒 고정 자리 지정 켜기";
+  $("#fixToggleBtn").classList.toggle("primary",S.fixMode);
+  if(S.fixMode){ $("#fixBanner").scrollIntoView({behavior:"smooth",block:"center"}); }
+  renderGrid();
+};
+$("#fixDoneBtn").onclick=()=>{ S.fixMode=false; $("#fixBanner").classList.remove("on");
+  $("#fixToggleBtn").textContent="🔒 고정 자리 지정 켜기"; $("#fixToggleBtn").classList.remove("primary"); renderGrid(); };
+$("#shuffleBtn").onclick=runShuffle;
+$("#printBtn").onclick=doPrint;
+$("#imgBtn").onclick=doImage;
+$("#modalBg").onclick=(e)=>{ if(e.target.id==="modalBg") closeModal(); };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && $("#modalBg").classList.contains("on")) closeModal(); });
+
+/* 초기 그리드 */
+buildGrid();
+</script>
+</body>
+</html>
