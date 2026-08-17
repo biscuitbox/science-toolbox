@@ -1,6 +1,21 @@
 {
   "tools": [
     {
+    "id": "light-ray-lab",
+    "name": "빛의 반사와 굴절 가상실험",
+    "description": "레이저를 끌어 옮기며 반사·굴절·전반사를 살펴보는 광선 실험실",
+    "category": "physics",
+    "path": "physics/light-ray-lab/",
+    "tags": ["빛", "반사", "굴절", "전반사", "거울", "광선", "스넬"],
+    "level": "중1~중3",
+    "featured": true,
+    "activityType": "시뮬레이션",
+    "target": "중학교 1~3학년 '빛과 파동' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "인쇄한 활동지(선택)"],
+    "achievementStandard": ["9과10-01"]
+    },
+    {
       "id": "atomic-structure",
       "name": "원자 구조 탐험",
       "description": "보어 모형으로 배우는 원자 구조 + 주기율표 학습 + 10문제 퀴즈",
