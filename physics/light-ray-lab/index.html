@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빛의 반사와 굴절 가상실험</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<style>
+  :root{
+    --paper:#f7f3ea;
+    --paper2:#fffdf8;
+    --ink:#2b2b2b;
+    --muted:#6b6257;
+    --border:#ddd2be;
+    --border2:#c9bda6;
+    --accent:#2f6fb5;          /* 물리 = 파랑 */
+    --accent-soft:#e6effa;
+    --ray-in:#e07b1f;
+    --ray-ref:#2f6fb5;
+    --ray-rfr:#2e8b57;
+    --warn:#b03a2e;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    background-image:repeating-linear-gradient(to bottom,transparent 0 31px,#e8e0d0 31px 32px);
+    color:var(--ink);
+    font-family:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
+    font-size:16px; line-height:1.6;
+    padding:14px;
+  }
+  .wrap{max-width:980px;margin:0 auto}
+  header.tool-head{
+    background:var(--paper2); border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px; margin-bottom:14px;
+  }
+  h1{font-family:'Gowun Batang',serif;font-size:1.5rem;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .std-badge{
+    display:none; margin-top:10px; font-size:.9rem; color:var(--accent);
+    background:var(--accent-soft); border:1px dashed var(--accent);
+    border-radius:8px; padding:6px 10px;
+  }
+  body.teacher .std-badge{display:block}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .tab{
+    font:inherit;font-size:.98rem;cursor:pointer;
+    background:var(--paper2);border:1px solid var(--border2);border-radius:10px;
+    padding:10px 14px;color:var(--muted);transition:background .3s,color .3s;
+  }
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .tab:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+
+  .card{background:var(--paper2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+
+  /* ── 실험 화면 + 드래그 손잡이 ── */
+  .stage-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .stage-wrap{position:relative;width:100%}
+  canvas#stage{width:100%;height:auto;display:block;border-radius:10px;background:#fbfaf6;cursor:pointer}
+  .drag-handle{
+    position:absolute;width:52px;height:52px;padding:0;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    border:2px dashed rgba(47,111,181,.55);
+    background:rgba(47,111,181,.08);
+    cursor:grab;touch-action:none;
+  }
+  .drag-handle:active{cursor:grabbing;background:rgba(47,111,181,.18)}
+  .drag-handle:focus-visible{outline:3px solid #f0a500;outline-offset:3px}
+  .grab-hint{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+
+  .readout{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{
+    border-radius:999px;padding:6px 12px;font-size:.95rem;border:1px solid var(--border2);
+    background:#fff;display:flex;align-items:center;gap:6px;
+  }
+  .chip .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .chip.tir{background:#fdecea;border-color:var(--warn);color:var(--warn);font-weight:700}
+
+  .controls{display:grid;gap:12px;margin-top:14px}
+  .ctl{display:grid;gap:6px}
+  .ctl label{font-size:.95rem;font-weight:600}
+  input[type=range]{width:100%;height:28px}
+  select,button{font:inherit;border-radius:9px;border:1px solid var(--border2);background:#fff;padding:9px 12px;color:var(--ink);cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  button.ghost{background:#fff}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:.95rem}
+  input[type=checkbox],input[type=radio]{width:20px;height:20px}
+
+  h2{font-family:'Gowun Batang',serif;font-size:1.15rem;margin:0 0 10px}
+  .quiz-q{font-weight:700;margin-bottom:8px}
+  .quiz-feedback{margin-top:10px;padding:10px 12px;border-radius:9px;font-size:.95rem;display:none}
+  .quiz-feedback.ok{display:block;background:#e8f5ec;border:1px solid #2e8b57;color:#1e6b40}
+  .quiz-feedback.no{display:block;background:#fdecea;border:1px solid var(--warn);color:var(--warn)}
+  .quiz-feedback .mark{font-weight:700;margin-right:6px}
+  input[type=number]{font:inherit;width:110px;padding:9px 10px;border-radius:9px;border:1px solid var(--border2)}
+
+  .note{font-size:.85rem;color:var(--muted);margin-top:10px}
+  .stage-hint{display:none;font-size:.85rem;color:var(--muted);margin:6px 0 0}
+  footer.src{font-size:.82rem;color:var(--muted);text-align:right;margin-top:4px}
+
+  .worksheet{display:none}
+  .ws-line{border-bottom:1px solid #bbb;height:26px;margin:8px 0}
+
+  @media (max-width:560px){
+    body{padding:10px}
+    h1{font-size:1.25rem}
+    .tab{padding:9px 11px;font-size:.92rem}
+    .stage-wrap{width:560px}
+    canvas#stage{width:560px;max-width:none}
+    .stage-hint{display:block}
+  }
+  @media print{
+    body{background:#fff;padding:0;font-size:12pt}
+    .no-print{display:none !important}
+    .drag-handle{display:none}
+    .card{border:1px solid #999;break-inside:avoid;page-break-inside:avoid}
+    .worksheet{display:block}
+    canvas#stage{max-width:100%;border:1px solid #999}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="tool-head">
+    <h1>빛의 반사와 굴절 가상실험</h1>
+    <p class="sub">레이저 포인터를 손으로 끌어 옮기면서 빛이 어떻게 튕기고 꺾이는지 살펴보세요.</p>
+    <div class="std-badge">성취기준 [9과10-01] 빛의 반사와 굴절의 원리를 이해하고, 물체를 보는 과정을 빛의 경로를 이용하여 표현할 수 있다.</div>
+    <div class="toolbar no-print">
+      <label class="checkline"><input type="checkbox" id="teacherMode"> 교사용 정보 보기</label>
+      <button class="ghost" id="btnPrint">🖨 활동지 인쇄</button>
+    </div>
+  </header>
+
+  <div class="tabs no-print" role="tablist" aria-label="실험 화면 선택">
+    <button class="tab" role="tab" id="tab-reflect" aria-selected="true" aria-controls="panel-stage">① 거울에서 반사</button>
+    <button class="tab" role="tab" id="tab-refract" aria-selected="false" aria-controls="panel-stage">② 물·유리에서 굴절</button>
+  </div>
+
+  <!-- ───────── 실험 화면 ───────── -->
+  <section class="card" id="panel-stage">
+    <div class="stage-outer">
+      <div class="stage-wrap">
+        <canvas id="stage" width="740" height="400" role="img" aria-label="빛의 진행 경로 그림"></canvas>
+        <button id="dragHandle" class="drag-handle no-print"
+                aria-label="레이저 포인터. 끌어서 옮기거나 방향키로 움직이세요. Shift와 함께 누르면 조금씩 움직입니다."></button>
+      </div>
+    </div>
+    <p class="stage-hint no-print">← 그림을 옆으로 밀어서 전체를 볼 수 있어요.</p>
+    <p class="grab-hint no-print">점선 원을 끌어 레이저를 옮겨 보세요. 법선 반대쪽으로도, 경계면 아래쪽으로도 갈 수 있습니다. 화면을 톡 누르면 그 자리로 바로 옮겨집니다. <b>법선 가까이 가면 딱 붙어 입사각 0°(수직 입사)가 됩니다.</b></p>
+
+    <div class="readout" id="readout"></div>
+
+    <div class="controls no-print">
+      <div class="ctl">
+        <label for="angle">정확한 각도로 맞추기 — 입사각 <output id="angleOut">45°</output></label>
+        <input type="range" id="angle" min="0" max="85" step="1" value="45" aria-describedby="angleHelp">
+        <div class="note" id="angleHelp">법선(점선)과 입사 광선 사이의 각입니다. 레이저가 지금 있는 쪽은 그대로 두고 각도만 바뀝니다.</div>
+      </div>
+
+      <div class="ctl" id="mediumCtl">
+        <label for="medium">경계면 아래 물질 고르기</label>
+        <select id="medium">
+          <option value="water" selected>물</option>
+          <option value="glass">유리</option>
+          <option value="diamond">다이아몬드</option>
+        </select>
+      </div>
+      <div class="ctl" id="partialCtl">
+        <label class="checkline"><input type="checkbox" id="showPartial"> 경계면에서 함께 일어나는 반사 광선도 보기</label>
+      </div>
+
+      <div class="btnrow">
+        <button class="ghost" id="btnReset">↺ 처음 위치로</button>
+        <button class="ghost" id="btnCapture">📷 그림 저장(PNG)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── 예상 → 확인 퀴즈 ───────── -->
+  <section class="card no-print" id="panel-quiz">
+    <h2>예상 → 확인</h2>
+    <div class="quiz-q" id="quizQ">문제를 불러오는 중…</div>
+    <div id="quizInputArea"></div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="primary" id="btnCheck">확인하기</button>
+      <button class="ghost" id="btnNewQ">다른 문제</button>
+    </div>
+    <div class="quiz-feedback" id="quizFb"></div>
+  </section>
+
+  <!-- ───────── 인쇄용 활동지 ───────── -->
+  <section class="card worksheet">
+    <h2>정리해 봅시다</h2>
+    <p>이름 : ____________________　　학년 반 번호 : ____________________</p>
+    <ol>
+      <li>레이저를 옮겨 입사각을 크게 하면 반사각은 어떻게 되나요?<div class="ws-line"></div></li>
+      <li>레이저를 법선 반대쪽으로 옮기면 반사 광선은 어느 쪽으로 나가나요? 직접 해 보고 쓰세요.<div class="ws-line"></div></li>
+      <li>입사각을 점점 크게 눕히면 굴절각도 따라서 커집니다. 그런데 굴절각이 입사각을 따라잡을 수 있나요? 관찰한 대로 쓰세요.<div class="ws-line"></div></li>
+      <li>빛이 공기에서 물로 들어갈 때, 굴절각은 입사각보다 ( 큽니다 / 작습니다 ). 왜 그럴까요?<div class="ws-line"></div><div class="ws-line"></div></li>
+      <li>물 대신 다이아몬드로 바꾸면 빛은 더 많이 꺾였나요, 덜 꺾였나요?<div class="ws-line"></div></li>
+      <li>레이저를 물속(경계면 아래)으로 옮기고 입사각을 점점 크게 하면 어떤 일이 일어나나요? 그 현상의 이름은?<div class="ws-line"></div><div class="ws-line"></div></li>
+    </ol>
+  </section>
+
+  <footer class="src">이 도구의 광선 경로는 반사 법칙과 스넬 법칙으로 직접 계산해 그립니다. 외부 이미지 사용 없음.</footer>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ═══════════ 데이터 ═══════════ */
+  var MEDIA = {
+    water:   {name:"물",        n:1.33, color:"#cfe6f5"},
+    glass:   {name:"유리",      n:1.50, color:"#dbe7de"},
+    diamond: {name:"다이아몬드", n:2.42, color:"#e6e2f2"}
+  };
+  var N_AIR = 1.00;
+
+  var SURFACE = {reflect:320, refract:220};   // 탭별 경계면 y
+  var DEFAULT_SRC = {reflect:[207,157], refract:[236,86]};
+
+  var state = {
+    mode: "reflect",
+    medium: "water",
+    partial: false,
+    src: {reflect:[207,157], refract:[236,86]},
+    above: {reflect:true, refract:true}   // 경계면 위쪽에서 오는 빛인가 (딱 붙었을 때 판단용)
+  };
+
+  var D = Math.PI/180;
+  function rad(d){return d*D;}
+  function deg(r){return r/D;}
+  function r1(x){return Math.round(x*10)/10;}
+  function sgn(x){return x<0?-1:(x>0?1:0);}
+
+  function refractAngle(t1,n1,n2){
+    var s=n1*Math.sin(rad(t1))/n2;
+    if(s>1) return null;
+    return deg(Math.asin(s));
+  }
+  function criticalAngle(n1,n2){
+    if(n1<=n2) return null;
+    return deg(Math.asin(n2/n1));
+  }
+
+  /* ═══════════ 캔버스 ═══════════ */
+  var stage=document.getElementById("stage");
+  var ctx=stage.getContext("2d");
+  var W=stage.width, H=stage.height;
+  (function(){
+    var dpr=window.devicePixelRatio||1;
+    stage.width=W*dpr; stage.height=H*dpr;
+    ctx.scale(dpr,dpr);
+  })();
+  var FONT="'Pretendard Variable',Pretendard,'Malgun Gothic',sans-serif";
+
+  function line(a,b,color,width,dash){
+    ctx.save();
+    ctx.strokeStyle=color; ctx.lineWidth=width||3; ctx.lineCap="round";
+    ctx.setLineDash(dash||[]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    ctx.restore();
+  }
+  function arrowHead(at,dir,color,size){
+    var s=size||11,a=Math.atan2(dir[1],dir[0]);
+    ctx.save(); ctx.fillStyle=color; ctx.translate(at[0],at[1]); ctx.rotate(a);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-s,-s*0.55); ctx.lineTo(-s,s*0.55); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+  function textTag(str,x,y,color,align){
+    ctx.save();
+    ctx.font="600 15px "+FONT;
+    ctx.textAlign=align||"center"; ctx.textBaseline="middle";
+    var w=ctx.measureText(str).width+12;
+    var bx = align==="left" ? x-4 : (align==="right" ? x-w+4 : x-w/2);
+    bx=Math.max(2,Math.min(W-w-2,bx));            // 화면 밖으로 안 나가게
+    var by=Math.max(14,Math.min(H-14,y));
+    ctx.fillStyle="rgba(255,253,248,.9)";
+    roundRect(bx,by-12,w,24,7); ctx.fill();
+    ctx.fillStyle=color||"#2b2b2b";
+    ctx.textAlign="left";
+    ctx.fillText(str,bx+6,by);
+    ctx.restore();
+  }
+  function rayWithArrow(from,to,color,label,dash,width,labelPos,labelOff){
+    line(from,to,color,width||3.2,dash);
+    var dx=to[0]-from[0],dy=to[1]-from[1],len=Math.hypot(dx,dy);
+    if(len<1) return;
+    var u=[dx/len,dy/len];
+    arrowHead([from[0]+u[0]*len*0.55,from[1]+u[1]*len*0.55],u,color);
+    if(label){
+      var t=(labelPos===undefined)?0.78:labelPos, off=labelOff||0, pp=[-u[1],u[0]];
+      textTag(label, from[0]+u[0]*len*t+pp[0]*off, from[1]+u[1]*len*t+pp[1]*off, color);
+    }
+  }
+  function angleArc(O,a1,a2,r,color,label){
+    var diff=a2-a1;
+    while(diff>Math.PI) diff-=2*Math.PI;
+    while(diff<-Math.PI) diff+=2*Math.PI;
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(O[0],O[1],r,a1,a1+diff,diff<0); ctx.stroke(); ctx.restore();
+    if(label){
+      var m=a1+diff/2;
+      textTag(label,O[0]+Math.cos(m)*(r+28),O[1]+Math.sin(m)*(r+28),color);
+    }
+  }
+  function hatchH(x1,x2,y){
+    ctx.save(); ctx.strokeStyle="#9a9182"; ctx.lineWidth=2;
+    for(var x=x1+12;x<x2;x+=12){ ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-9,y+11); ctx.stroke(); }
+    ctx.restore();
+  }
+  function drawLaser(x,y,ang){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+    ctx.fillStyle="#6b7280"; roundRect(-52,-9,44,18,5); ctx.fill();
+    ctx.fillStyle="#374151"; roundRect(-14,-6,14,12,3); ctx.fill();
+    ctx.fillStyle="#9ca3af"; roundRect(-46,-9,8,18,3); ctx.fill();
+    ctx.restore();
+  }
+
+  /* ═══════════ 기하 계산 ═══════════ */
+  function origin(){ return [W/2, SURFACE[state.mode]]; }
+  function srcPos(){ return state.src[state.mode]; }
+
+  var SNAP=10;   // 법선에서 이 거리(px) 안으로 끌어오면 딱 붙는다 → 입사각 0°
+  var MINV=26;   // 면에서 최소한 이만큼은 떨어져 있어야 한다 → 입사각이 90°에 닿지 않게
+
+  function clampSrc(p,noSnap){
+    var O=origin(), sy=SURFACE[state.mode];
+    var x=Math.max(44,Math.min(W-44,p[0]));
+    var y=Math.max(34,Math.min(H-34,p[1]));
+    if(!noSnap && Math.abs(x-O[0])<=SNAP) x=O[0];      // 법선에 붙기 → 0° (드래그·클릭 때만)
+    if(state.mode==="reflect") y=Math.min(y, sy-MINV); // 거울 뒤로는 못 감
+    else if(Math.abs(y-sy)<MINV) y=(y<sy)?sy-MINV:sy+MINV;
+    // 경계면 위/아래 어느 쪽에서 온 빛인지 기억
+    if(y<sy) state.above[state.mode]=true;
+    else if(y>sy) state.above[state.mode]=false;
+    // 원점에서 너무 가까우면 밀어냄
+    var dx=x-O[0], dy=y-O[1], d=Math.hypot(dx,dy);
+    if(d<90){
+      if(d<1){ dx=0; dy=-1; d=1; }
+      x=O[0]+dx/d*90; y=O[1]+dy/d*90;
+      if(state.mode==="reflect") y=Math.min(y,sy-MINV);
+    }
+    return [x,y];
+  }
+  function geometry(){
+    var O=origin(), S=srcPos();
+    var dx=O[0]-S[0], dy=O[1]-S[1], len=Math.hypot(dx,dy)||1;
+    var u=[dx/len,dy/len];
+    var theta=deg(Math.atan2(Math.abs(u[0]),Math.abs(u[1])));
+    return {O:O,S:S,u:u,len:len,theta:theta,above:state.above[state.mode]};
+  }
+
+  /* ═══════════ 화면 ① 거울에서 반사 ═══════════ */
+  function drawReflect(){
+    var g=geometry(), O=g.O, S=g.S, u=g.u, th=g.theta;
+    var sy=SURFACE.reflect, R=Math.max(180,g.len);
+
+    ctx.save();
+    var gr=ctx.createLinearGradient(0,sy,0,sy+26);
+    gr.addColorStop(0,"#cfe3f2"); gr.addColorStop(1,"#eaf3fa");
+    ctx.fillStyle=gr; ctx.fillRect(40,sy,W-80,26);
+    ctx.strokeStyle="#5b7f9c"; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(40,sy); ctx.lineTo(W-40,sy); ctx.stroke();
+    ctx.restore();
+    hatchH(40,W-40,sy+26);
+    textTag("거울",W-52,sy+46,"#4a6b85","right");
+
+    var onNormal=(g.theta<0.5);
+    line([O[0],sy],[O[0],26],onNormal?"#2f6fb5":"#8a8378",onNormal?2.8:2.2,[7,7]);
+    textTag("법선",O[0],18,onNormal?"#2f6fb5":"#6b6257");
+
+    var uR=[u[0],-u[1]], perp=(th<0.5);
+    // 수직 입사(0°)에서는 두 광선이 한 선에 겹치므로 라벨을 양옆으로 벌리고
+    // 반사 광선을 점선으로 그려 아래쪽 입사 광선이 비쳐 보이게 한다
+    rayWithArrow(S,O,"#e07b1f","입사 광선",[],3.2,perp?0.55:0.30,perp?72:0);
+    rayWithArrow(O,[O[0]+uR[0]*R,O[1]+uR[1]*R],"#2f6fb5","반사 광선",perp?[11,7]:[],3.2,perp?0.38:0.82,perp?72:0);
+    drawLaser(S[0],S[1],Math.atan2(u[1],u[0]));
+
+    var aN=-Math.PI/2;
+    if(perp){
+      textTag("입사각 = 반사각 = 0°",O[0]+180,O[1]-46,"#2b2b2b");
+    }else{
+      angleArc(O,Math.atan2(-u[1],-u[0]),aN,60,"#e07b1f","입사각 "+Math.round(th)+"°");
+      angleArc(O,aN,Math.atan2(uR[1],uR[0]),104,"#2f6fb5","반사각 "+Math.round(th)+"°");
+    }
+
+    var chips=[
+      {c:"#e07b1f",t:"입사각 "+Math.round(th)+"°"},
+      {c:"#2f6fb5",t:"반사각 "+Math.round(th)+"°"}
+    ];
+    if(perp) chips.push({c:"#6b6257",t:"법선과 나란히 수직 입사 — 빛이 왔던 길로 그대로 되돌아갑니다"});
+    chips.push({c:"#6b6257",t:"레이저를 어디로 옮겨도 두 각은 항상 같습니다 (반사 법칙)"});
+    setReadout(chips);
+  }
+
+  /* ═══════════ 화면 ② 물·유리에서 굴절 ═══════════ */
+  function drawRefract(){
+    var g=geometry(), O=g.O, S=g.S, u=g.u, th=g.theta;
+    var sy=SURFACE.refract, m=MEDIA[state.medium], R=Math.max(170,Math.min(230,g.len));
+    var fromAir=g.above;                        // 위(공기)에서 아래로 들어오는가
+    var n1=fromAir?N_AIR:m.n, n2=fromAir?m.n:N_AIR;
+
+    ctx.save();
+    ctx.fillStyle="#f2f7fb"; ctx.fillRect(0,0,W,sy);
+    ctx.fillStyle=m.color;   ctx.fillRect(0,sy,W,H-sy);
+    ctx.strokeStyle="#7d9bb5"; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke();
+    ctx.restore();
+    textTag("공기"+(isTeacher()?" (n=1.00)":""),20,24,"#4a6b85","left");
+    textTag(m.name+(isTeacher()?" (n="+m.n.toFixed(2)+")":""),20,H-22,"#4a6b85","left");
+
+    var onNormal=(th<0.5);
+    line([O[0],16],[O[0],H-14],onNormal?"#2f6fb5":"#8a8378",onNormal?2.8:2.2,[7,7]);
+    textTag("법선",O[0],16,onNormal?"#2f6fb5":"#6b6257");
+
+    rayWithArrow(S,O,"#e07b1f","입사 광선",[],3.2,0.28,(th<0.5)?-26:0);
+    drawLaser(S[0],S[1],Math.atan2(u[1],u[0]));
+
+    var perp=(th<0.5);
+    var aNin  = fromAir ? -Math.PI/2 :  Math.PI/2;
+    var aNout = fromAir ?  Math.PI/2 : -Math.PI/2;
+    if(!perp) angleArc(O,Math.atan2(-u[1],-u[0]),aNin,58,"#e07b1f","입사각 "+Math.round(th)+"°");
+    else textTag("입사각 0° — 꺾이지 않고 그대로 통과",O[0]+170,O[1]-34,"#2b2b2b");
+
+    var chips=[
+      {c:"#6b6257",t:fromAir ? ("공기 → "+m.name+" 방향") : (m.name+" → 공기 방향")},
+      {c:"#e07b1f",t:"입사각 "+Math.round(th)+"°"}
+    ];
+    var t2=refractAngle(th,n1,n2);
+    var uR=[u[0],-u[1]];
+
+    if(t2===null){
+      rayWithArrow(O,[O[0]+uR[0]*R,O[1]+uR[1]*R],"#2f6fb5","반사 광선",[],3.2,0.84,0);
+      angleArc(O,aNin,Math.atan2(uR[1],uR[0]),102,"#2f6fb5","반사각 "+Math.round(th)+"°");
+      textTag("⚠ 전반사 — 빛이 밖으로 나가지 못하고 모두 되돌아옵니다",W/2,fromAir?H-26:44,"#b03a2e");
+      chips.push({c:"#b03a2e",t:"전반사! 굴절 광선 없음",tir:true});
+    }else{
+      var sx=sgn(u[0])||1;
+      var uT=[sx*Math.sin(rad(t2)), (fromAir?1:-1)*Math.cos(rad(t2))];
+      rayWithArrow(O,[O[0]+uT[0]*R,O[1]+uT[1]*R],"#2e8b57","굴절 광선",[],3.2,0.84,perp?26:0);
+      if(!perp) angleArc(O,aNout,Math.atan2(uT[1],uT[0]),58,"#2e8b57","굴절각 "+r1(t2)+"°");
+      chips.push({c:"#2e8b57",t:"굴절각 "+r1(t2)+"°"});
+      chips.push({c:"#6b6257",t:(t2<th-0.05)?"굴절각이 더 작음 → 법선 쪽으로 꺾임"
+                              :(t2>th+0.05)?"굴절각이 더 큼 → 법선에서 멀어짐"
+                              :"꺾이지 않음 (수직 입사)"});
+      if(state.partial){
+        rayWithArrow(O,[O[0]+uR[0]*R*0.78,O[1]+uR[1]*R*0.78],"#2f6fb5","반사 광선(일부)",[8,6],2.2,0.88,0);
+      }
+    }
+    if(isTeacher()){
+      chips.push({c:"#2f6fb5",t:"n₁sinθ₁ = n₂sinθ₂ ("+n1.toFixed(2)+"·sin"+Math.round(th)+"° = "+n2.toFixed(2)+"·sinθ₂)"});
+      var ca=criticalAngle(n1,n2);
+      if(ca!==null) chips.push({c:"#2f6fb5",t:"임계각 "+r1(ca)+"°"});
+    }
+    setReadout(chips);
+  }
+
+  /* ═══════════ 공통 ═══════════ */
+  function isTeacher(){ return document.body.classList.contains("teacher"); }
+  function setReadout(items){
+    var el=document.getElementById("readout"); el.innerHTML="";
+    items.forEach(function(it){
+      var d=document.createElement("div");
+      d.className="chip"+(it.tir?" tir":"");
+      var dot=document.createElement("span"); dot.className="dot"; dot.style.background=it.c;
+      var tx=document.createElement("span"); tx.textContent=it.t;
+      d.appendChild(dot); d.appendChild(tx); el.appendChild(d);
+    });
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#fbfaf6"; ctx.fillRect(0,0,W,H);
+    if(state.mode==="reflect") drawReflect(); else drawRefract();
+    if(isTeacher()){
+      ctx.save(); ctx.font="600 13px "+FONT; ctx.fillStyle="#2f6fb5"; ctx.textAlign="right";
+      ctx.fillText("[9과10-01]",W-12,H-10); ctx.restore();
+    }
+    placeHandle();
+    syncSlider();
+  }
+  function placeHandle(){
+    var S=srcPos(), h=document.getElementById("dragHandle");
+    h.style.left=(S[0]/W*100)+"%";
+    h.style.top =(S[1]/H*100)+"%";
+  }
+  function syncSlider(){
+    var th=Math.round(geometry().theta);
+    var sl=document.getElementById("angle");
+    if(parseInt(sl.value,10)!==th) sl.value=th;
+    document.getElementById("angleOut").textContent=th+"°";
+  }
+
+  /* ═══════════ 드래그 & 키보드 ═══════════ */
+  function toLogical(clientX,clientY){
+    var r=stage.getBoundingClientRect();
+    return [(clientX-r.left)/r.width*W, (clientY-r.top)/r.height*H];
+  }
+  function moveTo(p,noSnap){ state.src[state.mode]=clampSrc(p,noSnap); draw(); }
+
+  var dragging=false;
+  var handle=document.getElementById("dragHandle");
+
+  function startDrag(e){
+    dragging=true;
+    if(e.pointerId!==undefined && handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+  handle.addEventListener("pointerdown",startDrag);
+  handle.addEventListener("pointermove",function(e){
+    if(!dragging) return;
+    moveTo(toLogical(e.clientX,e.clientY)); e.preventDefault();
+  });
+  ["pointerup","pointercancel"].forEach(function(t){
+    handle.addEventListener(t,function(){ dragging=false; });
+  });
+  // 화면을 톡 누르면(클릭하면) 그 자리로 — 손가락으로 그림을 미는 동작은 그대로 스크롤
+  stage.addEventListener("click",function(e){
+    moveTo(toLogical(e.clientX,e.clientY));
+    handle.focus({preventScroll:true});
+  });
+
+  handle.addEventListener("keydown",function(e){
+    var step=e.shiftKey?3:12, S=srcPos().slice(), used=true;
+    switch(e.key){
+      case "ArrowLeft":  S[0]-=step; break;
+      case "ArrowRight": S[0]+=step; break;
+      case "ArrowUp":    S[1]-=step; break;
+      case "ArrowDown":  S[1]+=step; break;
+      default: used=false;
+    }
+    if(used){ e.preventDefault(); moveTo(S, e.shiftKey); }   // Shift 미세 이동은 자석 해제
+  });
+
+  /* ═══════════ PNG 저장 ═══════════ */
+  function capture(){
+    var cv=document.createElement("canvas"), s=2;
+    cv.width=W*s; cv.height=H*s;
+    var c=cv.getContext("2d"); c.scale(s,s);
+    c.fillStyle="#fbfaf6"; c.fillRect(0,0,W,H);
+    c.drawImage(stage,0,0,W,H);
+    var a=document.createElement("a");
+    a.download="빛의반사와굴절_"+new Date().toISOString().slice(0,10)+".png";
+    a.href=cv.toDataURL("image/png"); a.click();
+  }
+
+  /* ═══════════ 예상 → 확인 퀴즈 ═══════════ */
+  var quiz=null;
+  function newQuiz(){
+    var fb=document.getElementById("quizFb"); fb.className="quiz-feedback"; fb.textContent="";
+    var area=document.getElementById("quizInputArea"), qEl=document.getElementById("quizQ");
+    if(state.mode==="reflect"){
+      var a=Math.floor(Math.random()*8)*10+10;
+      quiz={type:"reflect",ans:a};
+      qEl.textContent="레이저를 옮겨 입사각을 "+a+"°로 맞추었습니다. 반사각은 몇 도일까요?";
+      area.innerHTML='<label for="quizNum">내 예상 (도) </label><input type="number" id="quizNum" min="0" max="90" inputmode="numeric">';
+    }else{
+      var keys=["water","glass","diamond"], mk=keys[Math.floor(Math.random()*keys.length)];
+      var fromAir=Math.random()<0.55, a2=Math.floor(Math.random()*6)*10+20;
+      var n1=fromAir?N_AIR:MEDIA[mk].n, n2=fromAir?MEDIA[mk].n:N_AIR;
+      var t2=refractAngle(a2,n1,n2);
+      quiz={type:"refract",ans:(t2===null?"tir":(t2<a2?"small":"big")),t2:t2};
+      qEl.textContent="빛이 "+(fromAir?"공기에서 "+MEDIA[mk].name+"로":MEDIA[mk].name+"에서 공기로")+" 입사각 "+a2+"°로 들어갑니다. 굴절 광선은 어떻게 될까요?";
+      area.innerHTML=
+        '<div class="checkline"><input type="radio" name="qz" id="qzA" value="small"><label for="qzA">굴절각이 입사각보다 작다 (법선 쪽으로 꺾인다)</label></div>'+
+        '<div class="checkline"><input type="radio" name="qz" id="qzB" value="big"><label for="qzB">굴절각이 입사각보다 크다 (법선에서 멀어진다)</label></div>'+
+        '<div class="checkline"><input type="radio" name="qz" id="qzC" value="tir"><label for="qzC">굴절 광선이 없다 (전반사가 일어난다)</label></div>';
+    }
+  }
+  function checkQuiz(){
+    var fb=document.getElementById("quizFb");
+    if(!quiz) return;
+    if(quiz.type==="reflect"){
+      var v=parseFloat(document.getElementById("quizNum").value);
+      if(isNaN(v)){ fb.className="quiz-feedback no"; fb.innerHTML='<span class="mark">✖ 아직</span> 예상한 각도를 먼저 적어 주세요.'; return; }
+      if(Math.abs(v-quiz.ans)<0.5){
+        fb.className="quiz-feedback ok";
+        fb.innerHTML='<span class="mark">✔ 맞았어요</span> 반사각도 '+quiz.ans+'°입니다. 거울에서는 입사각과 반사각이 항상 같아요.';
+      }else{
+        fb.className="quiz-feedback no";
+        fb.innerHTML='<span class="mark">✖ 다시</span> 정답은 '+quiz.ans+'°예요. <b>입사각 = 반사각</b>을 떠올려 보세요.';
+      }
+    }else{
+      var sel=document.querySelector('input[name="qz"]:checked');
+      if(!sel){ fb.className="quiz-feedback no"; fb.innerHTML='<span class="mark">✖ 아직</span> 예상을 하나 골라 주세요.'; return; }
+      var txt = quiz.ans==="tir" ? "전반사가 일어나 빛이 밖으로 나가지 못합니다."
+        : (quiz.ans==="small"
+            ? "굴절각은 약 "+r1(quiz.t2)+"°로 입사각보다 작습니다. 빛이 느려지는 물질로 들어가면 법선 쪽으로 꺾여요."
+            : "굴절각은 약 "+r1(quiz.t2)+"°로 입사각보다 큽니다. 빛이 빨라지는 쪽으로 나가면 법선에서 멀어져요.");
+      fb.className = (sel.value===quiz.ans) ? "quiz-feedback ok" : "quiz-feedback no";
+      fb.innerHTML = (sel.value===quiz.ans ? '<span class="mark">✔ 맞았어요</span> ' : '<span class="mark">✖ 다시</span> ')+txt+
+        (sel.value===quiz.ans?"":" 레이저를 그 자리로 옮겨 직접 확인해 보세요.");
+    }
+  }
+
+  /* ═══════════ UI ═══════════ */
+  var tabs={reflect:document.getElementById("tab-reflect"),refract:document.getElementById("tab-refract")};
+  function setMode(m){
+    state.mode=m;
+    Object.keys(tabs).forEach(function(k){ tabs[k].setAttribute("aria-selected",k===m?"true":"false"); });
+    var show = (m==="refract") ? "" : "none";
+    document.getElementById("mediumCtl").style.display=show;
+    document.getElementById("partialCtl").style.display=show;
+    state.src[m]=clampSrc(state.src[m]);
+    draw(); newQuiz();
+  }
+  Object.keys(tabs).forEach(function(k){ tabs[k].addEventListener("click",function(){ setMode(k); }); });
+
+  document.getElementById("angle").addEventListener("input",function(){
+    var th=parseInt(this.value,10), g=geometry(), O=g.O;
+    var S=srcPos();
+    var sideX=(S[0]<=O[0])?-1:1;
+    var sideY=(S[1]<=O[1])?-1:1;
+    // 큰 각도에서도 화면 안에 들어오도록 거리를 조절한다
+    var s=Math.sin(rad(th)), c=Math.cos(rad(th));
+    var maxH=W/2-52;
+    var d=Math.max(120,Math.min(250,g.len));
+    if(s*d>maxH) d=maxH/s;
+    if(c>0.001 && c*d<MINV) d=MINV/c;     // 면에서 최소 거리 확보 (90°에 닿지 않게)
+    if(s*d>maxH) d=maxH/s;
+    // 슬라이더는 자석 효과를 건너뛴다 (0° 근처 작은 각도도 정확히 만들 수 있게)
+    moveTo([O[0]+sideX*s*d, O[1]+sideY*c*d], true);
+  });
+  document.getElementById("medium").addEventListener("change",function(){ state.medium=this.value; draw(); });
+  document.getElementById("showPartial").addEventListener("change",function(){ state.partial=this.checked; draw(); });
+  document.getElementById("btnReset").addEventListener("click",function(){
+    state.src[state.mode]=DEFAULT_SRC[state.mode].slice(); draw();
+  });
+  document.getElementById("btnCapture").addEventListener("click",capture);
+  document.getElementById("btnCheck").addEventListener("click",checkQuiz);
+  document.getElementById("btnNewQ").addEventListener("click",newQuiz);
+  document.getElementById("btnPrint").addEventListener("click",function(){ window.print(); });
+  document.getElementById("teacherMode").addEventListener("change",function(){
+    document.body.classList.toggle("teacher",this.checked); draw();
+  });
+
+  setMode("reflect");
+})();
+</script>
+</body>
+</html>
