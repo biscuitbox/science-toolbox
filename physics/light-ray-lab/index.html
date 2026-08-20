@@ -102,6 +102,17 @@
   input[type=number]{font:inherit;width:110px;padding:9px 10px;border-radius:9px;border:1px solid var(--border2)}
 
   .note{font-size:.85rem;color:var(--muted);margin-top:10px}
+  /* 정반사·난반사 설명 */
+  #panel-defs .def{border-left:4px solid var(--border2);padding:2px 0 2px 14px;margin:0 0 16px}
+  #panel-defs .def h3{font-size:1.02rem;margin:0 0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  #panel-defs .def p{margin:0 0 6px}
+  #panel-defs .def .en{font-weight:400;font-size:.85rem;color:var(--muted)}
+  #panel-defs .def .ex{font-size:.93rem;color:var(--muted)}
+  #panel-defs .def.key{border-left-color:var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;padding:10px 14px}
+  #panel-defs .def.key h3{color:var(--accent)}
+  .swatch{width:16px;height:16px;border-radius:4px;flex:none;border:1px solid rgba(0,0,0,.15)}
+  .swatch.spec{background:#2f6fb5}
+  .swatch.diff{background:#8e44ad}
   .stage-hint{display:none;font-size:.85rem;color:var(--muted);margin:6px 0 0}
   footer.src{font-size:.82rem;color:var(--muted);text-align:right;margin-top:4px}
 
@@ -115,6 +126,10 @@
     .stage-wrap{width:560px}
     canvas#stage{width:560px;max-width:none}
     .stage-hint{display:block}
+    /* ② 정반사·난반사는 두 면을 나란히 놓고 비교하는 화면이라 한눈에 들어와야 한다 */
+    body.mode-rough .stage-wrap{width:100%}
+    body.mode-rough canvas#stage{width:100%}
+    body.mode-rough .stage-hint{display:none}
   }
   @media print{
     body{background:#fff;padding:0;font-size:12pt}
@@ -131,7 +146,7 @@
 
   <header class="tool-head">
     <h1>빛의 반사와 굴절 가상실험</h1>
-    <p class="sub">레이저 포인터를 손으로 끌어 옮기면서 빛이 어떻게 튕기고 꺾이는지 살펴보세요.</p>
+    <p class="sub">레이저를 손으로 끌어 옮기면서 빛이 어떻게 튕기고, 흩어지고, 꺾이는지 살펴보세요.</p>
     <div class="std-badge">성취기준 [9과10-01] 빛의 반사와 굴절의 원리를 이해하고, 물체를 보는 과정을 빛의 경로를 이용하여 표현할 수 있다.</div>
     <div class="toolbar no-print">
       <label class="checkline"><input type="checkbox" id="teacherMode"> 교사용 정보 보기</label>
@@ -141,7 +156,8 @@
 
   <div class="tabs no-print" role="tablist" aria-label="실험 화면 선택">
     <button class="tab" role="tab" id="tab-reflect" aria-selected="true" aria-controls="panel-stage">① 거울에서 반사</button>
-    <button class="tab" role="tab" id="tab-refract" aria-selected="false" aria-controls="panel-stage">② 물·유리에서 굴절</button>
+    <button class="tab" role="tab" id="tab-rough" aria-selected="false" aria-controls="panel-stage">② 정반사와 난반사</button>
+    <button class="tab" role="tab" id="tab-refract" aria-selected="false" aria-controls="panel-stage">③ 물·유리에서 굴절</button>
   </div>
 
   <!-- ───────── 실험 화면 ───────── -->
@@ -154,15 +170,29 @@
       </div>
     </div>
     <p class="stage-hint no-print">← 그림을 옆으로 밀어서 전체를 볼 수 있어요.</p>
-    <p class="grab-hint no-print">점선 원을 끌어 레이저를 옮겨 보세요. 법선 반대쪽으로도, 경계면 아래쪽으로도 갈 수 있습니다. 화면을 톡 누르면 그 자리로 바로 옮겨집니다. <b>법선 가까이 가면 딱 붙어 입사각 0°(수직 입사)가 됩니다.</b></p>
+    <p class="grab-hint no-print" id="grabHint">점선 원을 끌어 레이저를 옮겨 보세요. 법선 반대쪽으로도, 경계면 아래쪽으로도 갈 수 있습니다. 화면을 톡 누르면 그 자리로 바로 옮겨집니다. <b>법선 가까이 가면 딱 붙어 입사각 0°(수직 입사)가 됩니다.</b></p>
 
     <div class="readout" id="readout"></div>
 
     <div class="controls no-print">
       <div class="ctl">
-        <label for="angle">정확한 각도로 맞추기 — 입사각 <output id="angleOut">45°</output></label>
+        <label for="angle"><span id="angleLabelText">정확한 각도로 맞추기 — 입사각</span> <output id="angleOut">45°</output></label>
         <input type="range" id="angle" min="0" max="85" step="1" value="45" aria-describedby="angleHelp">
         <div class="note" id="angleHelp">법선(점선)과 입사 광선 사이의 각입니다. 레이저가 지금 있는 쪽은 그대로 두고 각도만 바뀝니다.</div>
+      </div>
+
+      <div class="ctl" id="roughCtl">
+        <label for="rough">오른쪽 면의 거칠기 <output id="roughOut">60% · 매끄러운 코팅 종이</output></label>
+        <input type="range" id="rough" min="0" max="100" step="5" value="60" aria-describedby="roughHelp">
+        <div class="note" id="roughHelp">0% 거울 · 15% 잔잔한 물 · 30% 유광 사진 용지 · 50% 매끄러운 코팅 종이 · 70% 일반 복사지 · 90% 벽지·나무·천</div>
+      </div>
+      <div class="ctl" id="obsCtl">
+        <label for="obs">관찰자(눈)의 위치 <output id="obsOut">법선에서 오른쪽 15°</output></label>
+        <input type="range" id="obs" min="-58" max="58" step="1" value="15" aria-describedby="obsHelp">
+        <div class="note" id="obsHelp">눈을 좌우로 옮겨 보세요. 왼쪽 면은 딱 한 곳에서만 밝게 보이고, 오른쪽 면은 어디서 보아도 보입니다.</div>
+      </div>
+      <div class="ctl" id="normalsCtl">
+        <label class="checkline"><input type="checkbox" id="showNormals" checked> 부딪히는 자리마다 법선 보기</label>
       </div>
 
       <div class="ctl" id="mediumCtl">
@@ -182,6 +212,31 @@
         <button class="ghost" id="btnCapture">📷 그림 저장(PNG)</button>
       </div>
     </div>
+  </section>
+
+  <!-- ───────── 정반사·난반사 정의 (② 탭에서만) ───────── -->
+  <section class="card" id="panel-defs">
+    <h2>정반사와 난반사</h2>
+
+    <div class="def">
+      <h3><span class="swatch spec"></span>정반사 <span class="en">(거울 반사, specular reflection)</span></h3>
+      <p><b>매끄러운 면에 나란히 들어온 빛이, 반사된 뒤에도 나란히 나아가는 것.</b> 면 어느 자리에서나 법선의 방향이 같기 때문에 모든 빛이 똑같은 각도로 튕겨 나갑니다.</p>
+      <p class="ex">거울, 잔잔한 호수, 잘 닦은 금속, 유리창 · 빛이 한 방향으로만 몰려 나가므로 <b>그 방향에 있는 사람에게만 눈부시게 보이고, 물체의 모습(상)이 비쳐 보입니다.</b></p>
+    </div>
+
+    <div class="def">
+      <h3><span class="swatch diff"></span>난반사 <span class="en">(확산 반사, diffuse reflection)</span></h3>
+      <p><b>울퉁불퉁한 면에 나란히 들어온 빛이, 사방으로 흩어져 반사되는 것.</b> 면의 자리마다 법선의 방향이 제각각이라 튕겨 나가는 방향도 제각각이 됩니다.</p>
+      <p class="ex">종이, 벽, 칠판, 옷, 나무 · 빛이 골고루 퍼지므로 <b>어느 방향에서 보아도 보입니다. 교실 어느 자리에 앉아도 칠판 글씨가 보이는 이유</b>가 바로 난반사입니다.</p>
+    </div>
+
+    <div class="def key">
+      <h3>꼭 짚고 갈 것 — 난반사도 반사 법칙을 따릅니다</h3>
+      <p>난반사는 반사 법칙이 깨지는 현상이 아닙니다. <b>부딪히는 자리 하나하나에서는 여전히 입사각 = 반사각</b>입니다. 다만 그 자리의 <b>법선 방향이 서로 다르기 때문에</b> 결과적으로 빛이 흩어져 보일 뿐입니다. 위 실험에서 ‘법선 보기’를 켜고 오른쪽 면을 살펴보세요.</p>
+      <p style="margin-top:8px">관찰자(눈)를 좌우로 옮겨 보면 차이가 분명해집니다. <b>거울은 딱 한 방향에서만 눈이 밝아지고, 거친 면은 거의 어느 방향에서나 밝아집니다.</b> 물체가 어느 자리에서나 보이는 것은 대부분 난반사 덕분입니다.</p>
+    </div>
+
+    <p class="note">한 걸음 더 — 비 온 날 밤에 도로가 유난히 번쩍이는 것은, 물이 도로의 오목한 곳을 메워 <b>난반사하던 면이 정반사하는 면으로 바뀌기</b> 때문입니다. 같은 종이라도 코팅한 사진 용지(유광)는 정반사가 강해 각도에 따라 눈부시고, 일반 복사지(무광)는 난반사가 강해 어디서나 고르게 보입니다.</p>
   </section>
 
   <!-- ───────── 예상 → 확인 퀴즈 ───────── -->
@@ -204,6 +259,10 @@
       <li>레이저를 옮겨 입사각을 크게 하면 반사각은 어떻게 되나요?<div class="ws-line"></div></li>
       <li>레이저를 법선 반대쪽으로 옮기면 반사 광선은 어느 쪽으로 나가나요? 직접 해 보고 쓰세요.<div class="ws-line"></div></li>
       <li>입사각을 점점 크게 눕히면 굴절각도 따라서 커집니다. 그런데 굴절각이 입사각을 따라잡을 수 있나요? 관찰한 대로 쓰세요.<div class="ws-line"></div></li>
+      <li>매끄러운 면과 거친 면에 똑같이 나란한 빛을 쏘았습니다. 반사된 빛의 모습이 어떻게 다른가요?<div class="ws-line"></div></li>
+      <li>난반사가 일어나는 면에서도 ‘입사각 = 반사각’이 성립합니다. 그런데 왜 빛이 흩어질까요? <b>법선</b>이라는 말을 넣어 설명하세요.<div class="ws-line"></div><div class="ws-line"></div></li>
+      <li>관찰자(눈)를 좌우로 옮겨 보았습니다. 거울에서 눈이 밝아지는 위치는 몇 군데였나요? 거친 면은 어땠나요?<div class="ws-line"></div></li>
+      <li>교실 어느 자리에 앉아도 칠판 글씨가 보입니다. 정반사와 난반사 중 무엇 때문일까요?<div class="ws-line"></div></li>
       <li>빛이 공기에서 물로 들어갈 때, 굴절각은 입사각보다 ( 큽니다 / 작습니다 ). 왜 그럴까요?<div class="ws-line"></div><div class="ws-line"></div></li>
       <li>물 대신 다이아몬드로 바꾸면 빛은 더 많이 꺾였나요, 덜 꺾였나요?<div class="ws-line"></div></li>
       <li>레이저를 물속(경계면 아래)으로 옮기고 입사각을 점점 크게 하면 어떤 일이 일어나나요? 그 현상의 이름은?<div class="ws-line"></div><div class="ws-line"></div></li>
@@ -234,8 +293,19 @@
     medium: "water",
     partial: false,
     src: {reflect:[207,157], refract:[236,86]},
-    above: {reflect:true, refract:true}   // 경계면 위쪽에서 오는 빛인가 (딱 붙었을 때 판단용)
+    above: {reflect:true, refract:true},  // 경계면 위쪽에서 오는 빛인가 (딱 붙었을 때 판단용)
+    beam: {angle:45, rough:60, normals:true, obs:15}   // ② 정반사·난반사 탭
   };
+
+  // 거친 면을 만들 때 쓰는 고정 난수표 — 매번 다시 그려도 모양이 흔들리지 않게 미리 만들어 둔다
+  var JITTER=(function(){
+    var a=[];
+    for(var k=0;k<40;k++){
+      var s=Math.sin((k+1)*127.1)*43758.5453;
+      a.push((s-Math.floor(s))*2-1);
+    }
+    return a;
+  })();
 
   var D = Math.PI/180;
   function rad(d){return d*D;}
@@ -471,6 +541,181 @@
     setReadout(chips);
   }
 
+  /* ═══════════ 화면 ② 정반사와 난반사 ═══════════ */
+  // 거칠기에 따라 울퉁불퉁한 면(꺾은선)을 만든다. 거칠기 0이면 완전히 평평하다.
+  function buildSurface(x0,x1,baseY,roughPct,seed){
+    var nseg=72, w=(x1-x0)/nseg, y=baseY, pts=[[x0,baseY]];
+    var maxTilt=34*(roughPct/100), cap=15*(roughPct/100);
+    for(var k=0;k<nseg;k++){
+      y+=Math.tan(rad(maxTilt*JITTER[(k+seed)%JITTER.length]))*w;
+      if(y>baseY+cap) y=baseY+cap;
+      if(y<baseY-cap) y=baseY-cap;
+      pts.push([x0+(k+1)*w,y]);
+    }
+    return pts;
+  }
+  // 꺾은선을 부드러운 곡선으로 이어 그린다 (법선을 섞어 쓰는 것과 모양을 맞추기 위해)
+  function tracePath(pts){
+    ctx.moveTo(pts[0][0],pts[0][1]);
+    for(var i=1;i<pts.length-1;i++){
+      ctx.quadraticCurveTo(pts[i][0],pts[i][1],(pts[i][0]+pts[i+1][0])/2,(pts[i][1]+pts[i+1][1])/2);
+    }
+    ctx.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);
+  }
+  // 한 마디의 법선(위쪽을 향함)
+  function segNormal(pts,i){
+    i=Math.max(0,Math.min(pts.length-2,i));
+    var tx=pts[i+1][0]-pts[i][0], ty=pts[i+1][1]-pts[i][1], L=Math.hypot(tx,ty)||1;
+    return [ty/L,-tx/L];
+  }
+  // 그 면의 x 위치에서 부딪히는 점과 그 자리의 법선
+  // 실제 면은 미세하게 이어져 있으므로, 이웃 마디의 법선과 부드럽게 섞어 방향이 뚝뚝 끊기지 않게 한다
+  function surfaceAt(pts,x){
+    for(var i=0;i<pts.length-1;i++){
+      if(x>=pts[i][0] && x<=pts[i+1][0]){
+        var t=(x-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+        var a=segNormal(pts,i), b, w;
+        if(t<0.5){ b=segNormal(pts,i-1); w=0.5+t; }
+        else     { b=segNormal(pts,i+1); w=1.5-t; }
+        var nx=a[0]*w+b[0]*(1-w), ny=a[1]*w+b[1]*(1-w), L=Math.hypot(nx,ny)||1;
+        return {p:[x, pts[i][1]+(pts[i+1][1]-pts[i][1])*t], n:[nx/L,ny/L]};
+      }
+    }
+    return {p:[x,pts[0][1]], n:[0,-1]};
+  }
+  // 빛이 실제로 닿아 위로 튕겨 나갈 수 있는 자리를 고른다
+  // (가파른 경사의 뒷면은 이웃 봉우리에 가려 그늘이 지므로 광선을 그리지 않는다)
+  // 그 자리에서 빛이 실제로 닿고(뒷면이 아니고) 위로 튕겨 나가는지 계산
+  function bounceAt(pts,x,d){
+    var h=surfaceAt(pts,x);
+    var dot=d[0]*h.n[0]+d[1]*h.n[1];
+    h.x=x; h.dot=dot;
+    h.dr=[d[0]-2*dot*h.n[0], d[1]-2*dot*h.n[1]];
+    h.ok=(dot<-0.12 && h.dr[1]<-0.12);
+    return h;
+  }
+  // 광선을 그릴 자리 고르기 — 가파른 경사의 뒷면(그늘)은 피하고, 광선끼리 너무 붙지 않게
+  var OFFSETS=[0,-5,5,-10,10,-15,15,-20,20,-26,26,-32,32];
+  function pickHit(pts,x0,d,minX){
+    var xmin=Math.max(pts[0][0]+6,minX||0), xmax=pts[pts.length-1][0]-6;
+    for(var k=0;k<OFFSETS.length;k++){
+      var x=x0+OFFSETS[k];
+      if(x<xmin||x>xmax) continue;
+      var h=bounceAt(pts,x,d);
+      if(h.ok) return h;
+    }
+    return null;                       // 온통 그늘이면 그 광선은 그리지 않는다
+  }
+  // 눈에 빛이 들어오는가 — 면 전체를 촘촘히 훑어 눈을 지나가는 반사 광선을 찾는다
+  function seesLight(pts,d,eye,xa,xb){
+    var best=null, bestPerp=17;
+    for(var i=0;i<=60;i++){
+      var h=bounceAt(pts, xa+(xb-xa)*i/60, d);
+      if(!h.ok) continue;
+      var vx=eye[0]-h.p[0], vy=eye[1]-h.p[1];
+      var t=vx*h.dr[0]+vy*h.dr[1];
+      if(t<=20) continue;                                   // 눈이 광선 진행 방향 앞에 있어야
+      var perp=Math.hypot(vx-t*h.dr[0], vy-t*h.dr[1]);
+      if(perp<bestPerp){ bestPerp=perp; best=h; }
+    }
+    return best;
+  }
+  function drawEye(x,y,bright){
+    ctx.save();
+    if(bright){
+      var g=ctx.createRadialGradient(x,y,4,x,y,30);
+      g.addColorStop(0,"rgba(240,165,0,.55)"); g.addColorStop(1,"rgba(240,165,0,0)");
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,30,0,7); ctx.fill();
+    }
+    ctx.strokeStyle=bright?"#8a5a00":"#8a8378"; ctx.lineWidth=2.4;
+    ctx.fillStyle=bright?"#fff8e6":"#f0eee9";
+    ctx.beginPath();
+    ctx.moveTo(x-21,y); ctx.quadraticCurveTo(x,y-16,x+21,y);
+    ctx.quadraticCurveTo(x,y+16,x-21,y); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle=bright?"#8a5a00":"#8a8378";
+    ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPanel(P,baseY,d,obsDeg){
+    var pts=buildSurface(P.x0,P.x1,baseY,P.rough,P.seed);
+    var cx=(P.x0+P.x1)/2, R=190;
+    var eye=[cx+Math.sin(rad(obsDeg))*R, baseY-Math.cos(rad(obsDeg))*R];
+    var wp=P.x1-P.x0;
+    var seen=seesLight(pts,d,eye,P.x0+wp*0.38,P.x0+wp*0.68);   // 빛이 실제로 닿은 구간만
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(P.x0-2,22,P.x1-P.x0+4,H-30); ctx.clip();
+
+    ctx.beginPath(); tracePath(pts);
+    ctx.lineTo(P.x1,H); ctx.lineTo(P.x0,H); ctx.closePath();
+    ctx.fillStyle=P.fill; ctx.fill();
+    ctx.strokeStyle="#5b7f9c"; ctx.lineWidth=3;
+    ctx.beginPath(); tracePath(pts); ctx.stroke();
+
+    var w=P.x1-P.x0, prevX=0;
+    // 손전등처럼 좁은 빛다발 — 다발이 넓으면 거울 쪽도 넓은 범위에서 보여 비교가 흐려진다
+    [0.40,0.465,0.53,0.595,0.66].forEach(function(f){
+      var hit=pickHit(pts,P.x0+w*f,d,prevX+12);
+      if(!hit) return;
+      var Q=hit.p, n=hit.n, dr=hit.dr;
+      prevX=hit.x;
+      var S=[Q[0]-d[0]*120, Q[1]-d[1]*120];
+      line(S,Q,"#e07b1f",2.6);
+      arrowHead([S[0]+d[0]*74,S[1]+d[1]*74],d,"#e07b1f",9);
+      line(Q,[Q[0]+dr[0]*140,Q[1]+dr[1]*140],P.color,2.6);
+      arrowHead([Q[0]+dr[0]*82,Q[1]+dr[1]*82],dr,P.color,9);
+      if(state.beam.normals) line(Q,[Q[0]+n[0]*34,Q[1]+n[1]*34],"#6b6257",1.8,[4,4]);
+    });
+
+    // 눈으로 들어가는 광선은 굵게 강조
+    if(seen){
+      var Sn=[seen.p[0]-d[0]*120, seen.p[1]-d[1]*120];
+      line(Sn,seen.p,"#f0a500",4.4);
+      line(seen.p,eye,"#f0a500",4.4);
+      arrowHead([seen.p[0]+(eye[0]-seen.p[0])*0.6, seen.p[1]+(eye[1]-seen.p[1])*0.6],
+                [eye[0]-seen.p[0],eye[1]-seen.p[1]],"#f0a500",11);
+    }
+    drawEye(eye[0],eye[1],!!seen);
+    ctx.restore();
+
+    textTag(P.title,cx,32,"#2b2b2b");
+    textTag(P.sub,cx,58,"#6b6257");
+    textTag(seen?"👁 밝게 보임":"👁 안 보임(어두움)", cx, H-74, seen?"#8a5a00":"#8a8378");
+    textTag(P.badge,cx,H-48,P.color);
+    textTag(P.note,cx,H-22,"#6b6257");
+    return !!seen;
+  }
+
+  var MATERIALS=[[0,"거울"],[18,"잔잔한 물"],[35,"유광 사진 용지"],[58,"매끄러운 코팅 종이"],
+                 [80,"일반 복사지"],[101,"벽지 · 나무 · 천"]];
+  function materialName(pct){
+    for(var i=0;i<MATERIALS.length;i++) if(pct<=MATERIALS[i][0]) return MATERIALS[i][1];
+    return MATERIALS[MATERIALS.length-1][1];
+  }
+
+  function drawRough(){
+    var baseY=292, th=state.beam.angle, rg=state.beam.rough, ob=state.beam.obs;
+    var d=[Math.sin(rad(th)),Math.cos(rad(th))];
+    var mat=materialName(rg);
+    line([370,24],[370,H-14],"#ddd2be",2,[6,6]);
+    var seenL=drawPanel({x0:16,x1:358,rough:0,seed:0,color:"#2f6fb5",fill:"#cfe3f2",
+               title:"매끄러운 면 (거울)",sub:"거울 · 잔잔한 물 · 금속",
+               badge:"정반사",note:"나란히 되돌아감 → 상이 비침"},baseY,d,ob);
+    var seenR=drawPanel({x0:382,x1:724,rough:rg,seed:7,color:"#8e44ad",fill:"#e5dccb",
+               title:"거친 면 ("+mat+")",sub:"종이 · 벽 · 칠판 · 옷",
+               badge:rg>0?"난반사":"정반사(면이 매끈해짐)",
+               note:rg>0?"사방으로 흩어짐 → 어디서나 보임":"거칠기를 올려 보세요"},baseY,d,ob);
+
+    setReadout([
+      {c:"#e07b1f",t:"양쪽 모두 입사각 "+th+"°로 나란한 빛을 쏘는 중"},
+      {c:"#2f6fb5",t:"왼쪽 거울 → "+(seenL?"지금 이 자리에서는 밝게 보임":"이 자리에서는 안 보임")},
+      {c:"#8e44ad",t:"오른쪽 "+mat+" → "+(seenR?"밝게 보임":"안 보임")},
+      {c:"#6b6257",t:"두 면 모두 부딪히는 자리마다 입사각 = 반사각. 법선 방향이 제각각일 뿐입니다"}
+    ]);
+  }
+
   /* ═══════════ 공통 ═══════════ */
   function isTeacher(){ return document.body.classList.contains("teacher"); }
   function setReadout(items){
@@ -486,7 +731,9 @@
   function draw(){
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle="#fbfaf6"; ctx.fillRect(0,0,W,H);
-    if(state.mode==="reflect") drawReflect(); else drawRefract();
+    if(state.mode==="reflect") drawReflect();
+    else if(state.mode==="rough") drawRough();
+    else drawRefract();
     if(isTeacher()){
       ctx.save(); ctx.font="600 13px "+FONT; ctx.fillStyle="#2f6fb5"; ctx.textAlign="right";
       ctx.fillText("[9과10-01]",W-12,H-10); ctx.restore();
@@ -495,12 +742,13 @@
     syncSlider();
   }
   function placeHandle(){
+    if(state.mode==="rough") return;
     var S=srcPos(), h=document.getElementById("dragHandle");
     h.style.left=(S[0]/W*100)+"%";
     h.style.top =(S[1]/H*100)+"%";
   }
   function syncSlider(){
-    var th=Math.round(geometry().theta);
+    var th=(state.mode==="rough") ? state.beam.angle : Math.round(geometry().theta);
     var sl=document.getElementById("angle");
     if(parseInt(sl.value,10)!==th) sl.value=th;
     document.getElementById("angleOut").textContent=th+"°";
@@ -564,6 +812,23 @@
   function newQuiz(){
     var fb=document.getElementById("quizFb"); fb.className="quiz-feedback"; fb.textContent="";
     var area=document.getElementById("quizInputArea"), qEl=document.getElementById("quizQ");
+    if(state.mode==="rough"){
+      var CASES=[
+        {t:"교실 어느 자리에 앉아도 칠판 글씨가 보인다.", a:"diffuse", why:"칠판 면이 거칠어 빛이 사방으로 흩어지기 때문입니다."},
+        {t:"거울 앞에 서면 내 얼굴이 그대로 비친다.", a:"specular", why:"매끄러운 면에서 빛이 나란히 되돌아와 상이 만들어집니다."},
+        {t:"잔잔한 호수에 달빛이 길게 늘어져 비친다.", a:"specular", why:"물이 잔잔해 수면이 매끄러운 거울처럼 작동합니다."},
+        {t:"흰 종이에 쓴 글씨를 옆자리 친구도 읽을 수 있다.", a:"diffuse", why:"종이 면이 거칠어 빛이 여러 방향으로 퍼져 나갑니다."},
+        {t:"비 온 뒤 젖은 도로에 가로등 불빛이 길게 번져 눈부시다.", a:"specular", why:"물이 도로의 오목한 곳을 메워 난반사하던 면이 정반사하는 면으로 바뀌었습니다."},
+        {t:"흰 벽은 어느 방향에서 보아도 고르게 밝다.", a:"diffuse", why:"벽 표면이 거칠어 빛이 골고루 흩어지기 때문입니다."}
+      ];
+      var C=CASES[Math.floor(Math.random()*CASES.length)];
+      quiz={type:"rough",ans:C.a,why:C.why};
+      qEl.textContent="“"+C.t+"” 이것은 무엇 때문일까요?";
+      area.innerHTML=
+        '<div class="checkline"><input type="radio" name="qz" id="qzS" value="specular"><label for="qzS">정반사 (매끄러운 면에서 나란히 반사)</label></div>'+
+        '<div class="checkline"><input type="radio" name="qz" id="qzD" value="diffuse"><label for="qzD">난반사 (거친 면에서 사방으로 흩어짐)</label></div>';
+      return;
+    }
     if(state.mode==="reflect"){
       var a=Math.floor(Math.random()*8)*10+10;
       quiz={type:"reflect",ans:a};
@@ -585,6 +850,15 @@
   function checkQuiz(){
     var fb=document.getElementById("quizFb");
     if(!quiz) return;
+    if(quiz.type==="rough"){
+      var pick=document.querySelector('input[name="qz"]:checked');
+      if(!pick){ fb.className="quiz-feedback no"; fb.innerHTML='<span class="mark">✖ 아직</span> 예상을 하나 골라 주세요.'; return; }
+      var name=(quiz.ans==="specular")?"정반사":"난반사";
+      fb.className=(pick.value===quiz.ans)?"quiz-feedback ok":"quiz-feedback no";
+      fb.innerHTML=(pick.value===quiz.ans?'<span class="mark">✔ 맞았어요</span> ':'<span class="mark">✖ 다시</span> ')+
+        "<b>"+name+"</b>입니다. "+quiz.why;
+      return;
+    }
     if(quiz.type==="reflect"){
       var v=parseFloat(document.getElementById("quizNum").value);
       if(isNaN(v)){ fb.className="quiz-feedback no"; fb.innerHTML='<span class="mark">✖ 아직</span> 예상한 각도를 먼저 적어 주세요.'; return; }
@@ -609,19 +883,57 @@
   }
 
   /* ═══════════ UI ═══════════ */
-  var tabs={reflect:document.getElementById("tab-reflect"),refract:document.getElementById("tab-refract")};
+  var tabs={reflect:document.getElementById("tab-reflect"),
+            rough:document.getElementById("tab-rough"),
+            refract:document.getElementById("tab-refract")};
   function setMode(m){
     state.mode=m;
     Object.keys(tabs).forEach(function(k){ tabs[k].setAttribute("aria-selected",k===m?"true":"false"); });
-    var show = (m==="refract") ? "" : "none";
-    document.getElementById("mediumCtl").style.display=show;
-    document.getElementById("partialCtl").style.display=show;
-    state.src[m]=clampSrc(state.src[m]);
+    var isRough=(m==="rough"), isRefract=(m==="refract");
+    document.body.classList.toggle("mode-rough", isRough);
+    document.getElementById("mediumCtl").style.display = isRefract?"":"none";
+    document.getElementById("partialCtl").style.display = isRefract?"":"none";
+    document.getElementById("roughCtl").style.display   = isRough?"":"none";
+    document.getElementById("obsCtl").style.display     = isRough?"":"none";
+    document.getElementById("normalsCtl").style.display = isRough?"":"none";
+    document.getElementById("panel-defs").style.display = isRough?"":"none";
+    document.getElementById("btnReset").style.display   = isRough?"none":"";
+    document.getElementById("dragHandle").style.display = isRough?"none":"";
+    document.getElementById("grabHint").style.display   = isRough?"none":"";
+    var sl=document.getElementById("angle");
+    sl.max = isRough ? 80 : 85;
+    document.getElementById("angleLabelText").textContent =
+      isRough ? "입사각" : "정확한 각도로 맞추기 — 입사각";
+    document.getElementById("angleHelp").textContent = isRough
+      ? "양쪽 면에 똑같은 입사각으로 나란한 빛 5가닥을 쏩니다. 각도를 바꿔도 두 면의 차이는 그대로예요."
+      : "법선(점선)과 입사 광선 사이의 각입니다. 레이저가 지금 있는 쪽은 그대로 두고 각도만 바뀝니다.";
+    if(!isRough) state.src[m]=clampSrc(state.src[m]);
     draw(); newQuiz();
   }
   Object.keys(tabs).forEach(function(k){ tabs[k].addEventListener("click",function(){ setMode(k); }); });
 
+  document.getElementById("rough").addEventListener("input",function(){
+    state.beam.rough=parseInt(this.value,10);
+    document.getElementById("roughOut").textContent=state.beam.rough+"% · "+materialName(state.beam.rough);
+    draw();
+  });
+  document.getElementById("obs").addEventListener("input",function(){
+    state.beam.obs=parseInt(this.value,10);
+    var v=state.beam.obs;
+    document.getElementById("obsOut").textContent =
+      (v===0) ? "법선 바로 위 0°" : ("법선에서 "+(v>0?"오른쪽 ":"왼쪽 ")+Math.abs(v)+"°");
+    draw();
+  });
+  document.getElementById("showNormals").addEventListener("change",function(){
+    state.beam.normals=this.checked; draw();
+  });
+
   document.getElementById("angle").addEventListener("input",function(){
+    if(state.mode==="rough"){
+      state.beam.angle=parseInt(this.value,10);
+      document.getElementById("angleOut").textContent=state.beam.angle+"°";
+      draw(); return;
+    }
     var th=parseInt(this.value,10), g=geometry(), O=g.O;
     var S=srcPos();
     var sideX=(S[0]<=O[0])?-1:1;
@@ -649,6 +961,11 @@
     document.body.classList.toggle("teacher",this.checked); draw();
   });
 
+  // 컨트롤 표시값 초기화
+  document.getElementById("rough").value=state.beam.rough;
+  document.getElementById("roughOut").textContent=state.beam.rough+"% · "+materialName(state.beam.rough);
+  document.getElementById("obs").value=state.beam.obs;
+  document.getElementById("obsOut").textContent="법선에서 오른쪽 "+state.beam.obs+"°";
   setMode("reflect");
 })();
 </script>
