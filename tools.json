@@ -1,6 +1,22 @@
 {
   "tools": [
     {
+    "id": "instrument-sound-wave",
+    "name": "악기 소리 파형 실험실",
+    "description": "여러 악기 소리를 진폭·진동수·파형으로 비교하는 가상실험",
+    "category": "physics",
+    "subcategory": "",
+    "path": "physics/instrument-sound-wave/",
+    "tags": ["소리", "파동", "진폭", "진동수", "파형", "맵시", "배음", "악기"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '빛과 파동' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "이어폰(선택)"],
+    "achievementStandard": ["9과10-04"]
+    },
+    {
     "id": "light-ray-lab",
     "name": "빛의 반사와 굴절 가상실험",
     "description": "레이저를 끌어 옮기며 반사·굴절·전반사를 살펴보는 광선 실험실",
