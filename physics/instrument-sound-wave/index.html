@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>악기 소리 파형 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --paper:#faf6ee;
+  --card:#fffdf8;
+  --ink:#2b2b2b;
+  --muted:#6b6357;
+  --border:#e3dbcb;
+  --border2:#cfc4ae;
+  --accent:#1b5fa8;        /* 물리 = 파랑, A 채널 */
+  --accent-soft:#e8f0f9;
+  --bcolor:#c2570f;        /* B 채널 = 주황 (색약 대비쌍) */
+  --bcolor-soft:#fbeee2;
+  --warn:#8a5a00;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,rgba(120,110,90,.07) 31px 32px);
+  color:var(--ink);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,system-ui,'Malgun Gothic',sans-serif;
+  font-size:16px;line-height:1.55;
+  padding:18px 16px 56px;
+}
+.wrap{max-width:1060px;margin:0 auto}
+h1{font-family:'Gowun Batang',serif;font-size:1.65rem;margin:0 0 3px;letter-spacing:-.5px}
+.sub{color:var(--muted);margin:0 0 12px;font-size:.93rem}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:13px 16px;margin-bottom:11px;
+}
+.safety{
+  background:#fdf6e6;border:1px solid #e8d9a8;color:var(--warn);
+  border-radius:10px;padding:6px 13px;margin-bottom:10px;font-size:.9rem;
+}
+
+/* ── 프리셋 ── */
+.presets{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.preset-btn{
+  font:inherit;font-size:.94rem;cursor:pointer;
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid #bcd3ea;border-radius:999px;padding:7px 14px;
+  transition:background .3s ease;
+}
+.preset-btn:hover{background:#dbe8f5}
+:focus-visible{outline:3px solid #f0a92a;outline-offset:2px}
+.hint{
+  margin-top:10px;padding:9px 13px;border-left:4px solid var(--accent);
+  background:#f4f8fc;border-radius:0 8px 8px 0;font-size:.93rem;color:#31404f;
+}
+
+/* ── 버튼 줄 ── */
+.topbar{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
+  margin-bottom:10px;
+}
+.topbar .sep{width:1px;height:26px;background:var(--border2);margin:0 4px}
+.pill{
+  font:inherit;font-size:.96rem;cursor:pointer;border-radius:999px;
+  padding:9px 16px;border:1px solid var(--border2);background:#fff;color:var(--ink);
+  transition:background .3s ease,color .3s ease;
+}
+.pill:hover{background:#f4efe4}
+.pill.a{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill.a:hover{background:#17518f}
+.pill.b{background:var(--bcolor);border-color:var(--bcolor);color:#fff}
+.pill.b:hover{background:#a54a0c}
+.pill.both{background:#3f3a32;border-color:#3f3a32;color:#fff}
+.pill.both:hover{background:#575047}
+
+.vtoggle{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  border:1px solid var(--border2);border-radius:999px;padding:7px 13px;
+  font-size:.93rem;font-weight:600;background:#fff;
+  transition:background .3s ease,opacity .3s ease;
+}
+.vtoggle input{width:17px;height:17px;margin:0}
+.vtoggle .swatch{display:inline-block;width:22px;height:0;border-radius:2px}
+.vtoggle.va{color:var(--accent);border-color:#bcd3ea;background:var(--accent-soft)}
+.vtoggle.va input{accent-color:var(--accent)}
+.vtoggle.va .swatch{border-top:4px solid var(--accent)}
+.vtoggle.vb{color:var(--bcolor);border-color:#eecdb0;background:var(--bcolor-soft)}
+.vtoggle.vb input{accent-color:var(--bcolor)}
+.vtoggle.vb .swatch{border-top:2.5px solid var(--bcolor)}
+.vtoggle.off{opacity:.45}
+
+canvas{display:block;width:100%;background:#fffefb;border:1px solid var(--border);border-radius:10px}
+
+/* ── 가로 조작 줄 (그래프와 한 화면에) ── */
+.ctrlgrid{
+  display:grid;grid-template-columns:auto minmax(120px,1.5fr) minmax(104px,1fr) auto;
+  gap:6px 12px;align-items:end;margin-top:12px;
+}
+.ctrlgrid .chip{
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  font-weight:700;font-size:.93rem;padding:6px 12px;border-radius:999px;margin-bottom:2px;
+}
+.chip.ca{background:var(--accent-soft);color:var(--accent)}
+.chip.cb{background:var(--bcolor-soft);color:var(--bcolor)}
+.chip .swatch{display:inline-block;width:22px;height:0;border-top:4px solid currentColor;border-radius:2px}
+.chip.cb .swatch{border-top-width:2.5px}
+.field{min-width:0}
+.flabel{display:block;font-size:.82rem;color:var(--muted);font-weight:600;margin:0 0 3px}
+.rowB .flabel{display:none}          /* 라벨은 위쪽 A 줄에만 (데스크톱) */
+select{
+  width:100%;padding:8px 9px;border:1px solid var(--border2);border-radius:9px;
+  background:#fff;color:var(--ink);font:inherit;font-size:.97rem;
+}
+select.lev{min-width:86px}
+.ctrlgrid .rowA select{border-color:#bcd3ea}
+.ctrlgrid .rowB select{border-color:#eecdb0}
+
+@media (max-width:680px){
+  .ctrlgrid{grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:10px}
+  .ctrlgrid .chip{grid-column:1/-1;margin-top:6px}
+  .f-inst{grid-column:1/-1}
+  .rowB .flabel{display:block}
+}
+
+/* ── 비교표 ── */
+table.readout{width:100%;border-collapse:collapse;font-size:.94rem}
+table.readout th,table.readout td{border:1px solid var(--border);padding:7px 10px;text-align:center}
+table.readout thead th.ha{background:var(--accent-soft);color:var(--accent)}
+table.readout thead th.hb{background:var(--bcolor-soft);color:var(--bcolor)}
+table.readout tbody th{background:#f6f1e6;color:var(--muted);font-weight:600;text-align:left;width:42%}
+table.readout td{font-variant-numeric:tabular-nums;font-weight:600}
+table.readout td.dim{color:#b3aa99;font-weight:400}
+
+details.speccard summary{cursor:pointer;font-size:.96rem;color:var(--accent);font-weight:700;padding:2px 0}
+.spechelp{font-size:.89rem;color:var(--muted);margin:8px 0 0}
+.spechelp b{color:var(--ink)}
+
+.teacher{margin-top:12px;border:1px dashed var(--border2);border-radius:12px;padding:11px 14px;background:#f8f5ec;font-size:.93rem}
+.teacher h3{margin:0 0 6px;font-size:1rem;font-family:'Gowun Batang',serif}
+.teacher code{background:#eee7d6;padding:1px 6px;border-radius:5px;font-size:.9rem}
+.teacher ul{margin:8px 0 0;padding-left:20px}
+.teacher li{margin-bottom:4px}
+.switchrow{display:flex;align-items:center;gap:9px;justify-content:flex-end;font-size:.92rem;color:var(--muted)}
+.switchrow input{width:20px;height:20px;accent-color:var(--accent)}
+.footnote{font-size:.84rem;color:var(--muted);margin-top:18px;text-align:center}
+
+@media (max-width:760px){
+  body{padding:14px 11px 44px}
+  h1{font-size:1.4rem}
+  .pill{padding:10px 14px;font-size:.93rem}
+  .topbar .sep{display:none}
+}
+@media print{
+  body{background:#fff;background-image:none;padding:0;font-size:12pt}
+  .no-print,.topbar,.ctrlgrid{display:none !important}
+  .card{border:1px solid #999;break-inside:avoid;page-break-inside:avoid;margin-bottom:10px}
+  canvas{border:1px solid #999}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>악기 소리 파형 실험실</h1>
+  <p class="sub">칼림바·리코더·오카리나·플루트·바이올린·피아노의 소리를 <strong>진폭·진동수·파형</strong>으로 비교해 봅시다.</p>
+
+  <div class="safety no-print">🔊 <strong>귀 보호</strong> — 이어폰을 쓴다면 볼륨을 먼저 낮춘 뒤 재생하세요.</div>
+
+  <div class="card no-print">
+    <div class="presets">
+      <span style="font-weight:700;font-size:.94rem;margin-right:2px">탐구 준비:</span>
+      <button class="preset-btn" type="button" data-preset="0">① 세게 튕길 때 vs 약하게 튕길 때</button>
+      <button class="preset-btn" type="button" data-preset="1">② 긴 막대 vs 짧은 막대</button>
+      <button class="preset-btn" type="button" data-preset="2">③ 다른 악기, 같은 높이</button>
+    </div>
+    <p class="hint" id="hint">버튼을 누르면 A와 B가 그 조건으로 자동 설정됩니다. 아래에서 직접 바꿔 볼 수도 있어요.</p>
+  </div>
+
+  <div class="card">
+    <div class="topbar no-print">
+      <button class="pill a" type="button" id="playA">▶ A 듣기</button>
+      <button class="pill b" type="button" id="playB">▶ B 듣기</button>
+      <button class="pill both" type="button" id="playAB">▶ A·B 이어서</button>
+      <button class="pill" type="button" id="stopAll">■ 멈춤</button>
+      <span class="sep"></span>
+      <label class="vtoggle va" id="lblShowA"><input type="checkbox" id="showA" checked><span class="swatch"></span>A 파형</label>
+      <label class="vtoggle vb" id="lblShowB"><input type="checkbox" id="showB" checked><span class="swatch"></span>B 파형</label>
+      <span class="sep"></span>
+      <button class="pill" type="button" id="capture">📷 그림 저장</button>
+    </div>
+
+    <canvas id="wave" aria-label="A와 B 소리의 시간에 따른 파형을 겹쳐 그린 그래프"></canvas>
+
+    <div class="ctrlgrid">
+      <span class="chip ca rowA"><span class="swatch"></span>A 소리</span>
+      <div class="field f-inst rowA"><label class="flabel" for="instA">악기</label><select id="instA"></select></div>
+      <div class="field rowA"><label class="flabel" for="noteA">소리의 높이 (계이름)</label><select id="noteA"></select></div>
+      <div class="field rowA"><label class="flabel" for="levA">소리의 세기</label><select id="levA" class="lev"></select></div>
+
+      <span class="chip cb rowB"><span class="swatch"></span>B 소리</span>
+      <div class="field f-inst rowB"><label class="flabel" for="instB">악기</label><select id="instB"></select></div>
+      <div class="field rowB"><label class="flabel" for="noteB">소리의 높이 (계이름)</label><select id="noteB"></select></div>
+      <div class="field rowB"><label class="flabel" for="levB">소리의 세기</label><select id="levB" class="lev"></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="readout">
+      <thead>
+        <tr><th style="background:#f6f1e6"></th><th class="ha" id="thA">A</th><th class="hb" id="thB">B</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>진동수 (1초 동안의 진동 수)</th><td id="rfA"></td><td id="rfB"></td></tr>
+        <tr><th>주기 (파동 하나에 걸리는 시간)</th><td id="rtA"></td><td id="rtB"></td></tr>
+        <tr><th>진폭 (파동의 높이)</th><td id="raA"></td><td id="raB"></td></tr>
+        <tr><th>화면(20 ms) 안의 파동 수</th><td id="rnA"></td><td id="rnB"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <details class="card speccard no-print">
+    <summary>배음 막대 보기 (맵시의 비밀)</summary>
+    <canvas id="spec" style="margin-top:10px" aria-label="A와 B 소리의 배음 세기를 나란히 비교한 막대그래프"></canvas>
+    <p class="spechelp" id="specHelp"></p>
+  </details>
+
+  <div class="card no-print">
+    <div class="switchrow">
+      <label for="teacherMode" style="margin:0">교사용 정보 보기</label>
+      <input type="checkbox" id="teacherMode">
+    </div>
+    <div class="teacher" id="teacherBox" hidden>
+      <h3>교사용 정보</h3>
+      <p style="margin:0">성취기준 <code>[9과10-04]</code> 파동의 발생과 전달 과정을 이해하고, 소리의 특성을 진폭, 진동수, 파형 등의 과학적 용어로 표현할 수 있다.<br>
+      탐구 활동 — 디지털 탐구 도구를 이용하여 소리의 진폭, 진동수, 파형 탐구하기</p>
+      <ul>
+        <li><strong>하 수준</strong> — 프리셋 ①②만 쓰고, B 파형을 껐다 켰다 하며 "무엇이 달라졌는지" 한 가지만 찾게 합니다.</li>
+        <li><strong>중 수준</strong> — 비교표의 진동수·주기를 읽고 "진동수가 2배면 같은 시간에 파동도 2배"임을 확인하게 합니다.</li>
+        <li><strong>상 수준</strong> — 프리셋 ③ + 배음 막대를 열어 맵시가 다른 까닭을 배음 구성으로 설명하게 합니다.</li>
+        <li>가로축(시간)은 <strong>항상 0~20 ms로 고정</strong>이라 두 파형을 그대로 겹쳐 비교할 수 있습니다.</li>
+        <li>A는 굵은 선, B는 가는 선이며 곡선 위에 A·B 글자표가 붙습니다(색만으로 구분하지 않음).</li>
+        <li><strong>모형의 한계</strong> — 소리는 녹음이 아니라 배음을 합성한 모형입니다. <em>맞는 것</em>: 음높이(진동수), 진폭과 소리 크기의 관계, 악기 계열별 배음 많고 적음의 경향. <em>없는 것</em>: 시간에 따른 음색 변화(실제는 소리를 내는 순간 배음이 훨씬 많다가 곧 줄어듦), 숨소리·활 마찰음 같은 잡음, 피아노·칼림바의 정수배가 아닌 배음, 악기 몸통의 울림. 그래서 "그 악기 같다"기보다 "그 악기 계열의 밝기" 수준입니다. 화면의 파형과 들리는 소리를 정확히 일치시키기 위해 일부러 단순화했습니다.</li>
+        <li>실물 악기 + 스마트기기 소리 분석 앱과 <strong>함께</strong> 쓰면 좋습니다. 이 도구로 원리를 정리하고, 실물로 "실제는 이렇게 지저분하다"를 확인시키는 순서를 권합니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="footnote">가상실험 도구 · 소리는 배음 합성으로 만든 모형입니다 · 2022 개정 교육과정 [9과10-04]</p>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ────────── 악기 데이터 (배음 구성 = 맵시의 정체) ────────── */
+var INSTRUMENTS = {
+  fork:     {name:'소리굽쇠 (순음)', h:[1],                                              env:'ring',  note:'배음이 없는 가장 단순한 파형'},
+  kalimba:  {name:'칼림바',          h:[1,0.28,0.11,0.05,0.02],                          env:'pluck', note:'금속 막대를 튕겨 내는 맑고 짧은 소리'},
+  recorder: {name:'리코더',          h:[1,0.16,0.09,0.04,0.02],                          env:'wind',  note:'배음이 적어 순음에 가까운 소리'},
+  ocarina:  {name:'오카리나',        h:[1,0.07,0.03],                                    env:'wind',  note:'거의 순음에 가까운 둥근 소리'},
+  flute:    {name:'플루트',          h:[1,0.24,0.08,0.04,0.02,0.01],                     env:'wind',  note:'2배 배음이 살짝 섞인 맑은 소리'},
+  violin:   {name:'바이올린',        h:[1,0.78,0.52,0.46,0.31,0.26,0.19,0.13,0.09,0.06], env:'bow',   note:'배음이 많아 톱니 모양에 가까운 소리'},
+  piano:    {name:'피아노',          h:[1,0.62,0.36,0.28,0.16,0.10,0.07,0.05,0.03,0.02], env:'pluck', note:'배음이 풍부하고 점점 작아지는 소리'}
+};
+var ORDER = ['fork','kalimba','recorder','ocarina','flute','violin','piano'];
+
+/* 계이름만 표시 (옥타브는 낮은/가운데/높은 으로 구분) */
+var NOTES = [
+  {n:'낮은 도',   f:261.63}, {n:'낮은 레', f:293.66}, {n:'낮은 미', f:329.63},
+  {n:'낮은 파',   f:349.23}, {n:'낮은 솔', f:392.00}, {n:'낮은 라', f:440.00},
+  {n:'낮은 시',   f:493.88}, {n:'가운데 도', f:523.25}, {n:'레',     f:587.33},
+  {n:'미',        f:659.26}, {n:'파',      f:698.46}, {n:'솔',      f:783.99},
+  {n:'라',        f:880.00}, {n:'시',      f:987.77}, {n:'높은 도', f:1046.50}
+];
+
+/* 세기: 1~10 숫자 선택 (양 끝에만 말로 힌트) */
+var LEVELS = [];
+for(var L1=1; L1<=10; L1++){
+  LEVELS.push({v:L1, label: L1===1 ? '1 (가장 약하게)' : (L1===10 ? '10 (가장 세게)' : String(L1))});
+}
+
+var WINDOW_MS = 20;                 /* A·B 공통 고정 시간창 */
+var COL = {A:'#1b5fa8', B:'#c2570f'};
+var LW  = {A:3.2,       B:2.0};     /* 색 말고 선 굵기로도 구분 */
+var WAVE_H = 393, SPEC_H = 185;     /* 그래프 높이 (이전의 1.5배) */
+var SWEEP_MS = 1500;                /* 파형이 왼쪽에서 오른쪽으로 그려지는 시간 */
+
+/* show: 화면에 보일지 / prog: 왼쪽부터 그려진 정도(0=아직 없음, 1=끝까지) */
+var state = {
+  A:{inst:'kalimba', noteIdx:7, level:9, show:false, prog:0},
+  B:{inst:'kalimba', noteIdx:7, level:3, show:false, prog:0}
+};
+var anim = {A:{start:0, running:false}, B:{start:0, running:false}}, ticking = false;
+var reduceMotion = false;
+try{ reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+/* ────────── 파형 계산 ────────── */
+function peakOf(h){
+  var peak = 0, N = 1200;
+  for(var i=0;i<N;i++){
+    var p = i/N, s = 0;
+    for(var k=0;k<h.length;k++) s += h[k]*Math.sin(2*Math.PI*(k+1)*p);
+    if(Math.abs(s) > peak) peak = Math.abs(s);
+  }
+  return peak || 1;
+}
+var PEAKS = {};
+ORDER.forEach(function(k){ PEAKS[k] = peakOf(INSTRUMENTS[k].h); });
+
+function sample(cfg, t){          /* t: 초 */
+  var h = INSTRUMENTS[cfg.inst].h, f = NOTES[cfg.noteIdx].f, s = 0;
+  for(var k=0;k<h.length;k++) s += h[k]*Math.sin(2*Math.PI*f*(k+1)*t);
+  return (cfg.level/10) * s / PEAKS[cfg.inst];
+}
+
+/* ────────── 조작 메뉴 채우기 ────────── */
+['A','B'].forEach(function(ch){
+  var si = document.getElementById('inst'+ch);
+  ORDER.forEach(function(k){
+    var o = document.createElement('option'); o.value = k; o.textContent = INSTRUMENTS[k].name; si.appendChild(o);
+  });
+  var sn = document.getElementById('note'+ch);
+  NOTES.forEach(function(nt,i){
+    var o = document.createElement('option'); o.value = i; o.textContent = nt.n; sn.appendChild(o);
+  });
+  var sv = document.getElementById('lev'+ch);
+  LEVELS.forEach(function(lv){
+    var o = document.createElement('option'); o.value = lv.v; o.textContent = lv.label; sv.appendChild(o);
+  });
+  si.addEventListener('change', function(){ state[ch].inst = si.value; render(); });
+  sn.addEventListener('change', function(){ state[ch].noteIdx = +sn.value; render(); });
+  sv.addEventListener('change', function(){ state[ch].level = +sv.value; render(); });
+  /* 체크를 직접 켜면 소리 없이 파형 전체를 바로 보여 준다 (조용한 교실용) */
+  var sw = document.getElementById('show'+ch);
+  sw.addEventListener('change', function(){
+    state[ch].show = sw.checked;
+    if(sw.checked){ anim[ch].running = false; state[ch].prog = 1; }
+    render();
+  });
+});
+
+/* ────────── 캔버스 준비 ────────── */
+function prep(cv, h){
+  var dpr = window.devicePixelRatio || 1;
+  var w = cv.clientWidth || 400;
+  var tw = Math.round(w*dpr), th = Math.round(h*dpr);
+  if(cv.width !== tw || cv.height !== th){      /* 크기가 그대로면 다시 잡지 않는다 (애니메이션 중 낭비 방지) */
+    cv.style.height = h + 'px'; cv.width = tw; cv.height = th;
+  }
+  var g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,w,h);
+  return {g:g, w:w, h:h};
+}
+
+/* 파형 y좌표를 미리 계산해 두었다가 애니메이션 중에는 앞부분만 그린다 */
+var wcache = {A:null, B:null};
+function waveArray(ch, pw, cy, half){
+  var cfg = state[ch];
+  var key = [cfg.inst, cfg.noteIdx, cfg.level, pw, Math.round(cy), Math.round(half)].join('|');
+  if(wcache[ch] && wcache[ch].key === key) return wcache[ch].arr;
+  var arr = new Float32Array(pw+1);
+  for(var i=0;i<=pw;i++) arr[i] = cy - sample(cfg, (i/pw)*(WINDOW_MS/1000))*half;
+  wcache[ch] = {key:key, arr:arr};
+  return arr;
+}
+
+/* 곡선 위에 붙이는 A·B 글자표 (색 이외의 두 번째 구분 단서) */
+function tagOnCurve(g, ch, x, y, col){
+  g.beginPath(); g.arc(x, y, 11, 0, Math.PI*2);
+  g.fillStyle = '#fffefb'; g.fill();
+  g.lineWidth = 2; g.strokeStyle = col; g.stroke();
+  g.fillStyle = col; g.font = 'bold 14px Pretendard, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(ch, x, y+0.5);
+  g.textBaseline = 'alphabetic';
+}
+
+/* ────────── 파형 그리기 (A·B 겹쳐서) ────────── */
+function drawWave(){
+  var cv = document.getElementById('wave'), p = prep(cv, WAVE_H);
+  var g = p.g, W = p.w, H = p.h;
+  var L = 50, R = 20, B = 34;
+  var pw = W-L-R;
+
+  g.font = 'bold 13px Pretendard, sans-serif';
+  var titles = ['A','B'].filter(function(ch){ return state[ch].show && state[ch].prog > 0; }).map(function(ch){
+    return {ch:ch, txt: ch + ' ' + INSTRUMENTS[state[ch].inst].name + ' · ' + NOTES[state[ch].noteIdx].n};
+  });
+  var totalW = titles.reduce(function(s,t){ return s + g.measureText(t.txt).width + 22; }, 0);
+  var twoLines = titles.length === 2 && totalW > pw;
+  var T = twoLines ? 48 : 30;
+  var ph = H-T-B, cy = T + ph/2, half = ph/2 - 10;
+  var showAmpText = pw >= 420;      /* 좁은 화면에서는 그래프 위 진폭 숫자 생략 (표에 있음) */
+
+  g.fillStyle = '#fffefb'; g.fillRect(0,0,W,H);
+
+  g.strokeStyle = '#eee6d6'; g.lineWidth = 1;
+  [-1,-0.5,0.5,1].forEach(function(v){
+    g.beginPath(); g.moveTo(L, cy - v*half); g.lineTo(L+pw, cy - v*half); g.stroke();
+  });
+  g.fillStyle = '#8d8474'; g.font = '12px Pretendard, sans-serif'; g.textAlign = 'center';
+  for(var ms=0; ms<=WINDOW_MS; ms+=5){
+    var x = L + pw*ms/WINDOW_MS;
+    g.strokeStyle = '#eee6d6'; g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke();
+    g.fillText(ms, x, H-16);
+  }
+  g.strokeStyle = '#b9ae98'; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(L,cy); g.lineTo(L+pw,cy); g.stroke();
+
+  g.fillStyle = '#6b6357'; g.textAlign='center';
+  g.fillText('시간 (ms)', L+pw/2, H-3);
+  g.save(); g.translate(15, cy); g.rotate(-Math.PI/2); g.textAlign='center';
+  g.fillText('진동의 크기', 0, 0); g.restore();
+
+  var shown = titles.map(function(t){ return t.ch; });
+
+  if(!shown.length){
+    g.fillStyle = '#a79c88'; g.textAlign='center';
+    g.font = '16px Pretendard, sans-serif';
+    g.fillText('▶ 듣기 버튼을 누르면 소리가 나면서 파형이 왼쪽부터 그려집니다.', L+pw/2, cy-6);
+    g.font = '13px Pretendard, sans-serif';
+    g.fillText('소리 없이 보려면 위의 ‘A 파형 · B 파형’ 체크를 켜세요.', L+pw/2, cy+18);
+    return;
+  }
+
+  /* 진폭 안내선 — 그려진 만큼만 따라온다 */
+  shown.forEach(function(ch){
+    var amp = state[ch].level/10, yTop = cy - amp*half, tip = L + pw*state[ch].prog;
+    g.strokeStyle = COL[ch]; g.lineWidth = 1; g.setLineDash([4,4]);
+    g.beginPath(); g.moveTo(L, yTop); g.lineTo(tip, yTop); g.stroke();
+    g.setLineDash([]);
+    if(!showAmpText || state[ch].prog < 0.34) return;
+    g.fillStyle = COL[ch]; g.font = 'bold 12px Pretendard, sans-serif';
+    if(ch === 'A'){ g.textAlign='left';  g.fillText('A 진폭 '+amp.toFixed(2), L+5, yTop-5); }
+    else if(state[ch].prog > 0.99){ g.textAlign='right'; g.fillText('B 진폭 '+amp.toFixed(2), L+pw-14, yTop-5); }
+  });
+
+  /* 파형 — 둘 다 실선, 굵기로 구분. B를 먼저 그려 A가 위로 오게 */
+  shown.slice().reverse().forEach(function(ch){
+    var arr = waveArray(ch, pw, cy, half), last = Math.round(pw*state[ch].prog);
+    g.strokeStyle = COL[ch]; g.lineWidth = LW[ch]; g.lineJoin='round'; g.lineCap='round';
+    g.beginPath();
+    for(var i=0;i<=last;i++){ if(i===0) g.moveTo(L,arr[0]); else g.lineTo(L+i,arr[i]); }
+    g.stroke();
+    if(state[ch].prog < 1){          /* 그려지는 끝점에 작은 점 */
+      g.fillStyle = COL[ch];
+      g.beginPath(); g.arc(L+last, arr[last], LW[ch]*1.3, 0, Math.PI*2); g.fill();
+    }
+  });
+
+  /* 곡선 위 글자표 — A는 앞쪽, B는 뒤쪽 마루에. 선이 그 지점을 지난 뒤에 나타난다 */
+  shown.forEach(function(ch){
+    var arr = waveArray(ch, pw, cy, half), last = Math.round(pw*state[ch].prog);
+    var from = Math.round(((ch==='A') ? 0.20 : 0.55)*pw), to = Math.round(((ch==='A') ? 0.42 : 0.78)*pw);
+    if(last < to) return;
+    var bestX = from, bestY = arr[from];
+    for(var i=from; i<=to; i++){ if(arr[i] < bestY){ bestY = arr[i]; bestX = i; } }
+    tagOnCurve(g, ch, L+bestX, Math.max(T+13, bestY - 17), COL[ch]);
+  });
+
+  /* 제목 줄 (좁으면 두 줄) */
+  g.textAlign='left'; g.font='bold 13px Pretendard, sans-serif';
+  var tx = L;
+  titles.forEach(function(t, i){
+    g.fillStyle = COL[t.ch];
+    if(twoLines){ g.fillText(t.txt, L, 19 + i*18); }
+    else { g.fillText(t.txt, tx, 19); tx += g.measureText(t.txt).width + 22; }
+  });
+}
+
+/* ────────── 배음 막대 (A·B 나란히) ────────── */
+function hatchRect(g,x,y,w,h,col){
+  g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip();
+  g.fillStyle = col+'26'; g.fillRect(x,y,w,h);
+  g.strokeStyle = col; g.lineWidth = 1.6;
+  for(var d=-h; d<w+h; d+=6){
+    g.beginPath(); g.moveTo(x+d, y+h); g.lineTo(x+d+h, y); g.stroke();
+  }
+  g.restore();
+  g.strokeStyle = col; g.lineWidth = 1.6; g.strokeRect(x,y,w,h);
+}
+function drawSpec(){
+  var cv = document.getElementById('spec');
+  if(!cv.clientWidth) return;
+  var p = prep(cv, SPEC_H), g = p.g, W = p.w, H = p.h;
+  var L=40,R=12,T=26,B=42, pw=W-L-R, ph=H-T-B;
+  var shown = ['A','B'].filter(function(ch){ return state[ch].show; });
+
+  g.fillStyle='#fffefb'; g.fillRect(0,0,W,H);
+  g.strokeStyle='#b9ae98'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(L,T+ph); g.lineTo(L+pw,T+ph); g.stroke();
+  g.save(); g.translate(13,T+ph/2); g.rotate(-Math.PI/2);
+  g.textAlign='center'; g.fillStyle='#6b6357'; g.font='12px Pretendard, sans-serif';
+  g.fillText('세기',0,0); g.restore();
+
+  if(!shown.length){
+    document.getElementById('specHelp').textContent =
+      '먼저 ▶ 듣기 버튼으로 파형을 그리면, 그 소리에 섞여 있는 배음이 여기에 막대로 나타납니다.';
+    return;
+  }
+
+  var maxN = 0;
+  shown.forEach(function(ch){ maxN = Math.max(maxN, INSTRUMENTS[state[ch].inst].h.length); });
+  var step = pw/maxN, gw = Math.min(46, step*0.62), bw = shown.length===2 ? gw/2-2 : gw;
+  var showHz = step >= 56, every = step < 26 ? 2 : 1;
+  var f0 = NOTES[state[shown[0]].noteIdx].f;
+
+  g.font='11px Pretendard, sans-serif'; g.textAlign='center';
+  for(var k=0;k<maxN;k++){
+    var xc = L + pw*(k+0.5)/maxN;
+    shown.forEach(function(ch, j){
+      var h = INSTRUMENTS[state[ch].inst].h;
+      if(k >= h.length) return;
+      var bh = ph * (h[k]*state[ch].level/10);
+      var x = shown.length===2 ? (xc - gw/2 + j*(bw+4)) : (xc - bw/2);
+      if(ch === 'A'){ g.fillStyle = COL.A; g.fillRect(x, T+ph-bh, bw, bh); }
+      else hatchRect(g, x, T+ph-bh, bw, bh, COL.B);
+    });
+    if(k % every === 0){
+      g.fillStyle='#6b6357';
+      g.fillText((k===0?'기본':(k+1)+'배'), xc, T+ph+15);
+      if(showHz) g.fillText(Math.round(f0*(k+1))+'Hz', xc, T+ph+28);
+    }
+  }
+  g.textAlign='left'; g.font='bold 12px Pretendard, sans-serif';
+  var lx = L;
+  shown.forEach(function(ch){
+    if(ch==='A'){ g.fillStyle=COL.A; g.fillRect(lx, 8, 16, 11); }
+    else hatchRect(g, lx, 8, 16, 11, COL.B);
+    g.fillStyle = COL[ch]; g.fillText(ch, lx+21, 18);
+    lx += 40;
+  });
+
+  var msg = shown.map(function(ch){
+    var I = INSTRUMENTS[state[ch].inst];
+    return '<b>'+ch+' '+I.name+'</b> — '+I.note+' (배음 '+I.h.length+'개)';
+  }).join(' &nbsp;/&nbsp; ');
+  document.getElementById('specHelp').innerHTML =
+    msg + '<br>배음 구성이 다르면 <b>높이와 세기가 같아도 파형 모양이 달라집니다 = 맵시.</b>';
+}
+
+/* ────────── 화면 갱신 ────────── */
+function syncToggles(){          /* 애니메이션 중 매 프레임 호출되는 가벼운 갱신 */
+  ['A','B'].forEach(function(ch){
+    var on = state[ch].show;
+    document.getElementById('show'+ch).checked = on;
+    document.getElementById('lblShow'+ch).classList.toggle('off', !on);
+    ['rf','rt','ra','rn'].forEach(function(id){
+      document.getElementById(id+ch).classList.toggle('dim', !on);
+    });
+  });
+}
+function render(){
+  ['A','B'].forEach(function(ch){
+    var cfg = state[ch], f = NOTES[cfg.noteIdx].f, T = 1000/f;
+    document.getElementById('inst'+ch).value = cfg.inst;
+    document.getElementById('note'+ch).value = cfg.noteIdx;
+    document.getElementById('lev'+ch).value = cfg.level;
+    document.getElementById('th'+ch).textContent = ch + ' · ' + INSTRUMENTS[cfg.inst].name;
+    var cells = ['rf','rt','ra','rn'], vals = [
+      f.toFixed(1) + ' Hz', T.toFixed(2) + ' ms',
+      (cfg.level/10).toFixed(2), (WINDOW_MS/T).toFixed(1) + ' 개'
+    ];
+    cells.forEach(function(id,i){ document.getElementById(id+ch).textContent = vals[i]; });
+  });
+  syncToggles();
+  drawWave(); drawSpec();
+}
+
+/* ────────── 프리셋 ────────── */
+var PRESETS = [
+  { A:{inst:'kalimba', noteIdx:7, level:9}, B:{inst:'kalimba', noteIdx:7, level:3},
+    msg:'같은 칼림바 막대를 <b>세게</b>(A) / <b>약하게</b>(B) 튕겼습니다. 두 파형의 <b>높이(진폭)</b>만 다르고 마루의 개수는 똑같지요? → 진폭이 크면 큰 소리.' },
+  { A:{inst:'kalimba', noteIdx:0, level:7}, B:{inst:'kalimba', noteIdx:7, level:7},
+    msg:'<b>긴 막대</b>(A, 낮은 소리) / <b>짧은 막대</b>(B, 높은 소리)를 같은 세기로 튕겼습니다. 같은 20 ms 안에 B의 파동이 두 배로 촘촘하지요? → 진동수가 크면 높은 소리.' },
+  { A:{inst:'recorder', noteIdx:7, level:7}, B:{inst:'violin', noteIdx:7, level:7},
+    msg:'<b>리코더</b>(A)와 <b>바이올린</b>(B)으로 같은 높이·같은 세기의 음을 냈습니다. 높이도 크기도 같은데 <b>모양</b>이 다르지요? → 이 차이가 <b>맵시</b>입니다. 배음 막대를 열어 까닭을 확인해 보세요.' }
+];
+Array.prototype.forEach.call(document.querySelectorAll('.preset-btn'), function(btn){
+  btn.addEventListener('click', function(){
+    var p = PRESETS[+btn.dataset.preset];
+    stopAll();
+    state.A = {inst:p.A.inst, noteIdx:p.A.noteIdx, level:p.A.level, show:false, prog:0};
+    state.B = {inst:p.B.inst, noteIdx:p.B.noteIdx, level:p.B.level, show:false, prog:0};
+    anim.A.running = false; anim.B.running = false;
+    document.getElementById('hint').innerHTML =
+      p.msg + ' <span style="color:#6b6357">— <b>▶ A·B 이어서</b>를 눌러 두 파형을 차례로 그려 보세요.</span>';
+    render();
+  });
+});
+
+/* ────────── 소리 재생 ────────── */
+var actx = null, live = [];
+function ctx(){
+  if(!actx){ var C = window.AudioContext || window.webkitAudioContext; if(!C) return null; actx = new C(); }
+  if(actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function stopAll(){
+  live.forEach(function(o){ try{ o.stop(); }catch(e){} }); live = [];
+  ['A','B'].forEach(function(ch){          /* 멈추면 그리던 파형은 끝까지 채워 둔다 */
+    if(anim[ch].running){ anim[ch].running = false; if(state[ch].show) state[ch].prog = 1; }
+  });
+  render();
+}
+
+/* ── 파형이 왼쪽에서 오른쪽으로 그려지는 애니메이션 ── */
+function startSweep(ch, delayMs){
+  if(reduceMotion){                       /* 움직임 최소화 설정이면 곧바로 전체 표시 */
+    anim[ch].running = false; state[ch].show = true; state[ch].prog = 1; render(); return;
+  }
+  anim[ch] = {start: (window.performance ? performance.now() : Date.now()) + delayMs, running: true};
+  if(delayMs <= 0){ state[ch].show = true; state[ch].prog = 0.0001; }
+  render();
+  if(!ticking){ ticking = true; requestAnimationFrame(tick); }
+}
+function tick(now){
+  var again = false;
+  ['A','B'].forEach(function(ch){
+    var a = anim[ch]; if(!a.running) return;
+    if(now < a.start){ again = true; return; }   /* 아직 차례가 아님 */
+    state[ch].show = true;
+    var p = (now - a.start) / SWEEP_MS;
+    if(p >= 1){ p = 1; a.running = false; } else again = true;
+    state[ch].prog = Math.max(p, 0.0001);
+  });
+  drawWave(); syncToggles();
+  ticking = again;
+  if(again) requestAnimationFrame(tick);
+}
+function playCh(ch, delay){
+  var c = ctx(); if(!c) return;
+  var cfg = state[ch], h = INSTRUMENTS[cfg.inst].h, env = INSTRUMENTS[cfg.inst].env;
+  var f = NOTES[cfg.noteIdx].f, t0 = c.currentTime + (delay||0);
+  var real = new Float32Array(h.length+1), imag = new Float32Array(h.length+1);
+  for(var k=0;k<h.length;k++) imag[k+1] = h[k];
+  var osc = c.createOscillator();
+  osc.setPeriodicWave(c.createPeriodicWave(real, imag));
+  osc.frequency.value = f;
+  var g = c.createGain(), peak = 0.32 * (cfg.level/10), dur;
+  g.gain.setValueAtTime(0.0001, t0);
+  if(env === 'pluck'){
+    dur = 1.9;
+    g.gain.exponentialRampToValueAtTime(peak, t0+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
+  }else if(env === 'ring'){
+    dur = 2.0;
+    g.gain.exponentialRampToValueAtTime(peak, t0+0.03);
+    g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
+  }else{
+    dur = (env === 'bow') ? 1.9 : 1.7;
+    g.gain.exponentialRampToValueAtTime(peak, t0 + (env==='bow'?0.14:0.07));
+    g.gain.setValueAtTime(peak, t0+dur-0.22);
+    g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
+  }
+  osc.connect(g); g.connect(c.destination);
+  osc.start(t0); osc.stop(t0+dur+0.05);
+  live.push(osc);
+  osc.onended = function(){ var i = live.indexOf(osc); if(i>=0) live.splice(i,1); };
+}
+function clearWaves(){
+  ['A','B'].forEach(function(ch){ anim[ch].running = false; state[ch].prog = 0; state[ch].show = false; });
+}
+document.getElementById('playA').addEventListener('click', function(){
+  stopAll(); playCh('A',0); startSweep('A',0);
+});
+document.getElementById('playB').addEventListener('click', function(){
+  stopAll(); playCh('B',0); startSweep('B',0);
+});
+document.getElementById('playAB').addEventListener('click', function(){
+  stopAll(); clearWaves();
+  playCh('A',0);   startSweep('A',0);
+  playCh('B',2.1); startSweep('B',2100);
+});
+document.getElementById('stopAll').addEventListener('click', stopAll);
+
+/* ────────── 파형 그림 저장 ────────── */
+document.getElementById('capture').addEventListener('click', function(){
+  var src = document.getElementById('wave');
+  var W = 1120, H = 700;
+  var out = document.createElement('canvas'); out.width = W; out.height = H;
+  var g = out.getContext('2d');
+  g.fillStyle = '#faf6ee'; g.fillRect(0,0,W,H);
+  g.fillStyle = '#2b2b2b'; g.font = 'bold 30px Pretendard, sans-serif'; g.textAlign='left';
+  g.fillText('악기 소리 파형 비교', 34, 48);
+  g.font = '15px Pretendard, sans-serif'; g.fillStyle = '#6b6357';
+  g.fillText('가로축: 시간 0~20 ms · 세로축: 진동의 크기 · A는 굵은 선, B는 가는 선', 34, 74);
+
+  g.drawImage(src, 34, 92, W-68, 380);
+
+  var y = 508;
+  g.font = 'bold 17px Pretendard, sans-serif';
+  g.fillStyle = '#2b2b2b'; g.fillText('항목', 40, y);
+  g.fillStyle = COL.A; g.fillText('A', 420, y);
+  g.fillStyle = COL.B; g.fillText('B', 720, y);
+  var rows = [['진동수','rf'],['주기','rt'],['진폭','ra'],['20 ms 안의 파동 수','rn']];
+  g.font = '16px Pretendard, sans-serif';
+  rows.forEach(function(r,i){
+    var ry = y + 32 + i*30;
+    g.fillStyle = '#6b6357'; g.fillText(r[0], 40, ry);
+    g.fillStyle = state.A.show ? '#2b2b2b' : '#b3aa99';
+    g.fillText(document.getElementById(r[1]+'A').textContent + (state.A.show?'':' (숨김)'), 420, ry);
+    g.fillStyle = state.B.show ? '#2b2b2b' : '#b3aa99';
+    g.fillText(document.getElementById(r[1]+'B').textContent + (state.B.show?'':' (숨김)'), 720, ry);
+  });
+  g.fillStyle = '#8d8474'; g.font = '14px Pretendard, sans-serif';
+  g.fillText('A: ' + INSTRUMENTS[state.A.inst].name + ' · ' + NOTES[state.A.noteIdx].n +
+             '   /   B: ' + INSTRUMENTS[state.B.inst].name + ' · ' + NOTES[state.B.noteIdx].n, 40, H-28);
+
+  var name = '소리파형_' + INSTRUMENTS[state.A.inst].name + '_' + INSTRUMENTS[state.B.inst].name + '.png';
+  try{
+    out.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    });
+  }catch(e){ window.open(out.toDataURL('image/png'), '_blank'); }
+});
+
+/* ────────── 교사용 정보 ────────── */
+var tm = document.getElementById('teacherMode');
+tm.addEventListener('change', function(){ document.getElementById('teacherBox').hidden = !tm.checked; });
+
+/* ────────── 초기화 ────────── */
+window.addEventListener('resize', render);
+document.querySelector('.speccard').addEventListener('toggle', function(){ render(); });
+render();
+document.querySelector('.preset-btn').click();
+})();
+</script>
+</body>
+</html>
