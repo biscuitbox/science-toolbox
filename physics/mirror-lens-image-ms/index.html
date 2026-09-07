@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>거울과 렌즈로 본 모습 (중학교)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<style>
+:root{
+  --paper:#fbf7ef; --paper2:#fffdf8; --ink:#2f2a24; --muted:#6d6455;
+  --border:#e2d9c8; --border2:#cdc0a9; --accent:#2f5d9e; --accent-soft:#e6eefa;
+  --warn:#b4442e; --ok:#2e7d55; --gold:#c98a2b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  background-image:repeating-linear-gradient(180deg,transparent 0 31px,#eee6d6 31px 32px);
+  color:var(--ink);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:16px; line-height:1.65;
+  padding:0 0 60px;
+  overflow-x:hidden;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 14px}
+header.top{padding:58px 0 6px}
+h1{font-family:"Gowun Batang",serif;font-size:27px;margin:0 0 6px;letter-spacing:-.5px}
+.sub{color:var(--muted);font-size:15px;margin:0 0 14px}
+.badge{display:inline-block;font-size:13px;background:var(--accent-soft);color:var(--accent);
+  border:1px solid #c3d5ee;border-radius:999px;padding:2px 10px;margin-right:6px}
+
+/* tabs */
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 12px;border-bottom:2px solid var(--border2);padding-bottom:0}
+nav.tabs button{
+  font:inherit;font-size:15px;font-weight:600;cursor:pointer;
+  background:var(--paper2);border:1px solid var(--border2);border-bottom:none;
+  border-radius:10px 10px 0 0;padding:9px 13px;color:var(--muted);
+  transition:background .3s ease,color .3s ease;
+}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+nav.tabs button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.card{background:var(--paper2);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 14px;
+  box-shadow:0 1px 0 #efe7d6}
+#stage{overflow-x:auto;overflow-y:hidden;padding:2px 0}
+canvas{display:block;border-radius:10px;background:#fffdf7;border:1px solid var(--border);touch-action:none}
+canvas:focus{outline:3px solid var(--gold);outline-offset:3px}
+.readout{font-size:24px;font-weight:800;color:var(--accent);margin:0;font-family:"Gowun Batang",serif}
+
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.ctl{flex:1 1 250px;min-width:220px}
+.ctl label{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+.ctl .val{color:var(--accent);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--accent);height:26px}
+input[type=range]:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:9px 14px;border-radius:10px;
+  border:1.5px solid var(--border2);background:var(--paper2);color:var(--muted);transition:all .3s ease}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.seg button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin:2px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--border2);border-radius:999px;
+  padding:6px 13px;font-size:15px;font-weight:600;background:#fff}
+.chip b{font-weight:800;color:var(--accent)}
+.chip .ic{font-size:16px}
+.note{font-size:14.5px;color:var(--muted);margin:6px 0 0}
+.hl{background:#fdf3d8;padding:0 3px;border-radius:3px}
+
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;border-radius:10px;padding:8px 13px;
+  border:1.5px solid var(--border2);background:var(--paper2);color:var(--ink);transition:background .3s ease}
+.btn:hover{background:#f3ece0}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+h2{font-family:"Gowun Batang",serif;font-size:19px;margin:0 0 10px}
+h3{font-size:16px;margin:14px 0 6px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:3px 0}
+
+/* quiz */
+.qz p.q{font-weight:700;margin:0 0 8px}
+.qz .opts{display:flex;flex-direction:column;gap:7px}
+.qz .opts button{text-align:left;font:inherit;font-size:15px;cursor:pointer;padding:9px 12px;border-radius:10px;
+  border:1.5px solid var(--border2);background:#fff;transition:background .3s ease,border-color .3s ease}
+.qz .opts button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.qz .opts button.right{border-color:var(--ok);background:#e8f5ee}
+.qz .opts button.wrong{border-color:var(--warn);background:#fbeae6}
+.qz .fb{margin-top:9px;font-size:15px;font-weight:600;min-height:1.5em}
+.qz .fb.ok{color:var(--ok)} .qz .fb.no{color:var(--warn)}
+
+/* sort activity */
+.sort .item{font-size:17px;font-weight:700;background:#fff;border:1.5px dashed var(--border2);
+  border-radius:12px;padding:14px;margin-bottom:10px}
+.sort .cats{display:flex;flex-wrap:wrap;gap:8px}
+.sort .cats button{flex:1 1 140px}
+.sort .prog{font-size:14px;color:var(--muted)}
+.sort .tally{font-size:15px;font-weight:700;margin-top:8px}
+
+/* teacher */
+.teacher{display:none;border-left:4px solid var(--gold);background:#fffaf0}
+body.teacher-on .teacher{display:block}
+.teacher table{border-collapse:collapse;width:100%;font-size:14.5px;margin-top:6px}
+.teacher th,.teacher td{border:1px solid var(--border2);padding:6px 8px;text-align:left}
+.teacher th{background:#f6efe1}
+
+.src{font-size:12.5px;color:#8d8474;margin-top:18px}
+.print-only{display:none}
+
+@media (max-width:560px){
+  h1{font-size:22px}
+  .wrap{padding:0 10px}
+  nav.tabs button{font-size:14px;padding:8px 10px}
+}
+
+@media print{
+  body{background:#fff;padding:0;font-size:12pt}
+  .noprint,nav.tabs,.controls,.btnrow,.qz .opts,.toolbox-back-link{display:none !important}
+  .card{border:1px solid #999;box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+  canvas{width:100% !important;height:auto !important;border:1px solid #999}
+  .teacher{display:block !important}
+  .print-only{display:block}
+  .worksheet li{margin:14px 0;border-bottom:1px dotted #aaa;padding-bottom:16px}
+}
+</style>
+</head>
+<body>
+<script src="../../toolbox-nav.js"></script>
+
+<div class="wrap">
+<header class="top">
+  <h1>거울과 렌즈로 본 모습</h1>
+  <p class="sub">거울·렌즈에서 <b>거리를 바꾸면 보이는 모습이 어떻게 달라지는지</b> 눈으로 확인하는 가상실험 · 중학교용</p>
+  <div class="teacher card" style="margin-bottom:10px">
+    <span class="badge">성취기준 [9과10-02]</span>
+    <span class="badge">중1~중3 빛과 파동</span>
+  </div>
+</header>
+
+<nav class="tabs noprint" role="tablist" aria-label="실험 선택">
+  <button role="tab" id="t1" aria-selected="true" aria-controls="panel">① 평면거울</button>
+  <button role="tab" id="t2" aria-selected="false" aria-controls="panel">② 볼록·오목 거울</button>
+  <button role="tab" id="t3" aria-selected="false" aria-controls="panel">③ 볼록·오목 렌즈</button>
+  <button role="tab" id="t4" aria-selected="false" aria-controls="panel">④ 생활 속에서 찾기</button>
+</nav>
+
+<main id="panel">
+
+  <!-- 그림 -->
+  <section class="card" id="stagecard">
+    <div id="stage"><canvas id="cv" tabindex="0" role="application"
+      aria-label="거울과 렌즈로 본 모습. 물체를 끌어서 옮기거나 좌우 방향키로 거리를 바꿉니다."></canvas></div>
+    <p class="note" id="caption"></p>
+  </section>
+
+  <!-- 조작 -->
+  <section class="card noprint" id="ctlcard">
+    <div class="controls">
+      <div class="ctl" id="kindbox">
+        <label id="kindlab">종류 고르기</label>
+        <div class="seg" role="group" aria-labelledby="kindlab">
+          <button id="kA" aria-pressed="true">볼록</button>
+          <button id="kB" aria-pressed="false">오목</button>
+        </div>
+      </div>
+      <div class="ctl" id="distbox">
+        <label id="distlab">물체까지의 거리</label>
+        <p class="readout" id="distread" aria-live="polite" aria-labelledby="distlab">40 cm</p>
+        <p class="note">그림 속 <b>물체를 손가락(또는 마우스)으로 끌어</b> 옮겨 보세요.<br>
+           그림을 한 번 누른 뒤 <b>← → 방향키</b>로도 움직일 수 있습니다(Shift를 함께 누르면 크게).</p>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="save">🖼 그림 저장(PNG)</button>
+      <button class="btn" id="tt">👩‍🏫 교사용 정보 보기</button>
+      <button class="btn" id="pr">🖨 활동지 인쇄</button>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section class="card" id="resultcard">
+    <h2 id="rtitle">보이는 모습</h2>
+    <div class="chips" id="chips"></div>
+    <p class="note" id="rdesc"></p>
+    <p class="note" id="rex"></p>
+  </section>
+
+  <!-- 퀴즈 -->
+  <section class="card qz noprint" id="qzcard">
+    <h2>먼저 예상해 볼까요?</h2>
+    <p class="q" id="qq"></p>
+    <div class="opts" id="qo"></div>
+    <p class="fb" id="qf"></p>
+  </section>
+
+  <!-- 분류 활동 (탭4) -->
+  <section class="card sort" id="sortcard" style="display:none">
+    <h2>이 물건은 어떤 거울·렌즈일까요?</h2>
+    <p class="prog" id="sprog"></p>
+    <div class="item" id="sitem"></div>
+    <div class="cats" id="scats"></div>
+    <p class="fb" id="sfb"></p>
+    <p class="tally" id="stally"></p>
+    <div class="btnrow"><button class="btn" id="sreset">↺ 처음부터 다시</button></div>
+  </section>
+
+  <!-- 정리 카드 -->
+  <section class="card" id="summary">
+    <h2>정리</h2>
+    <ul>
+      <li><b>평면거울</b> — 크기 그대로, 좌우가 바뀌고, 거울에서 물체까지의 거리와 거울에서 상까지의 거리가 같다. 멀어지면 <span class="hl">작아 “보이지만”</span> 실제 물체도 똑같이 작아 보이므로, 둘의 크기는 언제나 같다.</li>
+      <li><b>볼록 거울</b> — 언제나 똑바로, 실제보다 작게. 대신 <span class="hl">넓은 범위</span>가 한눈에 들어온다.</li>
+      <li><b>오목 거울</b> — 가까이 두면 크고 똑바로, 멀리 두면 뒤집혀 보인다.</li>
+      <li><b>볼록 렌즈</b> — 가까이 두면 크고 똑바로(돋보기), 멀리 두면 뒤집혀 보인다.</li>
+      <li><b>오목 렌즈</b> — 언제나 똑바로, 실제보다 작게 보인다.</li>
+    </ul>
+    <p class="note">※ 거울·렌즈의 모양(볼록/오목)만 알면 <b>어떻게 보일지</b>를 예상할 수 있습니다. 상이 생기는 자리를 자로 재거나 계산할 필요는 없습니다.</p>
+  </section>
+
+  <!-- 교사용 -->
+  <section class="card teacher">
+    <h2>👩‍🏫 교사용 정보</h2>
+    <p><b>성취기준 [9과10-02]</b> 평면거울에서 상이 생기는 원리를 설명하고, 일상생활에서 사용되는 거울과 렌즈의 종류를 분류하고 상의 특징을 비교할 수 있다.</p>
+    <p class="note"><b>성취기준 해설(2022 개정):</b> “상이 생기는 원리는 평면거울에 의한 상만을 빛의 반사 법칙을 적용하여 이해하도록 한다. 다양한 거울과 렌즈에 의해 생기는 상의 위치나 크기를 정량적으로 계산하거나 <b>실상과 허상을 구분하는 활동은 하지 않고</b>, 정성적인 특징을 다양한 예를 통해 비교하도록 한다.”</p>
+    <p class="note">→ 그래서 이 도구의 학생 화면에는 <b>초점거리·배율·실상/허상 용어가 나오지 않습니다.</b> 아래 표는 교사 확인용입니다.</p>
+    <table>
+      <tr><th>기구</th><th>이 도구의 초점거리 f</th><th>물체 위치</th><th>상의 종류(교사용)</th></tr>
+      <tr><td>평면거울</td><td>—</td><td>모든 위치</td><td>정립 허상, 배율 1, 거울 뒤 같은 거리</td></tr>
+      <tr><td>볼록 거울</td><td>f = −30 cm</td><td>모든 위치</td><td>정립 축소 허상 (m = 30/(a+30))</td></tr>
+      <tr><td rowspan="2">오목 거울</td><td rowspan="2">f = +25 cm</td><td>a &lt; f</td><td>정립 확대 허상</td></tr>
+      <tr><td>a &gt; f</td><td>도립 실상 (a=2f에서 같은 크기)</td></tr>
+      <tr><td>볼록 렌즈</td><td>f = +20 cm</td><td>a&lt;f / a&gt;f</td><td>정립 확대 허상 / 도립 실상</td></tr>
+      <tr><td>오목 렌즈</td><td>f = −25 cm</td><td>모든 위치</td><td>정립 축소 허상</td></tr>
+    </table>
+    <h3>지도 메모</h3>
+    <ul>
+      <li>탭①의 흔한 오개념: “거울에서 멀어지면 거울 속 내 모습이 작아진다.” → <b>작아 보이는 것은 맞습니다.</b> 다만 그것은 상까지의 거리가 멀어졌기 때문이고, 같은 자리에 실제 물체를 두어도 똑같이 작아 보입니다. 아래 그림에서 두 그림이 <b>항상 같은 배율로 함께</b> 커지고 작아지는 것으로 확인시키세요.</li>
+      <li>탭① 아래 그림의 겉보기 크기는 <b>거리에 반비례</b>하도록 그렸습니다(0.42배에서 하한). 물체와 상은 관찰자에게서 같은 거리(거울 뒤 그 자리)에 있는 것으로 보므로 <b>언제나 같은 배율</b>을 씁니다 — 그래서 금색 눈금이 두 그림에 늘 맞습니다. 자기 모습을 보는 상황이라면 눈에서 상까지의 거리가 <b>2d</b>임을 함께 짚어 주세요(거울에 김이 서렸을 때 얼굴 윤곽이 실물의 절반인 이유).</li>
+      <li>거울(프레임) 자체는 크기를 고정했습니다. 거울까지의 거리는 학생이 서 있는 자리에 따라 달라지는데 이 활동의 초점이 아니어서, 상만 거리에 따라 변하게 두었습니다.</li>
+      <li>탭②③에서 물체가 초점 부근에 오면 이 도구는 <b>“상이 흐려 잘 보이지 않음”</b> 상태로 바뀝니다. 이유(초점거리)는 묻지 말고 “이런 자리도 있다”로만 관찰하게 하세요.</li>
+      <li>도립상일 때 거울은 <b>위아래만</b>, 렌즈는 <b>위아래·좌우가 함께</b> 뒤집혀 보입니다(180° 돌아간 모습). 관찰 카드의 빨간 삼각형과 글자로 확인할 수 있습니다.</li>
+      <li>실물 준비물: 숟가락(안쪽=오목, 바깥쪽=볼록), 돋보기, 근시 안경, 손거울. 가상실험 → 실물 확인 순서를 권합니다.</li>
+      <li>화면에 그려지는 상의 크기는 실제 배율을 <b>0.6제곱으로 압축</b>해 나타냅니다(예: 0.25배 → 0.43배, 2배 → 1.5배). 아주 작은 상도 방향을 알아볼 수 있게 하려는 것이며, <b>거리를 바꾸면 언제나 함께 변합니다.</b> 1배는 1배 그대로여서 “실물과 같은 크기”는 보존되고, 금색 점선(실제 물체와 같은 크기)과 견주면 크다·작다의 정성 비교도 그대로 성립합니다. 다만 <b>몇 배인지를 눈금으로 재는 용도로는 쓰지 마세요.</b></li>
+      <li>연계: <b>물체를 보는 과정 가상실험</b>(평면거울에서 상이 생기는 원리 작도), <b>빛의 반사와 굴절 가상실험</b>.</li>
+    </ul>
+  </section>
+
+  <!-- 인쇄 활동지 -->
+  <section class="print-only card worksheet">
+    <h2>활동지 — 거울과 렌즈로 본 모습</h2>
+    <p>학년 반 번호 이름 : ______________________</p>
+    <ol>
+      <li>평면거울 앞에서 두 걸음 뒤로 물러났다. 거울 속 내 모습의 <b>크기</b>는 어떻게 되는가? 그 까닭도 함께 쓰시오.</li>
+      <li>평면거울에 비친 글자 ‘과학’은 어떻게 보이는가?</li>
+      <li>자동차 사이드미러에 “사물이 거울에 보이는 것보다 가까이 있음”이라는 문구가 붙어 있다. 이 거울은 어떤 거울이며, 왜 그런 문구가 필요한가?</li>
+      <li>숟가락의 <b>안쪽</b>에 얼굴을 가까이 대었을 때와 멀리 떨어졌을 때 보이는 모습을 각각 쓰시오.</li>
+      <li>숟가락의 <b>바깥쪽</b>에 비친 얼굴은 어떻게 보이는가?</li>
+      <li>돋보기를 글자에 바짝 붙였다가 천천히 떼어 놓으면 글자가 어떻게 변하는가?</li>
+      <li>근시용 안경알로 글자를 보면 어떻게 보이는가? 어떤 렌즈인가?</li>
+      <li>아래 표를 채우시오.</li>
+    </ol>
+    <table style="border-collapse:collapse;width:100%;font-size:12pt">
+      <tr><th style="border:1px solid #999;padding:6px">기구</th><th style="border:1px solid #999;padding:6px">똑바로 / 뒤집힘</th><th style="border:1px solid #999;padding:6px">크기</th><th style="border:1px solid #999;padding:6px">생활 속 예</th></tr>
+      <tr><td style="border:1px solid #999;padding:14px">평면거울</td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td></tr>
+      <tr><td style="border:1px solid #999;padding:14px">볼록 거울</td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td></tr>
+      <tr><td style="border:1px solid #999;padding:14px">오목 거울</td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td></tr>
+      <tr><td style="border:1px solid #999;padding:14px">볼록 렌즈</td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td></tr>
+      <tr><td style="border:1px solid #999;padding:14px">오목 렌즈</td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td><td style="border:1px solid #999"></td></tr>
+    </table>
+  </section>
+
+  <p class="src">직접 제작한 그림만 사용했습니다(외부 이미지·데이터 없음). 교육과정 인용: 2022 개정 과학과 교육과정 [9과10-02].</p>
+</main>
+</div>
+
+<script>
+"use strict";
+(function(){
+/* ---------------- 상태 ---------------- */
+var S = { tab:1, dist:40, mirrorKind:'convexM', lensKind:'convexL', teacher:false };
+
+var OPT = {
+  convexM : {f:-30, name:'볼록 거울', type:'mirror', short:'볼록',
+             ex:'자동차 사이드미러 · 도로 반사경 · 편의점 방범 거울'},
+  concaveM: {f: 25, name:'오목 거울', type:'mirror', short:'오목',
+             ex:'화장 거울 · 치과용 거울 · 손전등과 자동차 전조등의 반사판'},
+  convexL : {f: 20, name:'볼록 렌즈', type:'lens', short:'볼록',
+             ex:'돋보기 · 원시용 안경 · 사진기 렌즈 · 현미경'},
+  concaveL: {f:-25, name:'오목 렌즈', type:'lens', short:'오목',
+             ex:'근시용 안경 · 문에 달린 작은 구멍(도어 뷰어)'}
+};
+function curKey(){ return S.tab===2 ? S.mirrorKind : S.lensKind; }
+function cur(){ return OPT[curKey()]; }
+
+/* ---------------- 광학 계산 (내부 전용) ---------------- */
+var BLUR = 3.2; // 초점 부근 폭(cm)
+function imageOf(f, a){
+  if (Math.abs(a - f) < BLUR) return {none:true, b:NaN, m:NaN};
+  var b = a*f/(a-f);
+  return {none:false, b:b, m:-b/a};
+}
+
+/* ---------------- 캔버스 ---------------- */
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var W = 880, H = 440;
+var C = {
+  ink:'#2f2a24', muted:'#6d6455', line:'#c9bfae', soft:'#eee6d6',
+  blue:'#2f5d9e', blue2:'#dce8f7', red:'#b4442e', gold:'#c98a2b',
+  glass:'#d7e8f6', ghost:'#9a9285', paper:'#fffdf7'
+};
+
+function fit(){
+  var box = document.getElementById('stage');
+  var avail = box.clientWidth || 880;
+  W = Math.max(340, Math.min(900, avail));
+  H = (S.tab===4) ? 400 : 570;
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+function label(t,x,y,size,color,align){
+  ctx.font = '600 '+(size||13)+'px Pretendard, sans-serif';
+  ctx.fillStyle = color||C.muted; ctx.textAlign = align||'center'; ctx.textBaseline='middle';
+  ctx.fillText(t,x,y);
+}
+/* 배경을 깔아 선과 겹쳐도 읽히는 글자 */
+function labelBox(t,x,y,size,color,align){
+  size=size||13;
+  ctx.font='600 '+size+'px Pretendard, sans-serif';
+  var w=ctx.measureText(t).width+10, h=size+8;
+  var x0 = align==='left' ? x-5 : (align==='right' ? x-w+5 : x-w/2);
+  ctx.save(); ctx.fillStyle='rgba(255,253,247,0.9)';
+  rr(x0,y-h/2,w,h,5); ctx.fill(); ctx.restore();
+  label(t,x,y,size,color,align);
+}
+function arrowH(x1,x2,y,color,txt,dy){
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+  var d = (x2>x1)?1:-1, s=6;
+  [[x1,-d],[x2,d]].forEach(function(p){
+    ctx.beginPath(); ctx.moveTo(p[0],y); ctx.lineTo(p[0]-p[1]*s, y-s*0.65); ctx.lineTo(p[0]-p[1]*s, y+s*0.65); ctx.closePath(); ctx.fill();
+  });
+  if(txt){ labelBox(txt,(x1+x2)/2,y+(dy===undefined?-12:dy),13,color); }
+}
+
+/* 관찰용 물체 카드: 원점 중심, 폭 108 높이 84.
+   방향 단서 두 가지 — 카드 안 위쪽의 빨간 삼각형(위아래) + 글자(좌우) */
+var CARD_W=108, CARD_H=84;
+function objectCard(){
+  var w=CARD_W,h=CARD_H;
+  rr(-w/2,-h/2,w,h,11);
+  ctx.fillStyle='#fff8ea'; ctx.fill();
+  ctx.lineWidth=2.4; ctx.strokeStyle=C.ink; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,-28); ctx.lineTo(11,-13); ctx.lineTo(-11,-13); ctx.closePath();
+  ctx.fillStyle=C.red; ctx.fill();
+  ctx.fillStyle=C.blue; ctx.font='700 30px "Gowun Batang", serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('과학',0,16);
+}
+/* 크기 비교용 원래 크기 윤곽선 */
+function ghostOutline(){
+  ctx.save();
+  rr(-CARD_W/2,-CARD_H/2,CARD_W,CARD_H,11);
+  ctx.strokeStyle=C.gold; ctx.lineWidth=1.6; ctx.setLineDash([5,4]); ctx.stroke();
+  ctx.restore();
+}
+/* 옆에서 본 물체(화살표 아이콘) */
+function sideArrow(x,ybase,hgt,color,dash,sc){
+  sc = sc||1;
+  ctx.save();
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=3*sc;
+  if(dash) ctx.setLineDash([6*sc,5*sc]);
+  ctx.beginPath(); ctx.moveTo(x,ybase); ctx.lineTo(x,ybase-hgt); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x,ybase-hgt-2*sc); ctx.lineTo(x-8*sc,ybase-hgt+12*sc); ctx.lineTo(x+8*sc,ybase-hgt+12*sc); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+/* 끌 수 있다는 표시 — 물체를 감싸는 금색 점선 상자 */
+function grabBox(x, ybase, top, sc){
+  sc = sc||1;
+  ctx.save();
+  ctx.strokeStyle=C.gold; ctx.lineWidth=1.6*sc; ctx.setLineDash([4*sc,4*sc]);
+  rr(x-26*sc, top, 52*sc, (ybase+8*sc)-top, 10); ctx.stroke();
+  ctx.restore();
+}
+function eyeIcon(x,y,scale,color){
+  ctx.save(); ctx.translate(x,y); ctx.scale(scale||1,scale||1);
+  ctx.strokeStyle=color||C.ink; ctx.lineWidth=2; ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.moveTo(-15,0); ctx.quadraticCurveTo(0,-11,15,0); ctx.quadraticCurveTo(0,11,-15,0); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,0,4.6,0,Math.PI*2); ctx.fillStyle=color||C.ink; ctx.fill();
+  ctx.restore();
+}
+
+/* 기구 단면(옆에서 본 모습) */
+function deviceProfile(x, ycen, half, kind){
+  ctx.save();
+  ctx.lineWidth=3.5;
+  if(kind==='plane'){
+    ctx.strokeStyle=C.blue;
+    ctx.beginPath(); ctx.moveTo(x,ycen-half); ctx.lineTo(x,ycen+half); ctx.stroke();
+    ctx.strokeStyle=C.ghost; ctx.lineWidth=1.4;
+    for(var p=-half;p<=half;p+=11){
+      ctx.beginPath(); ctx.moveTo(x+2,ycen+p); ctx.lineTo(x+11,ycen+p-6); ctx.stroke();
+    }
+  } else if(kind==='convexM' || kind==='concaveM'){
+    var bulge = (kind==='convexM') ? -26 : 26; // 볼록: 물체 쪽(왼쪽)으로 튀어나옴
+    ctx.strokeStyle=C.blue;
+    ctx.beginPath(); ctx.moveTo(x,ycen-half);
+    ctx.quadraticCurveTo(x+bulge, ycen, x, ycen+half); ctx.stroke();
+    // 반사면 뒤쪽 빗금
+    ctx.strokeStyle=C.ghost; ctx.lineWidth=1.4;
+    for(var i=-half;i<=half;i+=10){
+      var t=1-Math.abs(i)/half;
+      var xb=x+bulge*t*0.98;
+      ctx.beginPath(); ctx.moveTo(xb,ycen+i); ctx.lineTo(xb+12,ycen+i-6); ctx.stroke();
+    }
+  } else {
+    var conv = (kind==='convexL');
+    ctx.strokeStyle='#4a7fbf'; ctx.fillStyle=C.glass; ctx.lineWidth=2.4;
+    ctx.beginPath();
+    if(conv){
+      ctx.moveTo(x,ycen-half); ctx.quadraticCurveTo(x+17,ycen,x,ycen+half);
+      ctx.quadraticCurveTo(x-17,ycen,x,ycen-half);
+    } else {
+      ctx.moveTo(x-11,ycen-half); ctx.lineTo(x+11,ycen-half);
+      ctx.quadraticCurveTo(x-6,ycen,x+11,ycen+half);
+      ctx.lineTo(x-11,ycen+half); ctx.quadraticCurveTo(x+6,ycen,x-11,ycen-half);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ---------------- 물체 위치 (드래그·방향키) ----------------
+   그리기와 좌표 계산이 어긋나지 않도록 위치 계산을 한 곳에 모아 둔다.
+   base = 거울/렌즈가 놓인 x, off = 기구에서 최소로 떨어뜨릴 거리(px),
+   span = 5~90 cm가 차지하는 픽셀 폭, ybase = 물체가 서 있는 바닥선,
+   zone = 이 세로 범위 안에서만 드래그를 받는다(아래쪽 관찰 창은 제외). */
+function geom(){
+  if(S.tab===1){
+    var mx=Math.round(W*0.52);
+    // off=34 : 물체·상이 거울(과 뒷면 빗금)에 겹치지 않도록 최소 간격을 둔다
+    return {base:mx, off:34, span:Math.min(mx-60, W-84-mx)-8, ybase:214, zone:[36,296]};
+  }
+  // 탭②③ — 배치도를 1.5배로 키웠으므로 기구 두께(±45)만큼 여유를 더 둔다
+  var devX=Math.round(W*0.70);
+  return {base:devX, off:52, span:devX-96, ybase:212, zone:[16,296]};
+}
+function distToX(d){ var g=geom(); return g.base-(g.off+(d-5)/85*g.span); }
+/* 원근(겉보기 크기) — 관찰자에게서 멀어질수록 겉보기 크기는 거리에 반비례한다.
+   물체와 상은 관찰자에게서 같은 거리(거울 뒤 그 자리)에 있으므로 늘 '같은 배율'을 쓴다.
+   5 cm에서 1.16배, 90 cm에서 0.40배까지 **끊김 없이** 이어진다(하한을 두지 않는다 —
+   중간에 멈추면 "어느 순간부터 거리를 바꿔도 안 변한다"는 인상을 준다). */
+function perspK(d){ return 52/(40+d); }
+function xToDist(x){ var g=geom(); return 5+((g.base-x)-g.off)/g.span*85; }
+function setDist(v){
+  v=Math.max(5,Math.min(90,Math.round(v)));
+  S.dist=v;
+  document.getElementById('distread').textContent=v+' cm';
+  draw(); renderResult();
+}
+
+/* ---------------- 그리기 ---------------- */
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.paper; ctx.fillRect(0,0,W,H);
+  if(S.tab===1) drawPlane();
+  else if(S.tab===2 || S.tab===3) drawCurved();
+  else drawSortInfo();
+}
+
+function drawPlane(){
+  var d = S.dist, g = geom();
+  /* --- 위: 옆에서 본 모습 --- */
+  var y0 = g.ybase, mx = g.base;
+  var narrow = W < 560;   // 좁은 화면에서는 제목을 짧게 (안 그러면 양끝이 잘린다)
+  label(narrow ? '① 옆에서 본 모습'
+               : '① 옆에서 본 모습 — 거울까지의 거리와 거울 뒤 상까지의 거리는 항상 같습니다',
+        W/2, 24, narrow?13:14, C.muted);
+  var Z = 1.5;   // ① 그림 확대 배율 (사용자 요청)
+  // 바닥선
+  ctx.strokeStyle=C.line; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(20,y0); ctx.lineTo(W-20,y0); ctx.stroke();
+  // 거울
+  ctx.strokeStyle=C.blue; ctx.lineWidth=5*Z;
+  ctx.beginPath(); ctx.moveTo(mx,y0-92*Z); ctx.lineTo(mx,y0+8*Z); ctx.stroke();
+  ctx.strokeStyle=C.ghost; ctx.lineWidth=1.4*Z;
+  for(var i=0;i<11;i++){ ctx.beginPath(); ctx.moveTo(mx+3,y0-(90-i*9)*Z); ctx.lineTo(mx+16,y0-(97-i*9)*Z); ctx.stroke(); }
+  labelBox('거울', mx+26, y0-100*Z, 13, C.blue, 'left');
+
+  var ox = distToX(d), ix = 2*mx - ox;
+  grabBox(ox, y0, y0-74*Z, Z);
+  sideArrow(ox, y0, 62*Z, C.blue, false, Z);
+  labelBox('물체', ox, y0+22, 13, C.blue);
+  labelBox('← 끌어 보세요 →', Math.max(58, Math.min(W-58, ox)), y0+44, 12.5, C.gold);
+  sideArrow(ix, y0, 62*Z, C.ghost, true, Z);
+  labelBox('거울 속 상', ix, y0+22, 13, C.ghost);
+  // 가까울 때 두 치수 글자가 겹치지 않도록 위·아래로 어긋나게 놓는다
+  arrowH(ox, mx, y0-96*Z, C.blue, d+' cm', -13);
+  arrowH(mx, ix, y0-96*Z, C.ghost, d+' cm', 15);
+
+  /* --- 아래: 관찰자에게 보이는 모습 (원근 반영) --- */
+  var by = 434, k = perspK(d);
+  label(narrow ? '② 관찰자에게 보이는 모습'
+               : '② 관찰자에게 보이는 모습 — 멀어지면 둘 다 함께 작아 보입니다',
+        W/2, 322, narrow?13:14, C.muted);
+  var lx = Math.round(W*0.27), rx = Math.round(W*0.72);
+  if(W < 470){ lx = Math.round(W*0.26); rx = Math.round(W*0.74); }
+  var half = CARD_H/2*k;
+  // 실제 물체 (거울 뒤 그 자리에 실물을 놓았다고 했을 때 보이는 크기)
+  ctx.save(); ctx.translate(lx,by); ctx.scale(k,k); objectCard(); ctx.restore();
+  label('실제 물체', lx, by+half+20, 13, C.muted);
+  // 거울 프레임 + 상 (거울 자체 크기는 그대로)
+  var fw = Math.min(190, W*0.40), fh = 156;
+  ctx.save();
+  rr(rx-fw/2, by-fh/2, fw, fh, 12);
+  ctx.fillStyle='#eef4fb'; ctx.fill(); ctx.strokeStyle=C.blue; ctx.lineWidth=3; ctx.stroke();
+  ctx.clip();
+  ctx.translate(rx,by); ctx.scale(-k,k); objectCard();
+  ctx.restore();
+  label('거울에 비친 모습', rx, by+fh/2+18, 13, C.blue);
+  // 높이 비교 눈금 — 두 그림에 항상 딱 맞으므로 '크기가 같다'가 유지된다
+  ctx.strokeStyle=C.gold; ctx.lineWidth=1.6; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(lx-70, by-half); ctx.lineTo(rx+fw/2, by-half); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx-70, by+half); ctx.lineTo(rx+fw/2, by+half); ctx.stroke();
+  ctx.setLineDash([]);
+  label('둘의 크기는 언제나 같음', (lx+rx)/2, by+half+(narrow?42:20), narrow?12:13, C.gold);
+}
+
+function drawCurved(){
+  var key = curKey(), o = OPT[key], d = S.dist;
+  var res = imageOf(o.f, d);
+  var isMirror = (o.type==='mirror');
+
+  /* --- 위: 배치도 (1.5배 확대) --- */
+  var Z = 1.5;
+  var g = geom(), yb = g.ybase, devX = g.base, dcy = yb - 26*Z;  // dcy = 기구 중심
+  ctx.strokeStyle=C.line; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(20,yb); ctx.lineTo(W-20,yb); ctx.stroke();
+  var ox = distToX(d);
+  grabBox(ox, yb, yb-56*Z, Z);
+  sideArrow(ox, yb, 44*Z, C.blue, false, Z);
+  labelBox('물체', ox, yb+22, 12.5, C.blue);
+  // 물체가 화면 끝에 가까우면 안내 글자가 잘리므로 x를 캔버스 안으로 당긴다
+  labelBox('← 끌어 보세요 →', Math.max(58, Math.min(W-58, ox)), yb-66*Z, 12, C.gold);
+  ctx.save(); ctx.translate(devX,dcy); ctx.scale(Z,Z);
+  deviceProfile(0, 0, 46, key);
+  ctx.restore();
+  var narrow = W < 470;
+  // 좁은 화면에서는 기구 이름을 기구 위쪽 가운데로 올린다(오른쪽으로 쓰면 잘린다)
+  if(narrow) labelBox(o.name, Math.min(W-52, Math.max(52, devX)), dcy-58*Z, 12.5, C.blue);
+  else       labelBox(o.name, devX+30, dcy-54*Z, 13, C.blue, 'left');
+  arrowH(ox, devX, yb+40, C.muted, d+' cm', 15);
+  if(isMirror){
+    // 눈은 '끌어 보세요' 안내 글자보다 위에 둔다(물체가 거울에 붙으면 겹치기 때문)
+    var ex=ox+(devX-ox)*0.42;
+    eyeIcon(ex, dcy-58*Z, 1.2, C.ink); labelBox('눈', ex, dcy-58*Z-25, 12, C.muted);
+  } else {
+    var ex2=Math.min(W-42, devX+44*Z);
+    eyeIcon(ex2, dcy, 1.2, C.ink); labelBox('눈', ex2, dcy-30, 12, C.muted);
+  }
+  label('① 옆에서 본 배치', 24, 20, 13, C.muted, 'left');
+
+  /* --- 아래: 실제 물체 vs 보이는 모습 --- */
+  var by = 410;
+  label('② 실제 물체와 견주어 보기', 24, 294, 13, C.muted, 'left');
+  var lx = Math.round(W*0.25), rx = Math.round(W*0.70);
+  ctx.save(); ctx.translate(lx,by); ctx.globalAlpha=1; objectCard(); ctx.restore();
+  label('실제 물체', lx, by+74, 13, C.muted);
+
+  var fw = Math.min(214, W*0.44), fh = 200;
+  ctx.save();
+  if(isMirror){ rr(rx-fw/2, by-fh/2, fw, fh, 14); }
+  else { ctx.beginPath(); ctx.ellipse(rx, by, fw/2, fh/2, 0, 0, Math.PI*2); }
+  ctx.fillStyle = isMirror ? '#eef4fb' : '#f0f7fd';
+  ctx.fill(); ctx.strokeStyle=C.blue; ctx.lineWidth=3; ctx.stroke();
+  ctx.save(); ctx.clip();
+  if(res.none){
+    ctx.globalAlpha=0.28;
+    if('filter' in ctx){ try{ ctx.filter='blur(7px)'; }catch(e){} }
+    ctx.save(); ctx.translate(rx,by); ctx.scale(1.5,1.5); objectCard(); ctx.restore();
+    if('filter' in ctx){ try{ ctx.filter='none'; }catch(e){} }
+    ctx.globalAlpha=1;
+  } else {
+    var m = res.m, am = Math.abs(m);
+    /* 화면 표시 배율: 상·하한으로 자르지 않고 지수 압축(0.6제곱)을 쓴다.
+       거리를 조금만 바꿔도 크기가 늘 함께 변하면서(연속), 아주 작은 상도
+       방향을 알아볼 만큼은 남는다. 1배는 그대로 1배여서 '같은 크기'는 보존된다. */
+    var shown = Math.min(3.6, Math.pow(am, 0.6));
+    var k = shown/am;
+    var sx = (isMirror ? -m : m) * k, sy = m * k;
+    ctx.save(); ctx.translate(rx,by); ctx.scale(sx,sy); objectCard(); ctx.restore();
+  }
+  // 원래 크기 비교선(금색 점선) — 상 위에 겹쳐 그려 크기를 견줄 수 있게 한다
+  ctx.save(); ctx.translate(rx,by); ghostOutline(); ctx.restore();
+  ctx.restore();
+  if(res.none){
+    label('상이 흐려서', rx, by-14, 15, C.red);
+    label('잘 보이지 않아요', rx, by+10, 15, C.red);
+  }
+  ctx.restore();
+  label(o.name+'로 본 모습', rx, by+fh/2+16, narrow?12.5:13, C.blue);
+  label(narrow ? '점선 = 실물과 같은 크기' : '점선 = 실제 물체와 같은 크기',
+        Math.min(W-70, rx), by+fh/2+34, 12, C.gold);
+}
+
+function drawSortInfo(){
+  var y=40;
+  label('생활 속에서 거울과 렌즈 찾기', W/2, y, 17, C.ink); y+=40;
+  var rows = [
+    ['평면거울','크기 그대로 · 좌우 바뀜','#2f5d9e'],
+    ['볼록 거울','작고 똑바로 · 넓게 보임','#2f5d9e'],
+    ['오목 거울','가까이 크게 / 멀리 뒤집힘','#2f5d9e'],
+    ['볼록 렌즈','가까이 크게 / 멀리 뒤집힘','#b4442e'],
+    ['오목 렌즈','작고 똑바로','#b4442e']
+  ];
+  var bw = Math.min(760, W-48), bx = (W-bw)/2;
+  rows.forEach(function(r,i){
+    var yy = y + i*58;
+    rr(bx, yy, bw, 48, 12); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle=C.line; ctx.lineWidth=1.6; ctx.stroke();
+    ctx.save(); ctx.translate(bx+34, yy+24); ctx.scale(0.42,0.42);
+    deviceProfile(0, 0, 52, ['plane','convexM','concaveM','convexL','concaveL'][i]);
+    ctx.restore();
+    label(r[0], bx+72, yy+24, 15, r[2], 'left');
+    label(r[1], bx+bw-16, yy+24, 14, C.muted, 'right');
+  });
+}
+
+/* ---------------- 결과 패널 ---------------- */
+function sizeWord(am){
+  if(am >= 1.8) return ['훨씬 크게','🔍'];
+  if(am >= 1.08) return ['조금 크게','🔍'];
+  if(am > 0.92) return ['실제와 같은 크기로','＝'];
+  if(am > 0.5) return ['조금 작게','🔻'];
+  return ['훨씬 작게','🔻'];
+}
+function renderResult(){
+  var chips = document.getElementById('chips');
+  var rt = document.getElementById('rtitle');
+  var rd = document.getElementById('rdesc');
+  var re = document.getElementById('rex');
+  chips.innerHTML=''; re.textContent='';
+  function chip(ic, t, v){
+    var d=document.createElement('span'); d.className='chip';
+    d.innerHTML='<span class="ic">'+ic+'</span>'+t+' <b>'+v+'</b>';
+    chips.appendChild(d);
+  }
+  if(S.tab===1){
+    rt.textContent='평면거울에서 보이는 모습';
+    chip('⬆️','방향','똑바로');
+    chip('＝','크기','물체와 같음 (변하지 않음)');
+    chip('🔁','좌우','바뀜');
+    chip('👁','겉보기', S.dist>=55 ? '멀어서 둘 다 작게 보임' : (S.dist<=20 ? '가까워서 둘 다 크게 보임' : '둘 다 같은 정도로 보임'));
+    chip('📏','거울까지 거리','상까지 거리와 같음 ('+S.dist+' cm)');
+    rd.innerHTML='거울에서 <b>'+S.dist+' cm</b> 떨어져 있으면, 거울 속 상도 거울 뒤로 <b>'+S.dist+' cm</b> 자리에 생깁니다. 멀어질수록 <b>작아 보이지만</b>, 그것은 <span class="hl">실제 물체도 똑같이 작아 보이기 때문</span>입니다. 아래 금색 눈금이 두 그림에 늘 함께 맞는 것으로 확인할 수 있어요 — <b>상의 크기는 언제나 물체와 같습니다.</b>';
+    re.textContent='생활 속 예: 화장실 거울, 손거울, 옷 가게의 전신 거울';
+    return;
+  }
+  if(S.tab===4){ rt.textContent='정리'; rd.textContent='아래 활동으로 확인해 보세요.'; return; }
+
+  var o = cur(), res = imageOf(o.f, S.dist);
+  rt.textContent = o.name+'로 본 모습';
+  if(res.none){
+    chip('🌫','상태','흐려서 잘 안 보임');
+    rd.innerHTML='지금은 물체가 '+o.name+'에서 <b>상이 잘 맺히지 않는 자리</b>에 있습니다. 조금만 더 가깝게 하거나 멀리 옮겨 보세요.';
+    re.textContent='생활 속 예: '+o.ex;
+    return;
+  }
+  var m = res.m, up = (m>0);
+  var sw = sizeWord(Math.abs(m));
+  chip(up?'⬆️':'⬇️','방향', up?'똑바로':'뒤집혀 보임');
+  chip(sw[1],'크기', sw[0]);
+  if(o.type==='mirror'){
+    chip('🔁','좌우', up ? '바뀜' : '좌우는 그대로 (위아래만 뒤집힘)');
+  } else {
+    chip('🔁','좌우', up ? '그대로' : '위아래·좌우가 함께 뒤집힘 (180° 돌아간 모습)');
+  }
+  if(o===OPT.convexM) chip('↔️','보이는 범위','평면거울보다 넓음');
+
+  var t='';
+  if(o===OPT.convexM) t='볼록 거울은 <b>물체를 어디에 두어도</b> 똑바로, 실제보다 작게 보입니다. 대신 넓은 범위가 한눈에 들어와서 뒤차나 매장 전체를 살피기 좋습니다.';
+  else if(o===OPT.concaveM) t = up ? '오목 거울에 <b>가까이</b> 두면 크고 똑바로 보입니다. 얼굴이나 이를 크게 볼 때 쓰는 이유예요.' : '오목 거울에서 <b>멀리</b> 떨어지면 상이 <b>뒤집혀</b> 보입니다. 숟가락 안쪽에 얼굴을 멀리서 비춰 보면 확인할 수 있어요.';
+  else if(o===OPT.convexL) t = up ? '볼록 렌즈에 <b>가까이</b> 두면 크고 똑바로 보입니다. 돋보기로 글씨를 볼 때의 모습이에요.' : '볼록 렌즈에서 <b>멀리</b> 떨어지면 상이 <b>뒤집혀</b> 보입니다. 돋보기를 눈에서 멀리 떼면 창밖 풍경이 거꾸로 보이지요.';
+  else t='오목 렌즈는 <b>물체를 어디에 두어도</b> 똑바로, 실제보다 작게 보입니다.';
+  rd.innerHTML = t;
+  re.textContent='생활 속 예: '+o.ex;
+}
+
+/* ---------------- 캡션 ---------------- */
+function renderCaption(){
+  var c = document.getElementById('caption');
+  if(S.tab===1) c.textContent='금색 점선 안의 물체를 끌어 옮겨 보세요. 상이 늘 같은 거리만큼 함께 움직이고, 아래 그림에서는 물체와 상이 함께 작아지거나 커집니다.';
+  else if(S.tab===4) c.textContent='다섯 가지 거울·렌즈의 특징을 확인한 뒤 아래 활동을 해 보세요.';
+  else c.textContent='금색 점선 안의 물체를 끌어 옮기면 오른쪽 창에 보이는 모습이 달라집니다. 빨간 삼각형과 글자로 방향을 확인하세요.';
+}
+
+/* ---------------- 퀴즈 ---------------- */
+var QZ = {
+  1:{q:'평면거울 앞에 서 있다가 두 걸음 뒤로 물러났습니다. 거울 속 내 모습은 작아 보입니다. 그러면 상의 크기가 정말 줄어든 걸까요?',
+     c:['그렇다. 상이 실제로 작아졌다','아니다. 멀어져서 작게 보일 뿐, 크기는 물체와 똑같다','아니다. 상은 오히려 커졌다'], k:7,
+     y:'맞아요. 멀어지면 작아 “보이지만”, 실제 물체를 같은 자리에 두어도 똑같이 작아 보입니다. 그래서 둘의 크기는 언제나 같아요.',
+     n:'물체를 끌어 옮기면서 아래 금색 눈금을 보세요. 두 그림이 함께 작아지지만 눈금은 늘 두 그림에 딱 맞습니다.'},
+  2:{q:'편의점 천장에 달린 둥근 거울(볼록 거울)에 비친 사람은 어떻게 보일까요?',
+     c:['뒤집혀 보인다','실제보다 크고 똑바로 보인다','실제보다 작고 똑바로 보인다'], k:11,
+     y:'맞아요. 볼록 거울은 언제나 작고 똑바로 보이는 대신 넓은 범위를 볼 수 있습니다.',
+     n:'볼록 거울로 바꿔서 거리를 여러 번 움직여 보세요. 항상 같은 모습이 나옵니다.'},
+  3:{q:'돋보기를 글자에 바짝 붙였다가 천천히 멀리 떼어 놓으면 어떻게 될까요?',
+     c:['어느 순간부터 뒤집혀 보인다','계속 커지기만 한다','아무 변화가 없다'], k:3,
+     y:'맞아요. 어느 자리를 지나면 상이 흐려졌다가 뒤집혀 보이기 시작합니다.',
+     n:'볼록 렌즈로 두고 슬라이더를 끝까지 밀어 보세요. 빨간 삼각형이 아래를 향합니다.'}
+};
+function ansOf(k){ return (k-3)/4; }
+function renderQuiz(){
+  var box=document.getElementById('qzcard');
+  if(S.tab===4){ box.style.display='none'; return; }
+  box.style.display='';
+  var q = QZ[S.tab];
+  document.getElementById('qq').textContent=q.q;
+  var o=document.getElementById('qo'); o.innerHTML='';
+  document.getElementById('qf').textContent=''; document.getElementById('qf').className='fb';
+  q.c.forEach(function(t,i){
+    var b=document.createElement('button'); b.type='button'; b.textContent=t;
+    b.addEventListener('click',function(){
+      var a=ansOf(q.k);
+      var f=document.getElementById('qf');
+      Array.prototype.forEach.call(o.children,function(x){x.className='';});
+      if(i===a){ b.className='right'; f.textContent='⭕ '+q.y; f.className='fb ok'; }
+      else { b.className='wrong'; o.children[a].className='right'; f.textContent='❌ '+q.n; f.className='fb no'; }
+    });
+    o.appendChild(b);
+  });
+}
+
+/* ---------------- 분류 활동 ---------------- */
+var CATS=['평면거울','볼록 거울','오목 거울','볼록 렌즈','오목 렌즈'];
+var ITEMS=[
+  {t:'자동차 옆에 달린 사이드미러 — 뒤쪽을 넓게 보려고 씁니다', k:7},
+  {t:'치과에서 어금니를 크게 보려고 대는 작은 거울', k:11},
+  {t:'신문 글씨를 크게 보는 돋보기', k:15},
+  {t:'멀리 있는 것이 잘 안 보이는 사람이 쓰는 근시용 안경알', k:19},
+  {t:'화장실 벽에 붙어 있는 네모난 거울', k:3},
+  {t:'손전등 전구 뒤의 반짝이는 오목한 반사판', k:11},
+  {t:'편의점 천장에 달린 둥근 방범 거울', k:7},
+  {t:'사진기(카메라) 앞에 달린 렌즈', k:15}
+];
+var sIdx=0, sScore=0, sDone=false;
+function renderSort(){
+  var card=document.getElementById('sortcard');
+  if(S.tab!==4){ card.style.display='none'; return; }
+  card.style.display='';
+  var it=ITEMS[sIdx];
+  document.getElementById('sprog').textContent=(sIdx+1)+' / '+ITEMS.length+' 문항';
+  document.getElementById('sitem').textContent= sDone ? '활동을 마쳤습니다!' : it.t;
+  var cs=document.getElementById('scats'); cs.innerHTML='';
+  if(!sDone){
+    CATS.forEach(function(name,i){
+      var b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent=name;
+      b.addEventListener('click',function(){ answerSort(i); });
+      cs.appendChild(b);
+    });
+  }
+  document.getElementById('stally').textContent = '맞힌 개수: '+sScore+' / '+(sDone?ITEMS.length:sIdx);
+}
+function answerSort(i){
+  var it=ITEMS[sIdx], a=ansOf(it.k);
+  var f=document.getElementById('sfb');
+  if(i===a){ sScore++; f.textContent='⭕ 맞았어요 — '+CATS[a]; f.className='fb ok'; }
+  else { f.textContent='❌ 아쉬워요. 정답은 '+CATS[a]+' 입니다.'; f.className='fb no'; }
+  if(sIdx < ITEMS.length-1){ sIdx++; } else { sDone=true; }
+  renderSort();
+}
+document.getElementById('sreset').addEventListener('click',function(){
+  sIdx=0; sScore=0; sDone=false;
+  document.getElementById('sfb').textContent=''; document.getElementById('sfb').className='fb';
+  renderSort();
+});
+
+/* ---------------- 탭/컨트롤 ---------------- */
+function setTab(n){
+  S.tab=n;
+  [1,2,3,4].forEach(function(i){
+    document.getElementById('t'+i).setAttribute('aria-selected', i===n ? 'true':'false');
+  });
+  var kb=document.getElementById('kindbox');
+  var kA=document.getElementById('kA'), kB=document.getElementById('kB');
+  var lab=document.getElementById('kindlab');
+  if(n===2){ kb.style.display=''; lab.textContent='거울 고르기'; kA.textContent='볼록 거울'; kB.textContent='오목 거울';
+    kA.setAttribute('aria-pressed', S.mirrorKind==='convexM'); kB.setAttribute('aria-pressed', S.mirrorKind==='concaveM'); }
+  else if(n===3){ kb.style.display=''; lab.textContent='렌즈 고르기'; kA.textContent='볼록 렌즈'; kB.textContent='오목 렌즈';
+    kA.setAttribute('aria-pressed', S.lensKind==='convexL'); kB.setAttribute('aria-pressed', S.lensKind==='concaveL'); }
+  else { kb.style.display='none'; }
+
+  document.getElementById('ctlcard').style.display = (n===4) ? 'none' : '';
+  document.getElementById('stagecard').style.display='';
+  document.getElementById('resultcard').style.display = (n===4) ? 'none':'';
+  renderCaption(); renderResult(); renderQuiz(); renderSort(); fit();
+}
+[1,2,3,4].forEach(function(i){
+  document.getElementById('t'+i).addEventListener('click',function(){ setTab(i); });
+});
+document.getElementById('kA').addEventListener('click',function(){
+  if(S.tab===2) S.mirrorKind='convexM'; else S.lensKind='convexL';
+  this.setAttribute('aria-pressed','true'); document.getElementById('kB').setAttribute('aria-pressed','false');
+  draw(); renderResult();
+});
+document.getElementById('kB').addEventListener('click',function(){
+  if(S.tab===2) S.mirrorKind='concaveM'; else S.lensKind='concaveL';
+  this.setAttribute('aria-pressed','true'); document.getElementById('kA').setAttribute('aria-pressed','false');
+  draw(); renderResult();
+});
+/* 캔버스에서 물체 끌기 */
+var dragging=false;
+function inZone(e){
+  var r=cv.getBoundingClientRect(), y=e.clientY-r.top, g=geom();
+  return (S.tab===1||S.tab===2||S.tab===3) && y>=g.zone[0] && y<=g.zone[1];
+}
+function moveObj(e){
+  var r=cv.getBoundingClientRect();
+  setDist(xToDist(e.clientX-r.left));
+}
+cv.addEventListener('pointerdown',function(e){
+  if(!inZone(e)) return;
+  dragging=true; cv.focus();
+  try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+  moveObj(e); e.preventDefault();
+});
+cv.addEventListener('pointermove',function(e){
+  if(dragging){ moveObj(e); return; }
+  cv.style.cursor = inZone(e) ? 'ew-resize' : 'default';
+});
+cv.addEventListener('pointerup',function(){ dragging=false; });
+cv.addEventListener('pointercancel',function(){ dragging=false; });
+cv.addEventListener('pointerleave',function(){ cv.style.cursor='default'; });
+/* 키보드로 물체 옮기기 */
+cv.addEventListener('keydown',function(e){
+  if(S.tab===4) return;
+  var step = e.shiftKey ? 10 : 2, k=e.key;
+  if(k==='ArrowRight'||k==='ArrowUp') setDist(S.dist+step);
+  else if(k==='ArrowLeft'||k==='ArrowDown') setDist(S.dist-step);
+  else if(k==='Home') setDist(5);
+  else if(k==='End') setDist(90);
+  else return;
+  e.preventDefault();
+});
+document.getElementById('save').addEventListener('click',function(){
+  try{
+    var a=document.createElement('a');
+    a.download='거울과렌즈로본모습_'+(S.tab===1?'평면거울':(S.tab===4?'정리':cur().name))+'.png';
+    a.href=cv.toDataURL('image/png'); a.click();
+  }catch(e){ alert('이 환경에서는 그림 저장이 제한됩니다. 화면을 캡처해 사용하세요.'); }
+});
+document.getElementById('pr').addEventListener('click',function(){ window.print(); });
+var ttBtn=document.getElementById('tt');
+function setTeacher(v){
+  S.teacher=v;
+  document.body.classList.toggle('teacher-on',v);
+  ttBtn.textContent = v ? '👩‍🏫 교사용 정보 숨기기' : '👩‍🏫 교사용 정보 보기';
+  ttBtn.setAttribute('aria-pressed', v?'true':'false');
+  try{ localStorage.setItem('mlms-teacher', v?'1':'0'); }catch(e){}
+}
+ttBtn.addEventListener('click',function(){ setTeacher(!S.teacher); });
+try{ setTeacher(localStorage.getItem('mlms-teacher')==='1'); }catch(e){ setTeacher(false); }
+
+window.addEventListener('resize', fit);
+
+/* 자동 검사용 훅 */
+window.__mlms = {
+  setTab:setTab, setDist:setDist, geom:geom, distToX:distToX, xToDist:xToDist, perspK:perspK,
+  setKind:function(k){ if(k==='A') document.getElementById('kA').click(); else document.getElementById('kB').click(); },
+  imageOf:imageOf, OPT:OPT, S:S, ansOf:ansOf, ITEMS:ITEMS, QZ:QZ
+};
+
+setTab(1);
+})();
+</script>
+</body>
+</html>
