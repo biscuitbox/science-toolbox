@@ -1,6 +1,21 @@
 {
   "tools": [
     {
+    "id": "mirror-lens-image-ms",
+    "name": "거울과 렌즈로 본 모습",
+    "description": "물체를 끌어 옮기며 거울·렌즈에 보이는 모습을 견주는 관찰 실험",
+    "category": "physics",
+    "path": "physics/mirror-lens-image-ms/",
+    "tags": ["빛", "거울", "렌즈", "평면거울", "볼록거울", "오목거울", "볼록렌즈", "오목렌즈", "상"],
+    "level": "중1~중3",
+    "featured": true,
+    "activityType": "시뮬레이션",
+    "target": "중학교 1~3학년 '빛과 파동' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "숟가락·돋보기·손거울(실물 확인용, 선택)", "인쇄한 활동지(선택)"],
+    "achievementStandard": ["9과10-02"]
+    },
+    {
     "id": "light-color-lab",
     "name": "빛의 합성 가상실험",
     "description": "빨강·초록·파랑 빛을 겹쳐 보고 화면 픽셀과 물체의 색까지 알아보는 실험",
