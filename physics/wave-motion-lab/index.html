@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>파동의 움직임 가상실험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf7f2;
+  --card:#fffdf9;
+  --ink:#2b2b2b;
+  --muted:#6b6459;
+  --border:#e2dbcd;
+  --border2:#cfc6b4;
+  --accent:#2f6fb0;        /* 물리 = 파랑 */
+  --accent-soft:#e8f0f8;
+  --accent-dark:#1d4d7e;
+  --ball:#e07b39;          /* 탁구공 주황 */
+  --wood:#a9773f;
+  --water:#cfe6f2;
+  --water-deep:#a9d3e8;
+  --ok:#2c7a52;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  padding:18px 14px 60px;
+}
+.wrap{max-width:920px;margin:0 auto}
+
+h1{
+  font-family:"Gowun Batang",serif;
+  font-size:1.55rem;
+  margin:6px 0 2px;
+  letter-spacing:-.01em;
+}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+
+/* ---------- 탭 ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tab{
+  font:inherit;font-size:.95rem;
+  padding:9px 14px;border-radius:10px 10px 0 0;
+  border:1px solid var(--border2);border-bottom:none;
+  background:#f2ece1;color:var(--muted);cursor:pointer;
+}
+.tab[aria-selected="true"]{background:var(--card);color:var(--accent-dark);font-weight:700;box-shadow:inset 0 3px 0 var(--accent)}
+.tab:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:0 12px 12px 12px;
+  padding:14px;
+}
+.stagewrap{
+  position:relative;
+  background:#fbfaf6;
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+
+/* ---------- 컨트롤 ---------- */
+.controls{margin-top:12px;display:grid;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button.btn{
+  font:inherit;font-size:.94rem;
+  padding:9px 14px;border-radius:9px;
+  border:1px solid var(--accent);
+  background:var(--accent);color:#fff;cursor:pointer;
+  transition:background .2s ease;
+}
+button.btn:hover{background:var(--accent-dark)}
+button.btn.ghost{background:#fff;color:var(--accent-dark)}
+button.btn.ghost:hover{background:var(--accent-soft)}
+button.btn:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+button.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.slider{
+  display:flex;align-items:center;gap:10px;
+  background:#fbf8f2;border:1px solid var(--border);
+  border-radius:9px;padding:7px 11px;flex:1 1 250px;min-width:230px;
+}
+.slider label{font-size:.9rem;white-space:nowrap;color:var(--muted)}
+.slider input[type=range]{flex:1;min-width:80px;accent-color:var(--accent)}
+.slider .val{font-variant-numeric:tabular-nums;font-weight:700;min-width:4.6em;text-align:right;font-size:.9rem}
+
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.chk{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--border2);border-radius:20px;
+  padding:6px 13px 6px 10px;background:#fff;cursor:pointer;font-size:.9rem;
+}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+
+/* ---------- 안내/설명 ---------- */
+.note{
+  margin-top:12px;background:var(--accent-soft);
+  border-left:4px solid var(--accent);
+  border-radius:0 9px 9px 0;padding:11px 13px;font-size:.92rem;
+}
+.note b{color:var(--accent-dark)}
+.readout{
+  margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;
+}
+.rd{
+  border:1px solid var(--border);border-radius:9px;background:#fbf8f2;padding:8px 11px;
+}
+.rd .k{font-size:.8rem;color:var(--muted);display:block}
+.rd .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.05rem}
+
+table.terms{border-collapse:collapse;width:100%;margin-top:10px;font-size:.9rem}
+table.terms th,table.terms td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+table.terms th{background:#f4efe5;width:6.5em;white-space:nowrap}
+
+details.teacher{
+  margin-top:14px;border:1px dashed var(--border2);border-radius:10px;
+  background:#fdfbf6;padding:0 12px;
+}
+details.teacher summary{
+  cursor:pointer;padding:10px 0;font-weight:700;font-size:.94rem;color:var(--accent-dark);
+}
+details.teacher[open]{padding-bottom:12px}
+details.teacher ul{margin:4px 0 0;padding-left:20px;font-size:.9rem}
+details.teacher li{margin-bottom:5px}
+.std{
+  display:inline-block;background:#fff;border:1px solid var(--accent);
+  color:var(--accent-dark);border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:700;
+}
+footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
+
+/* ---------- 인쇄 활동지 ---------- */
+.printonly{display:none}
+@media print{
+  @page{size:A4 portrait;margin:14mm}
+  body{background:#fff;padding:0;font-size:11pt}
+  .tabs,.controls,details.teacher,.no-print,footer.src,.toolbox-back-link{display:none !important}
+  .card{border:none;padding:0;border-radius:0}
+  .stagewrap{border:1px solid #999;page-break-inside:avoid}
+  .printonly{display:block}
+  h1{font-size:16pt;margin-bottom:2px}
+  .note{background:#f4f4f4;border-left:3px solid #666;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .sheet h2{font-size:12pt;margin:14px 0 6px;border-bottom:1.5px solid #333;padding-bottom:3px}
+  .sheet ol{padding-left:19px;margin:0}
+  .sheet li{margin-bottom:15px;page-break-inside:avoid}
+  .lines{border-bottom:1px solid #bbb;height:19px;margin-top:5px}
+  .namebar{display:flex;gap:14px;font-size:10.5pt;margin-bottom:8px;border-bottom:1px solid #333;padding-bottom:4px}
+  .namebar span{border-bottom:1px solid #bbb;min-width:80px;display:inline-block}
+}
+@media (max-width:560px){
+  body{padding:14px 10px 50px}
+  h1{font-size:1.3rem}
+  .tab{padding:8px 11px;font-size:.88rem}
+  .slider{min-width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>파동의 움직임 가상실험</h1>
+  <p class="sub">수조에 물결을 일으켜 <b>탁구공이 어떻게 움직이는지</b> 관찰하고, 마루·골·파장·진폭·주기·진동수를 확인합니다.</p>
+
+  <div class="tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 수조에서 관찰</button>
+    <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false">② 위에서 본 물결파</button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false">③ 파형 그래프</button>
+  </div>
+
+  <!-- ================= 탭 1 ================= -->
+  <section class="card" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+    <div class="stagewrap"><canvas id="cv1" height="360" aria-label="사각 수조를 옆에서 본 모습. 나무 막대로 수면을 누르면 물결이 퍼지고 탁구공이 위아래로 진동합니다."></canvas></div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="btn" id="b1-pulse">막대로 한 번 누르기</button>
+        <button class="btn ghost" id="b1-cont">계속 흔들기</button>
+        <button class="btn ghost" id="b1-reset">처음으로</button>
+        <button class="btn ghost" id="b1-shot">📷 화면 저장</button>
+      </div>
+      <div class="row">
+        <div class="slider">
+          <label for="s1-amp">누르는 세기</label>
+          <input type="range" id="s1-amp" min="12" max="52" value="32" step="4">
+          <span class="val" id="s1-amp-v">보통</span>
+        </div>
+        <div class="slider">
+          <label for="s1-freq">흔드는 빠르기</label>
+          <input type="range" id="s1-freq" min="6" max="20" value="11" step="1">
+          <span class="val" id="s1-freq-v">1.1 Hz</span>
+        </div>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c1-arrow" checked> 화살표 표시</label>
+        <label class="chk"><input type="checkbox" id="c1-particle" checked> 물 입자 보기</label>
+        <label class="chk"><input type="checkbox" id="c1-guide" checked> 처음 수면·최고·최저선</label>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>무엇을 볼까요?</b> 물결은 오른쪽·왼쪽으로 <b>퍼져 나가지만</b>, 탁구공과 물 입자는 <b>제자리에서 위아래로만</b> 진동합니다.
+      파동을 전달하는 물질(여기서는 물)을 <b>매질</b>이라고 하며, 매질은 파동과 함께 이동하지 않습니다.
+    </div>
+  </section>
+
+  <!-- ================= 탭 2 ================= -->
+  <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+    <div class="stagewrap"><canvas id="cv2" height="360" aria-label="수면을 위에서 본 모습. 마루와 골이 동심원 모양으로 번갈아 퍼져 나갑니다."></canvas></div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="btn" id="b2-play">⏸ 멈춤</button>
+        <button class="btn ghost" id="b2-reset">처음으로</button>
+        <button class="btn ghost" id="b2-shot">📷 화면 저장</button>
+      </div>
+      <div class="row">
+        <div class="slider">
+          <label for="s2-freq">진동수</label>
+          <input type="range" id="s2-freq" min="5" max="20" value="10" step="1">
+          <span class="val" id="s2-freq-v">1.0 Hz</span>
+        </div>
+        <div class="slider">
+          <label for="s2-amp">진폭</label>
+          <input type="range" id="s2-amp" min="6" max="24" value="15" step="1">
+          <span class="val" id="s2-amp-v">보통</span>
+        </div>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c2-label" checked> 마루·골 이름표</label>
+        <label class="chk"><input type="checkbox" id="c2-ruler" checked> 파장 재기</label>
+      </div>
+      <div class="readout">
+        <div class="rd"><span class="k">진동수</span><span class="v" id="r2-f">1.0 Hz</span></div>
+        <div class="rd"><span class="k">주기</span><span class="v" id="r2-t">1.00 초</span></div>
+        <div class="rd"><span class="k">파장</span><span class="v" id="r2-l">28 cm</span></div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>무엇을 볼까요?</b> 높은 곳(<b>마루</b>)과 낮은 곳(<b>골</b>)이 번갈아 만들어지며 원 모양으로 퍼집니다.
+      이웃한 마루와 마루 사이의 거리가 <b>파장</b>입니다. 빠르게 흔들수록(진동수↑) 파장은 <b>짧아집니다</b>.
+      가운데의 탁구공은 계속 <b>제자리</b>에 있고 높이만 오르내립니다.
+    </div>
+  </section>
+
+  <!-- ================= 탭 3 ================= -->
+  <section class="card" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+    <div class="stagewrap"><canvas id="cv3" height="430" aria-label="위쪽은 거리에 따른 물결 모양 그래프로 파장과 진폭을, 아래쪽은 시간에 따른 탁구공의 높이 그래프로 주기를 나타냅니다."></canvas></div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="btn" id="b3-play">⏸ 멈춤</button>
+        <button class="btn ghost" id="b3-shot">📷 화면 저장</button>
+      </div>
+      <div class="row">
+        <div class="slider">
+          <label for="s3-amp">진폭</label>
+          <input type="range" id="s3-amp" min="5" max="30" value="18" step="1">
+          <span class="val" id="s3-amp-v">3.0 cm</span>
+        </div>
+        <div class="slider">
+          <label for="s3-lam">파장</label>
+          <input type="range" id="s3-lam" min="20" max="80" value="40" step="2">
+          <span class="val" id="s3-lam-v">40 cm</span>
+        </div>
+        <div class="slider">
+          <label for="s3-freq">진동수</label>
+          <input type="range" id="s3-freq" min="5" max="25" value="10" step="1">
+          <span class="val" id="s3-freq-v">1.0 Hz</span>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="rd"><span class="k">진폭</span><span class="v" id="r3-a">3.0 cm</span></div>
+        <div class="rd"><span class="k">파장</span><span class="v" id="r3-l">40 cm</span></div>
+        <div class="rd"><span class="k">주기</span><span class="v" id="r3-t">1.00 초</span></div>
+        <div class="rd"><span class="k">진동수</span><span class="v" id="r3-f">1.0 Hz</span></div>
+      </div>
+    </div>
+
+    <div class="note" id="n3">
+      <b>진동수와 주기는 역수 관계</b> — 진동수 = 1 ÷ 주기 = 1 ÷ 1.00초 = <b>1.0 Hz</b>.
+      위 그래프의 가로축은 <b>거리</b>라서 파장을, 아래 그래프의 가로축은 <b>시간</b>이라서 주기를 읽습니다. 가로축이 무엇인지 꼭 확인하세요.
+    </div>
+
+    <table class="terms">
+      <tr><th>매질</th><td>파동을 전달하는 물질. 물결파의 매질은 물이며, 제자리에서 진동만 할 뿐 파동을 따라 이동하지 않는다.</td></tr>
+      <tr><th>마루 · 골</th><td>가장 높은 곳이 마루, 가장 낮은 곳이 골.</td></tr>
+      <tr><th>파장</th><td>이웃한 마루와 마루(또는 골과 골) 사이의 거리.</td></tr>
+      <tr><th>진폭</th><td>진동 중심에서 마루(또는 골)까지의 거리.</td></tr>
+      <tr><th>주기</th><td>매질의 한 점이 한 번 진동하여 제자리에 오는 데 걸리는 시간. 단위는 초(s).</td></tr>
+      <tr><th>진동수</th><td>1초 동안 매질의 한 점이 진동하는 횟수. 단위는 헤르츠(Hz). 진동수 = 1 ÷ 주기.</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 교사용 정보 ================= -->
+  <details class="teacher no-print">
+    <summary>교사용 정보 보기</summary>
+    <p style="margin:6px 0"><span class="std">9과10-04</span> 파동의 발생과 전달 과정을 이해하고, 소리의 특성을 진폭, 진동수, 파형 등의 과학적 용어로 표현할 수 있다.</p>
+    <ul>
+      <li><b>교육과정 유의점</b> — 성취기준 해설에 따라 <b>종파와 횡파는 구분하지 않습니다.</b> 이 도구도 두 용어를 쓰지 않습니다.</li>
+      <li><b>속력 v = fλ</b>는 중학교 성취기준에 포함되지 않아 화면에 넣지 않았습니다. 필요하면 심화 발문으로만 다루세요.</li>
+      <li><b>수준별 활용</b> — 하(D·E): 탭①에서 "한 번 누르기"만 반복하며 탁구공이 가로로 가지 않는다는 것 한 가지만 확인. 중(B·C): 탭②에서 진동수를 바꿔 파장 변화를 읽기. 상(A): 탭③에서 두 그래프의 가로축 차이를 설명하고 주기·진동수의 역수 관계를 계산.</li>
+      <li><b>자주 나오는 오개념</b> — "물결과 함께 물도 따라 흘러간다"(탭① 물 입자 보기로 교정), "파장은 마루의 높이다"(탭③ 진폭 화살표와 나란히 비교).</li>
+      <li><b>실물 실험 연계</b> — 사각 수조에 물을 <sup>2</sup>⁄<sub>3</sub> 채우고 탁구공을 띄운 뒤 나무 막대로 수면을 한 번 누릅니다. 실물에서는 물결이 벽에 반사되어 관찰이 어렵습니다. 이 도구는 반사를 넣지 않아 첫 관찰에 적합합니다.</li>
+      <li><b>모형의 한계</b> — 실제 물 입자는 원에 가깝게 돕니다. 이 도구는 중학교 수준에 맞춰 <b>위아래 진동</b>으로 단순화한 모형입니다.</li>
+    </ul>
+  </details>
+
+  <!-- ================= 인쇄 활동지 ================= -->
+  <div class="printonly sheet">
+    <div class="namebar"><b>파동의 움직임 관찰하기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
+    <h2>1. 관찰한 것 쓰기</h2>
+    <ol>
+      <li>나무 막대로 수면을 한 번 눌렀을 때, <b>물결</b>은 어느 방향으로 움직였나요?
+        <div class="lines"></div></li>
+      <li>같은 순간 <b>탁구공</b>은 어느 방향으로 움직였나요? 화살표로도 그려 봅시다.
+        <div class="lines"></div><div class="lines"></div></li>
+      <li>물결이 오른쪽으로 퍼져 나갔는데도 탁구공이 오른쪽으로 떠내려가지 않은 까닭을 <b>매질</b>이라는 말을 넣어 설명해 봅시다.
+        <div class="lines"></div><div class="lines"></div></li>
+    </ol>
+    <h2>2. 용어 정리</h2>
+    <ol start="4">
+      <li>그림에 <b>마루 · 골 · 파장 · 진폭</b>을 표시해 봅시다. (②·③ 화면을 보고 그리기)
+        <div class="lines" style="height:80px"></div></li>
+      <li>어떤 물결의 주기가 0.5초입니다. 진동수는 몇 Hz인가요? 계산 과정도 쓰세요.
+        <div class="lines"></div><div class="lines"></div></li>
+      <li>빠르게 흔들수록(진동수가 커질수록) 파장은 어떻게 되나요? ②번 화면에서 확인한 것을 쓰세요.
+        <div class="lines"></div></li>
+    </ol>
+  </div>
+
+  <footer class="src">모든 그림은 직접 그린 것입니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과10-04]</footer>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   공통 도우미
+   ========================================================= */
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+function fitCanvas(cv, cssH){
+  var w = cv.parentNode.clientWidth;
+  cv.width  = Math.round(w * DPR);
+  cv.height = Math.round(cssH * DPR);
+  cv.style.height = cssH + "px";
+  var ctx = cv.getContext("2d");
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  return {w:w, h:cssH, ctx:ctx};
+}
+
+function arrow(ctx, x1,y1,x2,y2, color, width, head){
+  head = head || 9; width = width || 3;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = width; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  var a = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2 - head*Math.cos(a-0.42), y2 - head*Math.sin(a-0.42));
+  ctx.lineTo(x2 - head*Math.cos(a+0.42), y2 - head*Math.sin(a+0.42));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* 배경이 있는 글자 — 어떤 색 위에서도 읽히도록 */
+function tag(ctx, text, x, y, opt){
+  opt = opt || {};
+  var pad = opt.pad === undefined ? 5 : opt.pad;
+  ctx.save();
+  ctx.font = opt.font || "bold 13px Pretendard, sans-serif";
+  var w = ctx.measureText(text).width;
+  var h = opt.h || 20;
+  var bx = opt.align === "right" ? x - w - pad*2 : (opt.align === "center" ? x - w/2 - pad : x);
+  ctx.fillStyle = opt.bg || "rgba(255,253,249,.92)";
+  ctx.strokeStyle = opt.border || "#cfc6b4";
+  ctx.lineWidth = 1;
+  if (ctx.roundRect){ ctx.beginPath(); ctx.roundRect(bx, y-h/2, w+pad*2, h, 6); ctx.fill(); ctx.stroke(); }
+  else { ctx.fillRect(bx, y-h/2, w+pad*2, h); ctx.strokeRect(bx, y-h/2, w+pad*2, h); }
+  ctx.fillStyle = opt.color || "#2b2b2b";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, bx+pad, y+1);
+  ctx.restore();
+  return {x:bx, w:w+pad*2};
+}
+
+function dashLine(ctx, x1,y1,x2,y2, color, dash){
+  ctx.save();
+  ctx.setLineDash(dash || [6,5]);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.restore();
+}
+
+/* 양쪽 화살표 + 가운데 이름표 (파장·진폭·주기 재기) */
+function measureBar(ctx, x1, x2, y, label, color){
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+  [[x1,1],[x2,-1]].forEach(function(p){
+    ctx.beginPath();
+    ctx.moveTo(p[0], y);
+    ctx.lineTo(p[0]+8*p[1], y-5);
+    ctx.lineTo(p[0]+8*p[1], y+5);
+    ctx.closePath(); ctx.fill();
+  });
+  ctx.restore();
+  tag(ctx, label, (x1+x2)/2, y, {align:"center", color:color, border:color});
+}
+
+/* PNG 저장 — 제목 띠를 얹어 한 장으로 */
+function saveShot(cv, title){
+  var out = document.createElement("canvas");
+  var band = 46 * DPR;
+  out.width = cv.width; out.height = cv.height + band;
+  var c = out.getContext("2d");
+  c.fillStyle = "#fffdf9"; c.fillRect(0,0,out.width,out.height);
+  c.drawImage(cv, 0, band);
+  c.fillStyle = "#2f6fb0"; c.fillRect(0,0,out.width, 4*DPR);
+  c.fillStyle = "#2b2b2b";
+  c.font = "bold " + (17*DPR) + "px Pretendard, sans-serif";
+  c.fillText(title, 14*DPR, 30*DPR);
+  var d = new Date();
+  var stamp = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  c.font = (12*DPR)+"px Pretendard, sans-serif"; c.fillStyle = "#8d8577";
+  var s = "파동의 움직임 가상실험 · " + stamp;
+  c.fillText(s, out.width - c.measureText(s).width - 14*DPR, 30*DPR);
+
+  var a = document.createElement("a");
+  a.download = "파동의움직임_" + stamp + ".png";
+  a.href = out.toDataURL("image/png");
+  a.click();
+}
+
+/* =========================================================
+   탭 전환
+   ========================================================= */
+var tabs = [].slice.call(document.querySelectorAll(".tab"));
+var panels = [1,2,3].map(function(n){ return document.getElementById("panel-"+n); });
+var current = 1;
+
+function selectTab(n){
+  current = n;
+  tabs.forEach(function(t,i){ t.setAttribute("aria-selected", (i+1)===n ? "true":"false"); });
+  panels.forEach(function(p,i){ p.hidden = (i+1)!==n; });
+  resizeAll();
+}
+tabs.forEach(function(t,i){
+  t.addEventListener("click", function(){ selectTab(i+1); });
+  t.addEventListener("keydown", function(e){
+    if(e.key === "ArrowRight" || e.key === "ArrowLeft"){
+      e.preventDefault();
+      var n = i + (e.key === "ArrowRight" ? 1 : -1);
+      if(n < 0) n = tabs.length-1;
+      if(n >= tabs.length) n = 0;
+      tabs[n].focus(); selectTab(n+1);
+    }
+  });
+});
+
+/* =========================================================
+   탭 ① 수조에서 관찰
+   ========================================================= */
+var cv1 = document.getElementById("cv1");
+var S1 = {
+  mode: "idle",        /* idle | pulse | cont */
+  t0: 0,               /* 발생 시각 */
+  tEnd: Infinity,      /* 진동을 멈춘 시각(연속파) */
+  amp: 32,
+  freq: 1.1,
+  v: 150,              /* 물결이 퍼지는 빠르기 px/s */
+  arrow: true, particle: true, guide: true,
+  W:0, H:0, ctx:null
+};
+
+var P1 = { left:0, right:0, top:0, bottom:0, restY:0, xStick:0, xBall:0 };
+
+function layout1(){
+  var g = fitCanvas(cv1, cv1.parentNode.clientWidth < 480 ? 340 : 360);
+  S1.W = g.w; S1.H = g.h; S1.ctx = g.ctx;
+  P1.left = 22; P1.right = g.w - 22;
+  P1.top = 78; P1.bottom = g.h - 26;
+  P1.restY = P1.top + 56;   /* 진폭이 커져도 마루와 탁구공이 수조 윗변에 닿지 않도록 여유를 둔다 */
+  P1.xStick = P1.left + Math.max(52, g.w*0.13);
+  P1.xBall  = P1.left + (P1.right-P1.left) * 0.55;
+}
+
+/* 어느 위치 x, 시각 t 에서 수면이 얼마나 올라갔는지(px, 위가 +) */
+function disp1(x, t){
+  if (S1.mode === "idle") return 0;
+  var d = Math.abs(x - P1.xStick);
+  var tt = t - S1.t0;
+  if (tt <= 0) return 0;
+
+  if (S1.mode === "pulse"){
+    /* 누른 자리에서 좌우로 퍼지는 물결 덩어리 — 골이 먼저, 이어서 마루 */
+    var L = 105;                       /* 물결 덩어리 길이 */
+    var s = d - S1.v * tt;             /* 0이 물결의 앞머리 */
+    var env = Math.exp(-Math.pow(s/(L*0.55), 2));
+    if (env < 0.004) return 0;
+    return -S1.amp * Math.sin(2*Math.PI*s/L) * env;
+  }
+
+  /* 연속파 */
+  var T = 1/S1.freq;
+  var arrive = d / S1.v;               /* 물결이 이 자리에 닿기까지 걸린 시간 */
+  var ph = tt - arrive;
+  if (ph <= 0) return 0;
+  var stopped = (S1.tEnd - S1.t0);     /* 흔들기를 멈춘 뒤로 지난 시간 */
+  if (ph > stopped) return 0;          /* 뒤쪽은 잔잔해짐 */
+  var fadeIn  = Math.min(1, ph / (T*0.5));
+  var fadeOut = Math.min(1, (stopped - ph) / (T*0.5));
+  return -S1.amp * Math.sin(2*Math.PI*ph/T) * fadeIn * fadeOut;
+}
+
+function stickY(t){
+  /* 막대 끝의 높이 */
+  if (S1.mode === "pulse"){
+    var tt = t - S1.t0;
+    if (tt < 0 || tt > 0.55) return P1.restY - 26;
+    var k = Math.sin(Math.PI * Math.min(1, tt/0.45));
+    return P1.restY - 26 + k * (26 + S1.amp*0.8);
+  }
+  if (S1.mode === "cont" && t < S1.tEnd){
+    return P1.restY + disp1(P1.xStick, t) * -1 - 2;
+  }
+  return P1.restY - 26;
+}
+
+function draw1(t){
+  var ctx = S1.ctx, W = S1.W, H = S1.H;
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H);
+
+  /* --- 배경 --- */
+  ctx.fillStyle = "#fbfaf6"; ctx.fillRect(0,0,W,H);
+
+  /* --- 수조(유리) --- */
+  var tankTop = P1.top - 26;
+  ctx.save();
+  ctx.strokeStyle = "#9aa7ad"; ctx.lineWidth = 3; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(P1.left, tankTop);
+  ctx.lineTo(P1.left, P1.bottom);
+  ctx.lineTo(P1.right, P1.bottom);
+  ctx.lineTo(P1.right, tankTop);
+  ctx.stroke();
+  ctx.restore();
+
+  /* --- 물 --- */
+  var pts = [];
+  for(var x = P1.left; x <= P1.right; x += 3){
+    pts.push([x, P1.restY - disp1(x, t)]);
+  }
+  var grad = ctx.createLinearGradient(0, P1.restY-30, 0, P1.bottom);
+  grad.addColorStop(0, "#d9edf7");
+  grad.addColorStop(1, "#a9d3e8");
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(P1.left, P1.bottom);
+  pts.forEach(function(p,i){ i===0 ? ctx.lineTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]); });
+  ctx.lineTo(P1.right, P1.bottom);
+  ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle = "#3f8fbe"; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  pts.forEach(function(p,i){ i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]); });
+  ctx.stroke();
+  ctx.restore();
+
+  /* --- 처음 수면 / 최고·최저선 --- */
+  if(S1.guide){
+    dashLine(ctx, P1.left, P1.restY, P1.right, P1.restY, "#6b6459", [7,6]);
+    tag(ctx, "처음 수면", P1.right - 6, P1.restY, {align:"right", color:"#6b6459"});
+    if(S1.mode !== "idle"){
+      dashLine(ctx, P1.left, P1.restY - S1.amp, P1.right, P1.restY - S1.amp, "#b8b0a2", [3,5]);
+      dashLine(ctx, P1.left, P1.restY + S1.amp, P1.right, P1.restY + S1.amp, "#b8b0a2", [3,5]);
+    }
+  }
+
+  /* --- 물 입자 --- */
+  if(S1.particle){
+    ctx.save();
+    var cols = Math.max(6, Math.floor((P1.right-P1.left)/58));
+    for(var c=0;c<cols;c++){
+      var px = P1.left + 24 + c*((P1.right-P1.left-48)/(cols-1));
+      for(var r=0;r<2;r++){
+        var depth = 22 + r*26;
+        var decay = Math.exp(-depth/70);
+        var py = P1.restY + depth - disp1(px, t)*decay;
+        /* 제자리를 알려주는 세로 안내선 */
+        dashLine(ctx, px, P1.restY + depth - S1.amp*decay - 2, px, P1.restY + depth + S1.amp*decay + 2, "rgba(47,111,176,.35)", [2,3]);
+        ctx.beginPath();
+        ctx.arc(px, py, 3.4, 0, Math.PI*2);
+        ctx.fillStyle = "#2f6fb0"; ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  /* --- 나무 막대 --- */
+  var sy = stickY(t);
+  ctx.save();
+  ctx.fillStyle = "#a9773f";
+  ctx.strokeStyle = "#7d5525"; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(P1.xStick-7, sy-72, 14, 76, 4);
+  else ctx.rect(P1.xStick-7, sy-72, 14, 76);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+  var narrow1 = W < 520;
+  if(!narrow1) tag(ctx, "나무 막대", P1.xStick + 12, Math.max(14, sy-62), {color:"#7d5525"});
+
+  /* --- 탁구공 --- */
+  var by = P1.restY - disp1(P1.xBall, t);
+  var R = 11;
+  /* 제자리 표시: 세로 점선 */
+  dashLine(ctx, P1.xBall, P1.restY - S1.amp - 24, P1.xBall, P1.restY + S1.amp + 24, "rgba(224,123,57,.5)", [3,4]);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(P1.xBall, by-R+1, R, 0, Math.PI*2);
+  ctx.fillStyle = "#f0a86a"; ctx.fill();
+  ctx.strokeStyle = "#c25f1c"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(P1.xBall-3.5, by-R-2.5, 3.2, 0, Math.PI*2);
+  ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.fill();
+  ctx.restore();
+  if(narrow1) tag(ctx, "탁구공", P1.xBall, by + 30, {align:"center", color:"#c25f1c"});
+  else        tag(ctx, "탁구공", P1.xBall + 16, by + 18, {color:"#c25f1c"});
+
+  /* --- 화살표 --- */
+  if(S1.arrow && S1.mode !== "idle"){
+    /* (1) 탁구공의 움직임 방향 */
+    var d1 = disp1(P1.xBall, t), d0 = disp1(P1.xBall, t - 0.03);
+    var vel = d1 - d0;
+    if(Math.abs(vel) > 0.12){
+      var up = vel > 0;
+      var ax = P1.xBall - 30;
+      var y0 = by - R - 4, y1v = by - R - 4;
+      if(up) { y0 = by - R + 12; y1v = by - R - 30; }
+      else   { y0 = by - R - 26; y1v = by - R + 16; }
+      arrow(ctx, ax, y0, ax, y1v, "#c2185b", 3.5, 10);
+      tag(ctx, up ? "탁구공 ↑" : "탁구공 ↓", ax - 6, Math.max(16, (y0+y1v)/2 - 30), {align:"center", color:"#c2185b", border:"#c2185b"});
+    }
+    /* (2) 물결이 퍼지는 방향 — 물결 앞머리 근처 */
+    var tt = t - S1.t0;
+    var front = S1.v * tt;
+    var fx = P1.xStick + front;
+    var ay = narrow1 ? P1.restY + 82 : P1.restY - 46;
+    if(fx > P1.xStick + 40 && fx < P1.right - 20){
+      arrow(ctx, fx - 54, ay, fx - 6, ay, "#1d4d7e", 3, 10);
+      tag(ctx, narrow1 ? "물결 진행 방향" : "물결이 퍼지는 방향", fx - 30, ay - 20, {align:"center", color:"#1d4d7e", border:"#1d4d7e"});
+    }
+    var fx2 = P1.xStick - front;
+    if(fx2 < P1.xStick - 40 && fx2 > P1.left + 20){
+      arrow(ctx, fx2 + 54, ay, fx2 + 6, ay, "#1d4d7e", 3, 10);
+    }
+  }
+
+  /* --- 상태 안내 --- */
+  var gone = S1.mode === "pulse" && S1.v*(t - S1.t0) > (P1.right - P1.left) + 160;
+  var narrow = W < 520;
+  var msg;
+  if(S1.mode === "idle")        msg = narrow ? "버튼으로 수면을 눌러 보세요." : "아래 버튼으로 수면을 눌러 보세요.";
+  else if(S1.mode === "pulse")  msg = gone ? (narrow ? "물결이 지나갔습니다. 탁구공은 제자리." : "물결이 지나갔습니다 — 탁구공은 처음 자리에 그대로 있습니다.")
+                                           : (narrow ? "물결이 좌우로 퍼집니다." : "한 번 눌렀습니다 — 물결이 좌우로 퍼져 나갑니다.");
+  else if(t < S1.tEnd)          msg = narrow ? "마루와 골이 이어서 생깁니다." : "계속 흔드는 중 — 마루와 골이 이어서 만들어집니다.";
+  else                          msg = "흔들기를 멈췄습니다.";
+  tag(ctx, msg, 12, H - 14, {color:"#6b6459", font:"13px Pretendard, sans-serif"});
+}
+
+/* 탭① 컨트롤 */
+/* 슬라이더의 최솟값·최댓값 대비 어디쯤인지로 말을 고른다 */
+function ampWord(v, lo, hi){
+  var k = (v - lo) / (hi - lo);
+  return k < 0.34 ? "약하게" : (k < 0.7 ? "보통" : "세게");
+}
+document.getElementById("s1-amp").addEventListener("input", function(){
+  S1.amp = +this.value;
+  document.getElementById("s1-amp-v").textContent = ampWord(S1.amp, 12, 52);
+});
+document.getElementById("s1-freq").addEventListener("input", function(){
+  S1.freq = (+this.value)/10;
+  document.getElementById("s1-freq-v").textContent = S1.freq.toFixed(1) + " Hz";
+});
+document.getElementById("b1-pulse").addEventListener("click", function(){
+  S1.mode = "pulse"; S1.t0 = clock1; S1.tEnd = Infinity;
+  document.getElementById("b1-cont").textContent = "계속 흔들기";
+});
+document.getElementById("b1-cont").addEventListener("click", function(){
+  if(S1.mode === "cont" && clock1 < S1.tEnd){
+    S1.tEnd = clock1;                     /* 흔들기를 멈춤 — 만들어진 물결은 계속 나아간다 */
+    this.textContent = "계속 흔들기";
+  } else {
+    S1.mode = "cont"; S1.t0 = clock1; S1.tEnd = Infinity;
+    this.textContent = "흔들기 멈추기";
+  }
+});
+document.getElementById("b1-reset").addEventListener("click", function(){
+  S1.mode = "idle"; S1.tEnd = Infinity;
+  document.getElementById("b1-cont").textContent = "계속 흔들기";
+});
+document.getElementById("b1-shot").addEventListener("click", function(){ saveShot(cv1, "① 수조에서 관찰하기"); });
+document.getElementById("c1-arrow").addEventListener("change", function(){ S1.arrow = this.checked; });
+document.getElementById("c1-particle").addEventListener("change", function(){ S1.particle = this.checked; });
+document.getElementById("c1-guide").addEventListener("change", function(){ S1.guide = this.checked; });
+
+/* =========================================================
+   탭 ② 위에서 본 물결파
+   ========================================================= */
+var cv2 = document.getElementById("cv2");
+var PXCM = 4;   /* 화면 4 px = 실제 1 cm */
+var S2 = { play:true, freq:1.0, amp:15, v:110, t0:0, W:0,H:0,ctx:null, label:true, ruler:true };
+var P2 = { cx:0, cy:0, bx:0, by:0 };
+
+function layout2(){
+  var g = fitCanvas(cv2, cv2.parentNode.clientWidth < 480 ? 320 : 360);
+  S2.W = g.w; S2.H = g.h; S2.ctx = g.ctx;
+  S2.v = g.w < 520 ? 70 : 110;   /* 좁은 화면에서도 마루가 두 개 이상 보이도록 */
+  P2.cx = Math.max(70, g.w*0.20);
+  P2.cy = g.h*0.52;
+  P2.bx = P2.cx + Math.min(210, (g.w - P2.cx) * 0.52);
+  P2.by = P2.cy - 34;
+}
+
+function draw2(t){
+  var ctx = S2.ctx, W = S2.W, H = S2.H;
+  if(!ctx) return;
+  var tt = t - S2.t0;
+  var T = 1/S2.freq;
+  var lam = S2.v * T;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#eaf4fa"; ctx.fillRect(0,0,W,H);
+
+  /* 수조 테두리 */
+  ctx.save();
+  ctx.strokeStyle = "#9aa7ad"; ctx.lineWidth = 3;
+  ctx.strokeRect(10,10,W-20,H-20);
+  ctx.restore();
+
+  var maxR = Math.hypot(Math.max(P2.cx, W-P2.cx), Math.max(P2.cy, H-P2.cy)) + 20;
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(12,12,W-24,H-24); ctx.clip();
+
+  /* 골 (점선) → 마루 (실선) 순으로 그려 마루가 위에 오게 */
+  var n, r;
+  for(n=0; n<40; n++){
+    r = S2.v*tt - n*lam - lam/2;
+    if(r <= 4) continue; if(r > maxR) continue;
+    ctx.beginPath(); ctx.arc(P2.cx, P2.cy, r, 0, Math.PI*2);
+    ctx.setLineDash([7,7]);
+    ctx.strokeStyle = "rgba(120,150,170,.85)"; ctx.lineWidth = 1.2 + S2.amp/12;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  for(n=0; n<40; n++){
+    r = S2.v*tt - n*lam;
+    if(r <= 4) continue; if(r > maxR) continue;
+    ctx.beginPath(); ctx.arc(P2.cx, P2.cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = "#2f6fb0"; ctx.lineWidth = 1.8 + S2.amp/6;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  /* 파원 */
+  ctx.save();
+  ctx.beginPath(); ctx.arc(P2.cx, P2.cy, 8, 0, Math.PI*2);
+  ctx.fillStyle = "#a9773f"; ctx.fill();
+  ctx.strokeStyle = "#7d5525"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  var narrow2 = W < 520;
+  tag(ctx, narrow2 ? "흔드는 곳" : "막대로 흔드는 곳", P2.cx, P2.cy + 26, {align:"center", color:"#7d5525"});
+
+  /* 마루·골 이름표 */
+  if(S2.label){
+    /* 화면 안에 확실히 들어오도록, 가장 작은 원 위의 한 점에 이름표를 단다 */
+    function smallest(offset){          /* 가장 안쪽(반지름이 작은) 원을 고른다 */
+      var m = -1;
+      for(var j=0;j<40;j++){
+        var r2 = S2.v*tt - j*lam - offset;
+        if(r2 > 46 && (m < 0 || r2 < m)) m = r2;
+      }
+      return m;
+    }
+    var rc = smallest(0), rt = smallest(lam/2);
+    var topLimit = S2.ruler ? 58 : 16;    /* 위쪽 '파장' 자와 겹치지 않게 */
+    if(rc > 0){
+      var px1 = P2.cx + rc*Math.cos(-0.95), py1 = P2.cy + rc*Math.sin(-0.95);
+      ctx.save(); ctx.fillStyle="#2f6fb0"; ctx.beginPath(); ctx.arc(px1,py1,4,0,Math.PI*2); ctx.fill(); ctx.restore();
+      tag(ctx, narrow2 ? "마루" : "마루(가장 높은 곳)",
+          Math.min(px1+8, W - (narrow2 ? 110 : 200)), Math.max(topLimit, py1-18),
+          {color:"#1d4d7e", border:"#2f6fb0"});
+    }
+    if(rt > 0){
+      var px2 = P2.cx + rt*Math.cos(0.95), py2 = P2.cy + rt*Math.sin(0.95);
+      ctx.save(); ctx.fillStyle="#4a6b7d"; ctx.beginPath(); ctx.arc(px2,py2,4,0,Math.PI*2); ctx.fill(); ctx.restore();
+      tag(ctx, narrow2 ? "골" : "골(가장 낮은 곳)",
+          Math.min(px2+8, W - (narrow2 ? 100 : 180)), Math.min(H-46, py2+18),
+          {color:"#4a6b7d", border:"#8fa6b4"});
+    }
+  }
+
+  /* 파장 재기 — 오른쪽으로 나란한 두 마루 사이 */
+  var lamPx = lam;
+  if(S2.ruler){
+    var found = [];
+    for(n=0;n<40;n++){ var R2 = S2.v*tt - n*lam; if(R2>20 && P2.cx+R2 < W-24) found.push(R2); }
+    if(found.length >= 2){
+      var yb = 32;
+      measureBar(ctx, P2.cx + found[1], P2.cx + found[0], yb, "파장", "#1d4d7e");
+      dashLine(ctx, P2.cx + found[0], yb, P2.cx + found[0], P2.cy, "rgba(29,77,126,.45)", [4,4]);
+      dashLine(ctx, P2.cx + found[1], yb, P2.cx + found[1], P2.cy, "rgba(29,77,126,.45)", [4,4]);
+    }
+  }
+
+  /* 탁구공(부표)과 높이 게이지 */
+  var dist = Math.hypot(P2.bx-P2.cx, P2.by-P2.cy);
+  var ph = tt - dist/S2.v;
+  var hgt = ph > 0 ? -S2.amp * Math.sin(2*Math.PI*ph/T) : 0;
+  var scale = 1 + hgt/(S2.amp*6);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(P2.bx, P2.by, 10*scale, 0, Math.PI*2);
+  ctx.fillStyle = "#f0a86a"; ctx.fill();
+  ctx.strokeStyle = "#c25f1c"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  dashLine(ctx, P2.bx-16, P2.by, P2.bx+16, P2.by, "rgba(194,95,28,.6)", [3,3]);
+  if(narrow2) tag(ctx, "탁구공", P2.bx - 14, P2.by + 22, {align:"right", color:"#c25f1c"});
+  else        tag(ctx, "탁구공(제자리)", P2.bx + 16, P2.by + 22, {color:"#c25f1c"});
+
+  /* 오른쪽 높이 게이지 — 위에서 보면 안 보이는 상하 운동을 옆에서 보여준다 */
+  var gx = W - (narrow2 ? 32 : 44), gTop = 60, gBot = H - 60, gMid = (gTop+gBot)/2;
+  ctx.save();
+  ctx.fillStyle = "rgba(255,253,249,.94)";
+  ctx.strokeStyle = "#cfc6b4"; ctx.lineWidth = 1;
+  if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(gx-17, gTop-24, 34, (gBot-gTop)+48, 8); ctx.fill(); ctx.stroke(); }
+  ctx.restore();
+  dashLine(ctx, gx-13, gMid, gx+13, gMid, "#8d8577", [4,4]);
+  var gy = gMid - (hgt/S2.amp) * ((gBot-gTop)/2 - 8);
+  ctx.save();
+  ctx.strokeStyle = "#cfc6b4"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(gx, gTop); ctx.lineTo(gx, gBot); ctx.stroke();
+  ctx.beginPath(); ctx.arc(gx, gy, 8, 0, Math.PI*2);
+  ctx.fillStyle = "#f0a86a"; ctx.fill();
+  ctx.strokeStyle = "#c25f1c"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  tag(ctx, "옆에서 본 높이", W - 6, gBot + 30, {align:"right", color:"#6b6459", font:"12px Pretendard, sans-serif"});
+
+  /* 축척 막대 — 화면 4 px = 실제 1 cm */
+  var sbX = 22, sbY = H - 26, sbW = 10*PXCM;
+  ctx.save();
+  ctx.strokeStyle = "#6b6459"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sbX, sbY-5); ctx.lineTo(sbX, sbY+5);
+  ctx.moveTo(sbX, sbY); ctx.lineTo(sbX+sbW, sbY);
+  ctx.moveTo(sbX+sbW, sbY-5); ctx.lineTo(sbX+sbW, sbY+5);
+  ctx.stroke();
+  ctx.restore();
+  tag(ctx, "10 cm", sbX + sbW + 6, sbY, {color:"#6b6459", font:"12px Pretendard, sans-serif"});
+
+  document.getElementById("r2-l").textContent = Math.round(lamPx/PXCM) + " cm";
+}
+
+document.getElementById("s2-freq").addEventListener("input", function(){
+  S2.freq = (+this.value)/10;
+  document.getElementById("s2-freq-v").textContent = S2.freq.toFixed(1) + " Hz";
+  document.getElementById("r2-f").textContent = S2.freq.toFixed(1) + " Hz";
+  document.getElementById("r2-t").textContent = (1/S2.freq).toFixed(2) + " 초";
+});
+document.getElementById("s2-amp").addEventListener("input", function(){
+  S2.amp = +this.value;
+  document.getElementById("s2-amp-v").textContent = ampWord(S2.amp, 6, 24);
+});
+document.getElementById("b2-play").addEventListener("click", function(){
+  S2.play = !S2.play;
+  this.textContent = S2.play ? "⏸ 멈춤" : "▶ 이어서";
+});
+document.getElementById("b2-reset").addEventListener("click", function(){ S2.t0 = clock2; });
+document.getElementById("b2-shot").addEventListener("click", function(){ saveShot(cv2, "② 위에서 본 물결파"); });
+document.getElementById("c2-label").addEventListener("change", function(){ S2.label = this.checked; });
+document.getElementById("c2-ruler").addEventListener("change", function(){ S2.ruler = this.checked; });
+
+/* =========================================================
+   탭 ③ 파형 그래프
+   ========================================================= */
+var cv3 = document.getElementById("cv3");
+var S3 = { play:true, amp:18, lam:40, freq:1.0, t0:0, W:0,H:0,ctx:null };
+
+function layout3(){
+  var g = fitCanvas(cv3, cv3.parentNode.clientWidth < 480 ? 470 : 430);
+  S3.W = g.w; S3.H = g.h; S3.ctx = g.ctx;
+}
+
+function axes(ctx, x0,y0,x1,yMid, xlabel, ylabel){
+  ctx.save();
+  ctx.strokeStyle = "#b8b0a2"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, yMid*2 - y0); ctx.stroke();   /* 세로축 */
+  ctx.restore();
+  dashLine(ctx, x0, yMid, x1, yMid, "#8d8577", [6,5]);
+  tag(ctx, ylabel, 6, yMid - 38, {color:"#6b6459", font:"12px Pretendard, sans-serif"});
+  tag(ctx, xlabel, x1, yMid + 42, {align:"right", color:"#6b6459", font:"12px Pretendard, sans-serif"});
+}
+
+function draw3(t){
+  var ctx = S3.ctx, W = S3.W, H = S3.H;
+  if(!ctx) return;
+  var tt = t - S3.t0;
+  var T = 1/S3.freq;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#fbfaf6"; ctx.fillRect(0,0,W,H);
+
+  var L = 52, R = W - 22;
+  var A = S3.amp;                       /* px */
+  /* 화면 폭에 맞춰 파장을 그린다 — 80 cm일 때 화면에 2.4개 정도 보이도록 */
+  var lamPx = (R - L) * S3.lam / 190;
+
+  /* ---------- 위 그래프: 거리 - 변위 ---------- */
+  var divider = 216;
+  var mid1 = 128;
+  tag(ctx, "㉮ 어느 한 순간의 물결 모양  (가로축 = 거리)", 12, 22, {color:"#1d4d7e", font:"bold 13.5px Pretendard, sans-serif"});
+  axes(ctx, L, mid1 - 58, R, mid1, "거리 →", "높이");
+
+  ctx.save();
+  ctx.strokeStyle = "#2f6fb0"; ctx.lineWidth = 3; ctx.lineJoin="round";
+  ctx.beginPath();
+  for(var x = L; x <= R; x += 2){
+    var y = mid1 - A*Math.sin(2*Math.PI*((x-L)/lamPx - tt/T));
+    (x===L) ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  /* 마루·골 찾아 이름표 + 파장·진폭 재기 */
+  var frac = (tt/T) % 1;                /* 위상은 1주기마다 반복 — 값이 커지지 않게 나머지만 쓴다 */
+  var crests = [], troughs = [];
+  for(var k=-2;k<40;k++){
+    var xc = L + lamPx*(0.25 + k + frac);
+    if(xc > L+16 && xc < R-16) crests.push(xc);
+    var xtr = L + lamPx*(0.75 + k + frac);
+    if(xtr > L+16 && xtr < R-16) troughs.push(xtr);
+  }
+  if(crests.length){
+    ctx.save(); ctx.fillStyle="#2f6fb0";
+    crests.forEach(function(xc){ ctx.beginPath(); ctx.arc(xc, mid1-A, 4, 0, Math.PI*2); ctx.fill(); });
+    ctx.restore();
+    tag(ctx, "마루", crests[0], mid1 - A - 18, {align:"center", color:"#1d4d7e", border:"#2f6fb0"});
+  }
+  if(troughs.length){
+    ctx.save(); ctx.fillStyle="#4a6b7d";
+    troughs.forEach(function(xt){ ctx.beginPath(); ctx.arc(xt, mid1+A, 4, 0, Math.PI*2); ctx.fill(); });
+    ctx.restore();
+    tag(ctx, "골", troughs[0], mid1 + A + 18, {align:"center", color:"#4a6b7d", border:"#8fa6b4"});
+  }
+  tag(ctx, "진동 중심", L + 2, mid1, {color:"#6b6459", font:"12px Pretendard, sans-serif"});
+  if(crests.length >= 2){
+    measureBar(ctx, crests[0], crests[1], mid1 - A - 46, "파장", "#1d4d7e");
+  }
+  /* 진폭 — 진동 중심에서 마루까지, 마지막 마루 옆에 세로 양방향 화살표 */
+  if(crests.length){
+    var ax3 = Math.min(crests[crests.length-1] + 22, R - 82);
+    dashLine(ctx, ax3 - 34, mid1 - A, ax3 + 8, mid1 - A, "rgba(194,24,91,.5)", [4,4]);
+    arrow(ctx, ax3, mid1, ax3, mid1 - A, "#c2185b", 2.5, 8);
+    arrow(ctx, ax3, mid1 - A, ax3, mid1, "#c2185b", 2.5, 8);
+    tag(ctx, "진폭", ax3 + 8, mid1 - A/2, {color:"#c2185b", border:"#c2185b"});
+  }
+
+  /* 구분선 */
+  ctx.save();
+  ctx.strokeStyle = "#e2dbcd"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(12, divider); ctx.lineTo(W-12, divider); ctx.stroke();
+  ctx.restore();
+
+  /* ---------- 아래 그래프: 시간 - 변위 ---------- */
+  var mid2 = divider + (H - divider)/2 + 8;
+  tag(ctx, "㉯ 탁구공 한 개의 높이 변화  (가로축 = 시간)", 12, divider + 18, {color:"#c25f1c", font:"bold 13.5px Pretendard, sans-serif"});
+  axes(ctx, L, mid2 - 58, R, mid2, "시간 →", "높이");
+
+  var secPx = (R - L) / 4.2;            /* 4.2초를 그린다 */
+  ctx.save();
+  ctx.strokeStyle = "#e07b39"; ctx.lineWidth = 3; ctx.lineJoin="round";
+  ctx.beginPath();
+  for(var xx = L; xx <= R; xx += 2){
+    var tau = (xx - L)/secPx;
+    var yy = mid2 - A*Math.sin(2*Math.PI*(tau/T));
+    (xx===L) ? ctx.moveTo(xx,yy) : ctx.lineTo(xx,yy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  /* 시간 눈금 */
+  ctx.save();
+  ctx.fillStyle = "#8d8577"; ctx.font = "11px Pretendard, sans-serif"; ctx.textAlign="center";
+  for(var s=0; s<=4; s++){
+    var sx = L + s*secPx;
+    if(sx > R - 14) break;
+    ctx.strokeStyle = "#cfc6b4"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(sx, mid2-4); ctx.lineTo(sx, mid2+4); ctx.stroke();
+    ctx.fillText(s + "초", sx, mid2 + 18);
+  }
+  ctx.restore();
+
+  /* 주기 재기 — 첫 마루와 다음 마루 사이 */
+  var t1 = L + secPx*(T*0.25), t2 = L + secPx*(T*1.25);
+  measureBar(ctx, t1, Math.min(t2, R-6), mid2 - A - 46, "주기", "#c25f1c");
+
+  /* 움직이는 점 — 지금 탁구공의 높이 */
+  var nowX = L + secPx*(tt % 4.2);
+  var nowY = mid2 - A*Math.sin(2*Math.PI*((tt % 4.2)/T));
+  ctx.save();
+  dashLine(ctx, nowX, mid2 - A - 10, nowX, mid2 + A + 10, "rgba(194,95,28,.5)", [3,4]);
+  ctx.beginPath(); ctx.arc(nowX, nowY, 7, 0, Math.PI*2);
+  ctx.fillStyle = "#f0a86a"; ctx.fill();
+  ctx.strokeStyle="#c25f1c"; ctx.lineWidth=2; ctx.stroke();
+  ctx.restore();
+}
+
+function update3(){
+  var A = (S3.amp/6).toFixed(1);
+  var T = 1/S3.freq;
+  document.getElementById("s3-amp-v").textContent = A + " cm";
+  document.getElementById("s3-lam-v").textContent = S3.lam + " cm";
+  document.getElementById("s3-freq-v").textContent = S3.freq.toFixed(1) + " Hz";
+  document.getElementById("r3-a").textContent = A + " cm";
+  document.getElementById("r3-l").textContent = S3.lam + " cm";
+  document.getElementById("r3-t").textContent = T.toFixed(2) + " 초";
+  document.getElementById("r3-f").textContent = S3.freq.toFixed(1) + " Hz";
+  document.getElementById("n3").innerHTML =
+    "<b>진동수와 주기는 역수 관계</b> — 진동수 = 1 ÷ 주기 = 1 ÷ " + T.toFixed(2) + "초 = <b>" + S3.freq.toFixed(1) + " Hz</b>. " +
+    "위 그래프의 가로축은 <b>거리</b>라서 파장을, 아래 그래프의 가로축은 <b>시간</b>이라서 주기를 읽습니다. 가로축이 무엇인지 꼭 확인하세요.";
+}
+document.getElementById("s3-amp").addEventListener("input", function(){ S3.amp = +this.value; update3(); });
+document.getElementById("s3-lam").addEventListener("input", function(){ S3.lam = +this.value; update3(); });
+document.getElementById("s3-freq").addEventListener("input", function(){ S3.freq = (+this.value)/10; update3(); });
+document.getElementById("b3-play").addEventListener("click", function(){
+  S3.play = !S3.play;
+  this.textContent = S3.play ? "⏸ 멈춤" : "▶ 이어서";
+});
+document.getElementById("b3-shot").addEventListener("click", function(){ saveShot(cv3, "③ 파형 그래프"); });
+
+/* =========================================================
+   시계 & 애니메이션
+   ========================================================= */
+var startMs = performance.now();
+function nowMs(){ return (performance.now() - startMs)/1000; }
+
+var last = nowMs(), clock1 = 0, clock2 = 0, clock3 = 0;
+function loop(){
+  var t = nowMs();
+  var dt = Math.min(0.05, t - last);
+  last = t;
+
+  clock1 += dt;                          /* 탭①은 항상 흐른다(버튼으로 발생) */
+  if(S2.play) clock2 += dt;
+  if(S3.play) clock3 += dt;
+
+  if(current === 1) draw1(clock1);
+  else if(current === 2) draw2(clock2);
+  else draw3(clock3);
+
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   크기 변경
+   ========================================================= */
+function resizeAll(){
+  layout1(); layout2(); layout3();
+}
+var rz;
+window.addEventListener("resize", function(){
+  clearTimeout(rz); rz = setTimeout(resizeAll, 120);
+});
+window.addEventListener("beforeprint", function(){ setTimeout(resizeAll, 0); });
+
+resizeAll();
+update3();
+S2.t0 = 0;
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
