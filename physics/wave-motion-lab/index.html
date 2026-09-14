@@ -169,7 +169,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 <body>
 <div class="wrap">
 
-  <h1>파동의 움직임 가상실험</h1>
+  <h1>물결파의 움직임 가상실험</h1>
   <p class="sub">수조에 물결을 일으켜 <b>탁구공이 어떻게 움직이는지</b> 관찰하고, 마루·골·파장·진폭·주기·진동수를 확인합니다.</p>
 
   <div class="tabs" role="tablist" aria-label="화면 선택">
@@ -319,7 +319,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 
   <!-- ================= 인쇄 활동지 ================= -->
   <div class="printonly sheet">
-    <div class="namebar"><b>파동의 움직임 관찰하기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
+    <div class="namebar"><b>물결파의 움직임 관찰하기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
     <h2>1. 관찰한 것 쓰기</h2>
     <ol>
       <li>나무 막대로 수면을 한 번 눌렀을 때, <b>물결</b>은 어느 방향으로 움직였나요?
@@ -438,11 +438,11 @@ function saveShot(cv, title){
   var d = new Date();
   var stamp = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   c.font = (12*DPR)+"px Pretendard, sans-serif"; c.fillStyle = "#8d8577";
-  var s = "파동의 움직임 가상실험 · " + stamp;
+  var s = "물결파의 움직임 가상실험 · " + stamp;
   c.fillText(s, out.width - c.measureText(s).width - 14*DPR, 30*DPR);
 
   var a = document.createElement("a");
-  a.download = "파동의움직임_" + stamp + ".png";
+  a.download = "물결파의움직임_" + stamp + ".png";
   a.href = out.toDataURL("image/png");
   a.click();
 }
