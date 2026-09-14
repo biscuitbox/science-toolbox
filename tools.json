@@ -2,7 +2,7 @@
   "tools": [
     {
     "id": "wave-motion-lab",
-    "name": "파동의 움직임 가상실험",
+    "name": "물결파의 움직임 가상실험",
     "description": "물결을 일으켜 매질의 제자리 진동과 파장·주기를 관찰",
     "category": "physics",
     "path": "physics/wave-motion-lab/",
