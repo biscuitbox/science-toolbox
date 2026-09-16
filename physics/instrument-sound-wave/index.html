@@ -140,6 +140,25 @@ details.speccard summary{cursor:pointer;font-size:.96rem;color:var(--accent);fon
 .spechelp{font-size:.89rem;color:var(--muted);margin:8px 0 0}
 .spechelp b{color:var(--ink)}
 
+/* ── 동요 연주 칸 ── */
+.songhead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:10px}
+.songhead h2{font-family:'Gowun Batang',serif;font-size:1.12rem;margin:0;color:var(--accent)}
+.songhead .lead{font-size:.9rem;color:var(--muted)}
+.songbar{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto auto;
+  gap:6px 10px;align-items:end;margin-bottom:11px;
+}
+.songbar .field{min-width:0}
+.songbar .pill{white-space:nowrap}
+.nowbar{
+  display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:center;
+  margin:9px 0 2px;font-size:.95rem;
+}
+.nowbar b{color:var(--accent);font-variant-numeric:tabular-nums}
+.nowbar .lbl{color:var(--muted);font-size:.88rem;margin-right:3px}
+.songsrc{font-size:.8rem;color:#a79c88;margin:10px 0 0;text-align:right}
+.cap{font-size:.84rem;color:var(--muted);font-weight:600;margin:12px 0 5px}
+
 .teacher{margin-top:12px;border:1px dashed var(--border2);border-radius:12px;padding:11px 14px;background:#f8f5ec;font-size:.93rem}
 .teacher h3{margin:0 0 6px;font-size:1rem;font-family:'Gowun Batang',serif}
 .teacher code{background:#eee7d6;padding:1px 6px;border-radius:5px;font-size:.9rem}
@@ -154,6 +173,11 @@ details.speccard summary{cursor:pointer;font-size:.96rem;color:var(--accent);fon
   h1{font-size:1.4rem}
   .pill{padding:10px 14px;font-size:.93rem}
   .topbar .sep{display:none}
+  .songbar{grid-template-columns:1fr 1fr;gap:7px 10px}
+  .songbar .f-song,.songbar .f-inst2,.songbar .f-tempo{grid-column:1/-1}
+  .songbar .pill{width:100%;padding:11px 8px}
+  .songsrc{text-align:left}
+  .nowbar{gap:4px 14px}
 }
 @media print{
   body{background:#fff;background-image:none;padding:0;font-size:12pt}
@@ -231,6 +255,34 @@ details.speccard summary{cursor:pointer;font-size:.96rem;color:var(--accent);fon
   </details>
 
   <div class="card no-print">
+    <div class="songhead">
+      <h2>🎵 동요를 연주하며 파형 보기</h2>
+      <span class="lead">음이 바뀔 때마다 파형이 어떻게 달라지는지 지켜보세요.</span>
+    </div>
+
+    <div class="songbar">
+      <div class="field f-song"><label class="flabel" for="songSel">곡</label><select id="songSel"></select></div>
+      <div class="field f-inst2"><label class="flabel" for="songInst">악기</label><select id="songInst"></select></div>
+      <div class="field f-tempo"><label class="flabel" for="songTempo">빠르기</label><select id="songTempo"></select></div>
+      <button class="pill a" type="button" id="songPlay">▶ 연주</button>
+      <button class="pill" type="button" id="songStop">■ 멈춤</button>
+    </div>
+
+    <p class="cap">① 확대해서 본 파형 — 지금 울리는 음 (가로 8 ms). 음이 바뀌면 파형이 서서히 변합니다.</p>
+    <canvas id="songWave" aria-label="지금 울리고 있는 음의 파형 그래프"></canvas>
+
+    <div class="nowbar" id="songNow"></div>
+
+    <p class="cap">② 노래 전체 파형 — 연주가 진행되면서 왼쪽부터 채워집니다 (소리 분석 앱 화면과 같은 방식).</p>
+    <canvas id="songEnv" aria-label="노래 전체의 소리 크기 파형. 연주가 진행된 만큼 진한 색으로 채워집니다"></canvas>
+
+    <p class="cap">③ 악보 — 블록이 위에 있을수록 높은 음, 두꺼울수록 센 소리입니다.</p>
+    <canvas id="songStrip" aria-label="곡의 음 배열. 블록이 높이 있을수록 높은 음이며 지금 연주되는 음이 진하게 표시됩니다"></canvas>
+
+    <p class="songsrc" id="songSrc"></p>
+  </div>
+
+  <div class="card no-print">
     <div class="switchrow">
       <label for="teacherMode" style="margin:0">교사용 정보 보기</label>
       <input type="checkbox" id="teacherMode">
@@ -249,6 +301,9 @@ details.speccard summary{cursor:pointer;font-size:.96rem;color:var(--accent);fon
         <li><strong>파형은 발음 원리에서 유도했습니다</strong> — 바이올린은 활이 현을 붙잡았다 놓는 헬름홀츠 운동이라 <em>톱니파</em>, 피아노는 해머가 현의 1/7 지점을 때려 <em>7배음이 빠진 둥근 톱니</em>, 칼림바는 금속 막대라 배음이 2·3배가 아니라 <em>6배·18배 부근</em>, 관악기는 2·3배음이 조금 섞인 <em>기울어진 사인파</em>입니다. 배음의 세기뿐 아니라 <strong>위상</strong>까지 지정했기 때문에 모양이 서로 달라집니다.</li>
         <li><strong>소리굽쇠·오카리나·리코더의 파형이 서로 비슷한 것은 오류가 아닙니다.</strong> 실제로 이 셋은 배음이 거의 없어 파형도 소리도 단순합니다. "왜 이 셋은 비슷하고 바이올린만 다른가"를 되물으면 좋은 발문이 됩니다.</li>
         <li><strong>모형의 한계</strong> — 녹음이 아니라 합성음입니다. <em>없는 것</em>: 시간에 따른 음색 변화(실제는 소리 내는 순간 배음이 훨씬 많다가 곧 줄어듦), 숨소리·활 마찰음 같은 잡음, 피아노·칼림바의 정확히 정수배가 아닌 배음(여기선 6배·18배로 반올림), 연주 공간의 울림. 화면의 파형과 들리는 소리를 정확히 일치시키려고 이 부분들을 뺐습니다.</li>
+        <li><strong>왜 확대 화면과 전체 화면 둘로 나눴나</strong> — 소리는 1초에 수백 번 떨립니다. 파동 하나하나를 보려면 화면을 8 ms까지 확대해야 하고, 그 배율에서 실시간으로 흘려보내면 눈으로 따라갈 수 없는 속도가 됩니다. 반대로 노래 전체가 보이도록 넓히면 파동이 겹쳐 소리 크기만 남습니다. 실제 소리 분석 앱에 확대·축소 기능이 있는 까닭이 이것이며, 학생에게 물어보기 좋은 지점입니다. ①은 확대 화면, ②는 축소 화면입니다.</li>
+        <li><strong>①의 "바뀌는 중"은 보여 주기 위한 표현입니다.</strong> 음이 바뀔 때 약 0.18초에 걸쳐 파형이 이전 음에서 새 음으로 이어져 변하도록 그렸습니다. 실제로는 앞 음이 끝나고 새 음이 시작되지만, 무엇이 달라지는지 눈으로 따라갈 수 있게 한 장치입니다. 소리는 악보대로 정확히 바뀝니다.</li>
+        <li><strong>동요 연주 칸은 성취수준 A용입니다.</strong> A수준 진술이 "음악 등 일상생활의 다양한 소리를 파형으로 나타내며 각 소리의 특징을 분석"이라 바로 대응합니다. 권하는 순서는 ① <em>같은 음, 세기만 바꾸기</em>(진폭만 변함) → ② <em>도레미 음계</em>(진동수만 변함) → ③ <em>반짝반짝 작은 별</em>(둘이 함께 변함)입니다. 별 노래는 3·4째 악구를 여리게, 5·6째 악구를 세게 넣어 두어 셈여림이 진폭으로 나타나는 것을 볼 수 있습니다. 악기를 바꿔 같은 곡을 다시 들으면 맵시까지 세 가지가 한 곡 안에 모입니다.</li>
         <li>실물 악기 + 스마트기기 소리 분석 앱과 <strong>함께</strong> 쓰면 좋습니다. 이 도구로 원리를 정리하고, 실물로 "실제는 이렇게 지저분하다"를 확인시키는 순서를 권합니다.</li>
       </ul>
     </div>
@@ -364,9 +419,11 @@ function peakOf(ps){
 var PEAKS = {};
 ORDER.forEach(function(k){ PEAKS[k] = peakOf(INSTRUMENTS[k].partials); });
 
+function sampleAt(instKey, f, level, t){   /* 진동수·세기를 직접 주는 판 (동요 연주에서 씀) */
+  return (level/10) * partialSum(INSTRUMENTS[instKey].partials, f*t) / PEAKS[instKey];
+}
 function sample(cfg, t){          /* t: 초 */
-  var f = NOTES[cfg.noteIdx].f;
-  return (cfg.level/10) * partialSum(INSTRUMENTS[cfg.inst].partials, f*t) / PEAKS[cfg.inst];
+  return sampleAt(cfg.inst, NOTES[cfg.noteIdx].f, cfg.level, t);
 }
 
 /* ────────── 조작 메뉴 채우기 ────────── */
@@ -713,40 +770,44 @@ function tick(now){
   ticking = again;
   if(again) requestAnimationFrame(tick);
 }
-function playCh(ch, delay){
-  var c = ctx(); if(!c) return;
-  var cfg = state[ch], ps = INSTRUMENTS[cfg.inst].partials, env = INSTRUMENTS[cfg.inst].env;
-  var f = NOTES[cfg.noteIdx].f, t0 = c.currentTime + (delay||0);
-  /* 화면의 파형과 똑같은 세기·위상으로 소리를 만든다.
-     a·sin(kθ+φ) = a·cosφ·sin(kθ) + a·sinφ·cos(kθ) → imag=a cosφ, real=a sinφ */
-  var top = 1;
-  for(var i=0;i<ps.length;i++) top = Math.max(top, ps[i][0]);
+/* 소리 하나를 만든다 (A·B 비교와 동요 연주가 같이 쓴다).
+   화면의 파형과 똑같은 세기·위상으로 만들어야 보이는 것과 들리는 것이 일치한다.
+   a·sin(kθ+φ) = a·cosφ·sin(kθ) + a·sinφ·cos(kθ) → imag=a cosφ, real=a sinφ */
+function voice(instKey, f, level, t0, dur){
+  var c = ctx(); if(!c) return null;
+  var I = INSTRUMENTS[instKey], ps = I.partials, env = I.env;
+  var top = 1, i;
+  for(i=0;i<ps.length;i++) top = Math.max(top, ps[i][0]);
   var real = new Float32Array(top+1), imag = new Float32Array(top+1);
-  for(var j=0;j<ps.length;j++){
-    var k = ps[j][0], a = ps[j][1], ph = ps[j][2]*RAD;
+  for(i=0;i<ps.length;i++){
+    var k = ps[i][0], a = ps[i][1], ph = ps[i][2]*RAD;
     imag[k] = a*Math.cos(ph); real[k] = a*Math.sin(ph);
   }
   var osc = c.createOscillator();
   osc.setPeriodicWave(c.createPeriodicWave(real, imag));
   osc.frequency.value = f;
-  var g = c.createGain(), peak = 0.32 * (cfg.level/10), dur;
+  var g = c.createGain(), peak = 0.30 * (level/10);
+  var atk = (env === 'bow')  ? Math.min(0.12, dur*0.25)
+          : (env === 'wind') ? Math.min(0.06, dur*0.20)
+          : (env === 'ring') ? Math.min(0.03, dur*0.10) : 0.006;
   g.gain.setValueAtTime(0.0001, t0);
-  if(env === 'pluck'){
-    dur = 1.9;
-    g.gain.exponentialRampToValueAtTime(peak, t0+0.006);
+  g.gain.exponentialRampToValueAtTime(peak, t0+atk);
+  if(env === 'pluck' || env === 'ring'){          /* 튕기거나 때린 소리 — 점점 작아짐 */
     g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
-  }else if(env === 'ring'){
-    dur = 2.0;
-    g.gain.exponentialRampToValueAtTime(peak, t0+0.03);
-    g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
-  }else{
-    dur = (env === 'bow') ? 1.9 : 1.7;
-    g.gain.exponentialRampToValueAtTime(peak, t0 + (env==='bow'?0.14:0.07));
-    g.gain.setValueAtTime(peak, t0+dur-0.22);
+  }else{                                           /* 불거나 켜는 소리 — 유지하다 끊김 */
+    g.gain.setValueAtTime(peak, t0 + Math.max(atk+0.01, dur-0.10));
     g.gain.exponentialRampToValueAtTime(0.0002, t0+dur);
   }
   osc.connect(g); g.connect(c.destination);
-  osc.start(t0); osc.stop(t0+dur+0.05);
+  osc.start(t0); osc.stop(t0+dur+0.03);
+  return osc;
+}
+function playCh(ch, delay){
+  var c = ctx(); if(!c) return;
+  var cfg = state[ch], env = INSTRUMENTS[cfg.inst].env;
+  var dur = (env === 'ring') ? 2.0 : (env === 'bow' ? 1.9 : (env === 'wind' ? 1.7 : 1.9));
+  var osc = voice(cfg.inst, NOTES[cfg.noteIdx].f, cfg.level, c.currentTime + (delay||0), dur);
+  if(!osc) return;
   var entry = {ch:ch, osc:osc};
   live.push(entry);
   osc.onended = function(){ var i = live.indexOf(entry); if(i>=0) live.splice(i,1); };
@@ -763,13 +824,13 @@ function resetCh(ch){
   render();
 }
 document.getElementById('playA').addEventListener('click', function(){
-  stopAll(); playCh('A',0); startSweep('A',0);
+  stopAll(); stopSong(); drawSong(); syncSongUI(); playCh('A',0); startSweep('A',0);
 });
 document.getElementById('playB').addEventListener('click', function(){
-  stopAll(); playCh('B',0); startSweep('B',0);
+  stopAll(); stopSong(); drawSong(); syncSongUI(); playCh('B',0); startSweep('B',0);
 });
 document.getElementById('playAB').addEventListener('click', function(){
-  stopAll(); clearWaves();
+  stopAll(); stopSong(); drawSong(); syncSongUI(); clearWaves();
   playCh('A',0);   startSweep('A',0);
   playCh('B',2.1); startSweep('B',2100);
 });
@@ -819,15 +880,338 @@ document.getElementById('capture').addEventListener('click', function(){
   }catch(e){ window.open(out.toDataURL('image/png'), '_blank'); }
 });
 
+/* ══════════ 동요 연주하며 파형 보기 ══════════
+   음 하나하나를 [계이름 번호, 박자, 세기] 로 적는다.
+   계이름 번호는 위의 NOTES 배열 순서 (0=낮은 도 … 7=가운데 도 … 14=높은 도)  */
+var SONGS = {
+  star: {
+    name:'반짝반짝 작은 별',
+    src:'18세기 프랑스 민요 〈Ah! vous dirai-je, maman〉 — 저작권 보호기간 만료',
+    tip:'음이 높아지면 파동이 촘촘해지고, 셈여림이 바뀌면 파형의 높이가 달라집니다.',
+    notes:[
+      /* 반짝반짝 작은별 — 보통 세기 */
+      [0,1,7],[0,1,7],[4,1,7],[4,1,7],[5,1,7],[5,1,7],[4,2,7],
+      /* 아름답게 비치네 */
+      [3,1,7],[3,1,7],[2,1,7],[2,1,7],[1,1,7],[1,1,7],[0,2,7],
+      /* 서쪽 하늘에서도 — 여리게 */
+      [4,1,4],[4,1,4],[3,1,4],[3,1,4],[2,1,4],[2,1,4],[1,2,4],
+      /* 동쪽 하늘에서도 — 여리게 */
+      [4,1,4],[4,1,4],[3,1,4],[3,1,4],[2,1,4],[2,1,4],[1,2,4],
+      /* 반짝반짝 작은별 — 세게 */
+      [0,1,9],[0,1,9],[4,1,9],[4,1,9],[5,1,9],[5,1,9],[4,2,9],
+      /* 아름답게 비치네 — 세게 */
+      [3,1,9],[3,1,9],[2,1,9],[2,1,9],[1,1,9],[1,1,9],[0,2,9]
+    ]
+  },
+  scale: {
+    name:'도레미 음계 오르내리기',
+    src:'',
+    tip:'세기는 그대로 두고 높이만 한 칸씩 올렸다 내립니다. 파동의 높이는 그대로인 채 개수만 촘촘해졌다 성겨집니다.',
+    notes:[
+      [0,1,7],[1,1,7],[2,1,7],[3,1,7],[4,1,7],[5,1,7],[6,1,7],[7,2,7],
+      [6,1,7],[5,1,7],[4,1,7],[3,1,7],[2,1,7],[1,1,7],[0,2,7]
+    ]
+  },
+  loud: {
+    name:'같은 음, 세기만 바꾸기',
+    src:'',
+    tip:'높이는 그대로 두고 세기만 키웁니다. 파동의 개수는 그대로인 채 높이만 커집니다.',
+    notes:[ [4,2,2],[4,2,4],[4,2,6],[4,2,8],[4,2,10] ]
+  }
+};
+var SONG_ORDER = ['star','scale','loud'];
+var TEMPOS = [{n:'느리게', s:0.55},{n:'보통', s:0.40},{n:'빠르게', s:0.28}];
+var SONGW_H = 230, ENV_H = 96, STRIP_H = 146;
+var GLIDE_MAX = 0.18;      /* 음이 바뀔 때 파형이 변해 가는 시간(초) */
+
+var song = {key:'star', inst:'recorder', tempo:1, playing:false, cur:-1,
+            elapsed:0, total:0, notes:[], plan:[], oscs:[], wallStart:0};
+
+/* 메뉴 채우기 */
+(function(){
+  var ss = document.getElementById('songSel');
+  SONG_ORDER.forEach(function(k){
+    var o = document.createElement('option'); o.value = k; o.textContent = SONGS[k].name; ss.appendChild(o);
+  });
+  var si = document.getElementById('songInst');
+  ORDER.forEach(function(k){
+    var o = document.createElement('option'); o.value = k; o.textContent = INSTRUMENTS[k].name; si.appendChild(o);
+  });
+  var st = document.getElementById('songTempo');
+  TEMPOS.forEach(function(t,i){
+    var o = document.createElement('option'); o.value = i; o.textContent = t.n; st.appendChild(o);
+  });
+  ss.value = song.key; si.value = song.inst; st.value = song.tempo;
+  /* 곡·악기·빠르기를 바꾸면 연주를 멈추고 처음 상태로 */
+  ss.addEventListener('change', function(){ song.key = ss.value; stopSong(); drawSong(); });
+  si.addEventListener('change', function(){ song.inst = si.value; stopSong(); drawSong(); });
+  st.addEventListener('change', function(){ song.tempo = +st.value; stopSong(); drawSong(); });
+})();
+
+function stopSong(){
+  song.oscs.forEach(function(o){ try{ o.stop(); }catch(e){} });
+  song.oscs = []; song.playing = false; song.cur = -1; song.elapsed = 0;
+}
+function startSong(){
+  stopAll();            /* A·B 소리와 겹치지 않게 */
+  stopSong();
+  var c = ctx(); if(!c) return;
+  var notes = SONGS[song.key].notes, beat = TEMPOS[song.tempo].s;
+  var t0 = c.currentTime + 0.15, t = t0;
+  song.notes = notes; song.plan = [];
+  notes.forEach(function(n){
+    var dur = n[1]*beat;
+    song.plan.push({start: t - t0, dur: dur});
+    var o = voice(song.inst, NOTES[n[0]].f, n[2], t, dur*0.94);
+    if(o) song.oscs.push(o);
+    t += dur;
+  });
+  song.total = t - t0;
+  song.playing = true; song.cur = 0; song.elapsed = 0;
+  /* 첫 음은 세기 0에서 자라나게 — 소리가 시작되는 느낌 */
+  song.dispF = NOTES[notes[0][0]].f; song.dispL = 0;
+  song.glide = {f0:song.dispF, l0:0, f1:NOTES[notes[0][0]].f, l1:notes[0][2],
+                t0:0, dur:Math.min(GLIDE_MAX, song.plan[0].dur*0.45)};
+  song.wallStart = (window.performance ? performance.now() : Date.now()) + 150;
+  syncSongUI();
+  requestAnimationFrame(songTick);
+}
+function songTick(now){
+  if(!song.playing){ drawSong(); syncSongUI(); return; }
+  var el = (now - song.wallStart)/1000;
+  if(el >= song.total){ stopSong(); drawSong(); syncSongUI(); return; }
+  var i = 0;
+  for(var k=0;k<song.plan.length;k++){ if(el >= song.plan[k].start) i = k; else break; }
+  song.elapsed = Math.max(0, el);
+
+  /* 음이 바뀌면 지금 그려지던 값에서 새 값으로 이어서 변해 가게 한다
+     (딱 끊어 바뀌지 않고 파형이 촘촘해지거나 높아지는 과정이 보이도록) */
+  if(i !== song.cur){
+    song.glide = {
+      f0: song.dispF, l0: song.dispL,
+      f1: NOTES[song.notes[i][0]].f, l1: song.notes[i][2],
+      t0: song.elapsed, dur: Math.min(GLIDE_MAX, song.plan[i].dur*0.45)
+    };
+    song.cur = i;
+  }
+  var gl = song.glide;
+  if(gl){
+    var e = gl.dur > 0 ? Math.min(1, Math.max(0, (song.elapsed - gl.t0)/gl.dur)) : 1;
+    var sm = e*e*(3-2*e);                         /* 부드럽게 시작하고 부드럽게 멈춤 */
+    song.dispF = gl.f0 + (gl.f1-gl.f0)*sm;
+    song.dispL = gl.l0 + (gl.l1-gl.l0)*sm;
+    song.gliding = e < 1;
+  }
+  drawSong();
+  requestAnimationFrame(songTick);
+}
+function syncSongUI(){
+  document.getElementById('songPlay').textContent = song.playing ? '▶ 연주 중…' : '▶ 연주';
+}
+
+/* 지금 울리는 음의 파형 */
+function drawSongWave(){
+  var cv = document.getElementById('songWave'), p = prep(cv, SONGW_H);
+  var g = p.g, W = p.w, H = p.h;
+  var L = 48, R = 18, T = 26, B = 30;
+  var pw = W-L-R, ph = H-T-B, cy = T+ph/2, half = ph/2 - 8;
+
+  g.fillStyle = '#fffefb'; g.fillRect(0,0,W,H);
+  g.strokeStyle = '#eee6d6'; g.lineWidth = 1;
+  [-1,-0.5,0.5,1].forEach(function(v){
+    g.beginPath(); g.moveTo(L, cy-v*half); g.lineTo(L+pw, cy-v*half); g.stroke();
+  });
+  g.fillStyle = '#8d8474'; g.font = '11px Pretendard, sans-serif'; g.textAlign = 'center';
+  for(var ms=0; ms<=WINDOW_MS; ms+=TICK_MS){
+    var x = L + pw*ms/WINDOW_MS;
+    g.strokeStyle = '#eee6d6'; g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke();
+    g.fillText(ms, x, H-14);
+  }
+  g.strokeStyle = '#b9ae98'; g.lineWidth = 1.3;
+  g.beginPath(); g.moveTo(L,cy); g.lineTo(L+pw,cy); g.stroke();
+  g.fillStyle = '#6b6357'; g.fillText('시간 (ms)', L+pw/2, H-2);
+  g.save(); g.translate(14, cy); g.rotate(-Math.PI/2); g.textAlign='center';
+  g.fillText('진동의 크기', 0, 0); g.restore();
+
+  var n = song.cur;
+  if(!song.playing || n < 0 || n >= song.notes.length){
+    g.fillStyle = '#a79c88'; g.textAlign = 'center'; g.font = '15px Pretendard, sans-serif';
+    g.fillText('▶ 연주를 누르면 지금 울리는 음의 파형이 여기에 나타납니다.', L+pw/2, cy+5);
+    return;
+  }
+  /* 지금 '그려지고 있는' 값 — 음이 바뀐 직후에는 이전 음에서 새 음으로 변해 가는 중 */
+  var nt = song.notes[n];
+  var dF = song.dispF || NOTES[nt[0]].f, dL = song.dispL;
+  if(dL === undefined) dL = nt[2];
+
+  var amp = dL/10, yTop = cy - amp*half;
+  g.strokeStyle = COL.A; g.lineWidth = 1; g.setLineDash([4,4]);
+  g.beginPath(); g.moveTo(L,yTop); g.lineTo(L+pw,yTop); g.stroke(); g.setLineDash([]);
+
+  g.strokeStyle = COL.A; g.lineWidth = 3; g.lineJoin='round'; g.lineCap='round';
+  g.beginPath();
+  for(var i=0;i<=pw;i++){
+    var y = cy - sampleAt(song.inst, dF, dL, (i/pw)*(WINDOW_MS/1000))*half;
+    if(i===0) g.moveTo(L,y); else g.lineTo(L+i,y);
+  }
+  g.stroke();
+
+  g.fillStyle = COL.A; g.textAlign='left'; g.font='bold 13px Pretendard, sans-serif';
+  g.fillText(INSTRUMENTS[song.inst].name + ' · ' + NOTES[nt[0]].n +
+             (song.gliding ? '  (바뀌는 중…)' : ''), L, 18);
+}
+
+/* ── ② 노래 전체 파형 — 소리 분석 앱처럼 소리 크기의 흐름을 보여 준다 ──
+   음 하나하나의 파동은 너무 촘촘해서(1초에 수백 번) 이 넓이에서는 겹쳐 보인다.
+   그래서 오디오 편집기와 같은 방식으로 '소리 크기의 테두리'를 그린다.            */
+function songEnvAt(notes, starts, beat, t, envType){
+  for(var i=notes.length-1;i>=0;i--){
+    if(t >= starts[i]){
+      var d = notes[i][1]*beat*0.94, lo = t - starts[i];
+      if(lo > d) return 0;
+      var atk = Math.min(0.025, d*0.12), a;
+      if(lo < atk) a = lo/atk;
+      else if(envType === 'pluck' || envType === 'ring') a = Math.exp(-3.2*(lo-atk)/Math.max(0.001, d-atk));
+      else { var rel = Math.min(0.07, d*0.22); a = (lo > d-rel) ? (d-lo)/rel : 1; }
+      return Math.max(0, a) * (notes[i][2]/10);
+    }
+  }
+  return 0;
+}
+var envCache = null;                       /* 모양이 그대로면 다시 계산하지 않는다 */
+function buildEnvShape(pw, half, cy, L){
+  var key = [song.key, song.inst, song.tempo, Math.round(pw), Math.round(half)].join('|');
+  if(envCache && envCache.key === key) return envCache;
+  var notes = SONGS[song.key].notes, beat = TEMPOS[song.tempo].s;
+  var starts = [], acc = 0, totalBeats = 0;
+  notes.forEach(function(n){ starts.push(acc*beat); acc += n[1]; totalBeats += n[1]; });
+  var total = totalBeats*beat, envType = INSTRUMENTS[song.inst].env;
+  var up = new Float32Array(pw+1);
+  for(var x=0;x<=pw;x++) up[x] = songEnvAt(notes, starts, beat, (x/pw)*total, envType);
+  envCache = {key:key, up:up, total:total};
+  return envCache;
+}
+function drawSongEnv(){
+  var cv = document.getElementById('songEnv'), p = prep(cv, ENV_H);
+  var g = p.g, W = p.w, H = p.h;
+  var L = 46, R = 12, T = 12, B = 18;
+  var pw = W-L-R, ph = H-T-B, cy = T+ph/2, half = ph/2 - 2;
+
+  g.fillStyle = '#fffefb'; g.fillRect(0,0,W,H);
+  g.strokeStyle = '#e4dccb'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(L,cy); g.lineTo(L+pw,cy); g.stroke();
+  if(W >= 520){                       /* 좁은 화면에서는 파형과 겹치므로 생략 */
+    g.fillStyle = '#8d8474'; g.font = '11px Pretendard, sans-serif'; g.textAlign = 'left';
+    g.fillText('소리 크기', 5, cy+4);
+  }
+
+  var E = buildEnvShape(pw, half, cy, L);
+  var playedX = song.playing ? L + pw*Math.min(song.elapsed/E.total, 1) : L;
+
+  function fillShape(color, clipTo){
+    g.save();
+    if(clipTo !== null){ g.beginPath(); g.rect(0, 0, clipTo, H); g.clip(); }
+    g.beginPath(); g.moveTo(L, cy);
+    for(var x=0;x<=pw;x++) g.lineTo(L+x, cy - E.up[x]*half);
+    for(var x2=pw;x2>=0;x2--) g.lineTo(L+x2, cy + E.up[x2]*half);
+    g.closePath(); g.fillStyle = color; g.fill();
+    g.restore();
+  }
+  fillShape('#dce7f2', null);                       /* 아직 연주되지 않은 부분 */
+  if(song.playing) fillShape(COL.A, playedX);       /* 지금까지 연주된 부분 */
+
+  if(song.playing){                                  /* 그려 나가는 펜 */
+    g.strokeStyle = '#3f3a32'; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(playedX, T); g.lineTo(playedX, T+ph); g.stroke();
+    g.fillStyle = '#3f3a32';
+    g.beginPath(); g.arc(playedX, T-1, 3.2, 0, Math.PI*2); g.fill();
+  }
+}
+
+/* 곡 전체의 음 배열 — 블록이 높을수록 높은 음, 두꺼울수록 센 소리 */
+function drawSongStrip(){
+  var cv = document.getElementById('songStrip'), p = prep(cv, STRIP_H);
+  var g = p.g, W = p.w, H = p.h;
+  var L = 46, R = 12, T = 34, B = 18;                   /* 위쪽은 계이름 표시 자리 */
+  var pw = W-L-R, ph = H-T-B;
+  var notes = SONGS[song.key].notes, beat = TEMPOS[song.tempo].s;
+
+  g.fillStyle = '#fffefb'; g.fillRect(0,0,W,H);
+
+  var totalBeats = 0, lo = 99, hi = -1;
+  notes.forEach(function(n){ totalBeats += n[1]; lo = Math.min(lo,n[0]); hi = Math.max(hi,n[0]); });
+  if(hi === lo){ lo -= 1; hi += 1; }                    /* 같은 음만 있는 곡 */
+  var span = hi - lo;
+
+  g.fillStyle = '#8d8474'; g.font = '11px Pretendard, sans-serif'; g.textAlign='left';
+  g.fillText('↑ 높은 음', 5, T+9);
+  g.fillText('↓ 낮은 음', 5, T+ph-1);
+
+  /* 진행 막대를 먼저 그려 글자가 위로 오게 한다 */
+  if(song.playing){
+    var px = L + pw*Math.min(song.elapsed/(totalBeats*beat), 1);
+    g.strokeStyle = '#c9c0ad'; g.lineWidth = 1.4;
+    g.beginPath(); g.moveTo(px, T); g.lineTo(px, T+ph); g.stroke();
+  }
+
+  var beatAcc = 0, curX = 0, curW = 0;
+  notes.forEach(function(n, i){
+    var x = L + pw*beatAcc/totalBeats;
+    var w = Math.max(3, pw*n[1]/totalBeats - 2);
+    var yc = T + ph - 12 - ((n[0]-lo)/span)*(ph-26);
+    var bh = 6 + 20*(n[2]/10);                          /* 두꺼울수록 센 소리 */
+    if(song.playing && i === song.cur){
+      g.fillStyle = COL.A; g.fillRect(x, yc-bh/2, w, bh);
+      g.strokeStyle = '#123f70'; g.lineWidth = 2; g.strokeRect(x, yc-bh/2, w, bh);
+      curX = x; curW = w;
+    }else{
+      g.fillStyle = '#dce7f2'; g.fillRect(x, yc-bh/2, w, bh);
+      g.strokeStyle = '#b7c9dc'; g.lineWidth = 1; g.strokeRect(x, yc-bh/2, w, bh);
+    }
+    beatAcc += n[1];
+  });
+
+  /* 지금 음 표시 — 색 외에 ▼ 모양과 계이름 글자로도 알 수 있게 */
+  if(song.playing && curW){
+    var cx = Math.min(Math.max(curX+curW/2, L+22), L+pw-22);
+    g.fillStyle = COL.A;
+    g.beginPath(); g.moveTo(cx-6, T-10); g.lineTo(cx+6, T-10); g.lineTo(cx, T-3); g.closePath(); g.fill();
+    g.font = 'bold 12px Pretendard, sans-serif'; g.textAlign = 'center';
+    g.fillText(NOTES[song.notes[song.cur][0]].n, cx, T-15);
+  }
+}
+
+function drawSong(){
+  drawSongWave(); drawSongEnv(); drawSongStrip();
+  var box = document.getElementById('songNow');
+  var n = song.cur;
+  if(!song.playing || n < 0 || n >= song.notes.length){
+    box.innerHTML = '<span class="lbl">' + SONGS[song.key].tip + '</span>';
+  }else{
+    var nt = song.notes[n], f = NOTES[nt[0]].f, T = 1000/f;
+    box.innerHTML =
+      '<span><span class="lbl">지금 음</span><b>' + NOTES[nt[0]].n + '</b></span>' +
+      '<span><span class="lbl">진동수</span><b>' + f.toFixed(1) + ' Hz</b></span>' +
+      '<span><span class="lbl">' + WINDOW_MS + ' ms 안의 파동</span><b>' + (WINDOW_MS/T).toFixed(1) + ' 개</b></span>' +
+      '<span><span class="lbl">진폭</span><b>' + (nt[2]/10).toFixed(2) + '</b></span>';
+  }
+  var src = SONGS[song.key].src;
+  document.getElementById('songSrc').textContent = src ? '출처: ' + src : '';
+}
+
+document.getElementById('songPlay').addEventListener('click', startSong);
+document.getElementById('songStop').addEventListener('click', function(){ stopSong(); drawSong(); syncSongUI(); });
+
 /* ────────── 교사용 정보 ────────── */
 var tm = document.getElementById('teacherMode');
 tm.addEventListener('change', function(){ document.getElementById('teacherBox').hidden = !tm.checked; });
 
 /* ────────── 초기화 ────────── */
 document.getElementById('thWin').textContent = '화면(' + WINDOW_MS + ' ms) 안의 파동 수';
-window.addEventListener('resize', render);
+window.addEventListener('resize', function(){ render(); drawSong(); });
 document.querySelector('.speccard').addEventListener('toggle', function(){ render(); });
 render();
+drawSong();
 document.querySelector('.preset-btn').click();
 })();
 </script>
