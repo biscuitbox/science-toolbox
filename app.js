@@ -1,341 +1,470 @@
 /* ============================================================
    과학 도구상자 — 메인 스크립트
+   tools.json을 읽어 ① 맨 위 "도구 표"와 ② 분야별 도구 칸을 그립니다.
+
+   ✅ 새로 생긴 선택 필드
+      "symbol": "Lr"  ← 도구 칸에 크게 보이는 원소 기호(1~3글자)
+                        비워 두면 id에서 자동으로 만듭니다.
+                        예) light-ray-lab → "Lr", qr-code-maker → "Qc"
    ============================================================ */
 
-// ===== 카테고리 설정 =====
+// ===== 분야(카테고리) 설정 =====
+// 색은 style.css의 --c-분야 변수에서 가져옵니다(칠판 화면에서 자동으로 밝은 색으로 바뀜).
 const CATEGORIES = {
-  physics:   { name: '물리',      color: '#1D4ED8', description: '역학 · 전자기 · 광학 · 열·파동 · 현대물리' },
-  chemistry: { name: '화학',      color: '#B45309', description: '일반화학 · 무기 · 유기 · 분석 · 생화학' },
-  biology:   { name: '생명과학',  color: '#15803D', description: '세포 · 유전 · 인체 · 생태·진화' },
-  earth:     { name: '지구과학',  color: '#78350F', description: '지질 · 대기·기상 · 천문 · 해양' },
-  maker:     { name: '메이커',    color: '#BE123C', description: '직접 만들고 실험하는 활동 모음' },
-  common:    { name: '공통 도구', color: '#57534E', description: '여러 분야에서 두루 쓰이는 도구 — 단위 변환, 주기율표, 계산기 등' },
-  classroom: { name: '학급 운영', color: '#6D28D9', description: '모둠 구성 · 수업 타이머 · 발표 순서 · 평가 도구 등 교실 운영 도구' }
+  physics:   { name: '물리',      short: '물리',     description: '역학, 전자기, 빛과 파동, 열, 현대물리' },
+  chemistry: { name: '화학',      short: '화학',     description: '물질의 구성, 화학 반응, 산과 염기, 전기 화학' },
+  biology:   { name: '생명과학',  short: '생명',     description: '세포, 유전, 우리 몸, 생태와 진화' },
+  earth:     { name: '지구과학',  short: '지구',     description: '지질, 대기와 날씨, 천문, 해양' },
+  maker:     { name: '메이커',    short: '메이커',   description: '직접 만들고 실험하는 활동' },
+  common:    { name: '공통 도구', short: '공통',     description: '단위 변환, 주기율표, QR코드처럼 여러 분야에서 쓰는 도구' },
+  classroom: { name: '학급 운영', short: '학급',     description: '모둠 구성, 자리 바꾸기, 발표자 뽑기 같은 교실 운영 도구' }
 };
 
 const CATEGORY_ORDER = ['physics', 'chemistry', 'biology', 'earth', 'maker', 'common', 'classroom'];
 
-// ===== 학년 필터 정의 =====
-// match 함수가 true를 반환하면 해당 도구가 필터에 포함됨
+// 분야 아이콘 (색만으로 구분하지 않도록 모양도 함께 씁니다)
+const ICONS = {
+  physics:   '<path d="M2 12c2-5.5 4.5-5.5 6.5 0s4.5 5.5 6.5 0 4.5-5.5 7-1"/>',
+  chemistry: '<path d="M9 3h6M10 3v6.5L4.6 19a1.4 1.4 0 0 0 1.2 2.1h12.4a1.4 1.4 0 0 0 1.2-2.1L14 9.5V3"/><path d="M7.2 15h9.6"/>',
+  biology:   '<path d="M5 20c0-8.5 5.5-14.5 15-16-.8 10-6.8 16-15 16z"/><path d="M5 20 13.5 11.5"/>',
+  earth:     '<path d="M2 20 9 8.5l4 6 3-4 6 9.5z"/><circle cx="17.5" cy="5" r="2"/>',
+  maker:     '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+  common:    '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M6 8v3M10 8v4.5M14 8v3M18 8v4.5"/>',
+  classroom: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.6 14.2A5 5 0 0 1 21 19"/>',
+  star:      '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'
+};
+
+function icon(name) {
+  return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+}
+
+// ===== 학년 필터 =====
 const GRADE_FILTERS = [
   { id: 'all',        name: '전체', match: () => true },
-  { id: 'elementary', name: '초등', match: lvl => lvl.includes('초') || lvl.includes('전 학년') },
-  { id: 'middle',     name: '중등', match: lvl => lvl.includes('중') || lvl.includes('전 학년') },
-  { id: 'high',       name: '고등', match: lvl => lvl.includes('고') || lvl.includes('전 학년') }
+  { id: 'elementary', name: '초등', match: lvl => lvl.includes('초') || isAllGrades(lvl) },
+  { id: 'middle',     name: '중등', match: lvl => lvl.includes('중') || isAllGrades(lvl) },
+  { id: 'high',       name: '고등', match: lvl => lvl.includes('고') || isAllGrades(lvl) }
 ];
+
+// "전 학년"과 "전체" 모두 모든 학년으로 취급
+function isAllGrades(lvl) {
+  return lvl.includes('전 학년') || lvl.includes('전학년') || lvl.trim() === '전체';
+}
 
 // ===== 상태 =====
 let allTools = [];
 let activeGrade = 'all';
 let searchQuery = '';
 let teacherMode = false;
+let boardMode = false;
 
 // ===== 초기화 =====
 async function init() {
-  // 사용자 설정 복원 (브라우저 저장소)
   try {
     teacherMode = localStorage.getItem('teacherMode') === 'true';
+    boardMode = localStorage.getItem('boardMode') === 'true';
     activeGrade = localStorage.getItem('activeGrade') || 'all';
-  } catch { /* 시크릿 모드 등에서 실패 가능, 무시 */ }
+    if (!GRADE_FILTERS.some(f => f.id === activeGrade)) activeGrade = 'all';
+  } catch { /* 시크릿 모드 등에서는 저장소를 못 쓸 수 있음 */ }
 
-  // 토글 초기 상태 반영
-  const toggle = document.getElementById('teacher-mode-toggle');
-  toggle.checked = teacherMode;
-  toggle.addEventListener('change', () => {
-    teacherMode = toggle.checked;
-    try { localStorage.setItem('teacherMode', teacherMode); } catch {}
-    renderAll();
+  setupSwitch('teacher-mode-toggle', teacherMode, on => {
+    teacherMode = on;
+    save('teacherMode', on);
+    renderTiles();
   });
 
-  try {
-    const response = await fetch('tools.json');
-    if (!response.ok) throw new Error('tools.json 로딩 실패');
-    const data = await response.json();
-    allTools = (data.tools || []).map(t => ({ ...t, available: true })); // 일단 모두 사용 가능으로 가정
-
-    renderNav();
-    renderGradeFilter();
-    renderAll();
-
-    // 백그라운드에서 실제 폴더 존재 여부 확인
-    checkAvailability();
-  } catch (err) {
-    document.getElementById('content').innerHTML = `
-      <div class="empty-state">
-        <strong>tools.json 파일을 불러올 수 없습니다.</strong>
-        같은 폴더에 파일이 있는지 확인해주세요.<br>
-        (로컬에서 테스트한다면 GitHub Pages에 올린 뒤 확인하거나 간단한 로컬 서버를 띄워야 합니다.)
-      </div>
-    `;
-    console.error(err);
-  }
+  setupSwitch('board-mode-toggle', boardMode, on => {
+    boardMode = on;
+    save('boardMode', on);
+    if (on) document.documentElement.dataset.theme = 'board';
+    else delete document.documentElement.dataset.theme;
+  });
 
   setupSearch();
+  setupBackToTable();
+
+  try {
+    const response = await fetch('tools.json', { cache: 'no-cache' });
+    if (!response.ok) throw new Error('tools.json 로딩 실패');
+    const data = await response.json();
+    allTools = (data.tools || []).map(t => ({ ...t, available: true }));
+
+    renderGradeFilter();
+    renderAll();
+    checkAvailability();
+  } catch (err) {
+    document.getElementById('sections').innerHTML = `
+      <div class="empty-state">
+        <strong>도구 목록(tools.json)을 불러오지 못했어요.</strong>
+        tools.json이 index.html과 같은 폴더에 있는지, 쉼표·따옴표 같은 문법 오류가 없는지 확인해 주세요.<br>
+        문법 확인은 jsonlint.com에 내용을 붙여 넣으면 됩니다.
+      </div>`;
+    console.error(err);
+  }
+}
+
+function save(key, value) {
+  try { localStorage.setItem(key, String(value)); } catch {}
+}
+
+function setupSwitch(id, initial, onChange) {
+  const input = document.getElementById(id);
+  input.checked = initial;
+  input.setAttribute('aria-checked', String(initial));
+  input.addEventListener('change', () => {
+    input.setAttribute('aria-checked', String(input.checked));
+    onChange(input.checked);
+  });
 }
 
 // ===== 폴더 존재 자동 확인 =====
-// 각 도구 path에 HEAD 요청을 보내 404면 coming-soon으로 표시
+// 각 도구의 path에 HEAD 요청(파일 내용은 받지 않고 '있는지'만 확인)을 보내
+// 없으면 "준비 중"으로 바꿉니다.
 async function checkAvailability() {
-  const updates = await Promise.all(allTools.map(async (tool, i) => {
+  const results = await Promise.all(allTools.map(async (tool, i) => {
     try {
       const res = await fetch(tool.path, { method: 'HEAD', cache: 'no-store' });
-      return { index: i, available: res.ok };
+      return { i, available: res.ok };
     } catch {
-      return { index: i, available: false };
+      return { i, available: false };
     }
   }));
 
   let changed = false;
-  updates.forEach(({ index, available }) => {
-    if (allTools[index].available !== available) {
-      allTools[index].available = available;
+  results.forEach(({ i, available }) => {
+    if (allTools[i].available !== available) {
+      allTools[i].available = available;
       changed = true;
     }
   });
-
   if (changed) renderAll();
 }
 
-// ===== 카테고리 네비 =====
-function renderNav() {
-  const nav = document.getElementById('category-nav');
-  nav.innerHTML = CATEGORY_ORDER.map(catId => {
+// ===== 원소 기호 =====
+function symbolOf(tool) {
+  if (tool.symbol) return String(tool.symbol).slice(0, 3);
+  const parts = String(tool.id || tool.name || '?').split(/[-_\s]+/).filter(Boolean);
+  if (parts.length >= 2) return parts[0][0].toUpperCase() + parts[1][0].toLowerCase();
+  const w = parts[0] || '?';
+  return w[0].toUpperCase() + (w[1] || '').toLowerCase();
+}
+
+// ===== 필터링 =====
+function matches(t) {
+  const grade = GRADE_FILTERS.find(f => f.id === activeGrade);
+  if (grade && !grade.match(t.level || '')) return false;
+
+  if (searchQuery) {
+    const standards = toArray(t.achievementStandard);
+    const haystack = [
+      t.name, t.description, t.subcategory, ...(t.tags || []),
+      t.level, t.target, t.activityType, symbolOf(t),
+      CATEGORIES[t.category]?.name,
+      ...standards, ...standards.map(s => `[${s}]`)
+    ].filter(Boolean).join(' ').toLowerCase();
+    if (!haystack.includes(searchQuery)) return false;
+  }
+  return true;
+}
+
+function toArray(v) {
+  if (!v) return [];
+  return (Array.isArray(v) ? v : [v]).map(s => String(s).replace(/[[\]]/g, '').trim()).filter(Boolean);
+}
+
+// ===== 전체 그리기 =====
+function renderAll() {
+  renderTable();
+  renderTiles();
+  renderCount();
+}
+
+function renderTiles() {
+  const filtered = allTools.filter(matches);
+  renderFeatured(filtered);
+  renderCategories(filtered);
+}
+
+function renderCount() {
+  const ready = allTools.filter(t => t.available !== false).length;
+  const soon = allTools.length - ready;
+  document.getElementById('site-count').innerHTML =
+    `지금 쓸 수 있는 도구 <strong>${ready}개</strong>` + (soon ? `, 준비 중 ${soon}개` : '');
+}
+
+// ===== 맨 위 도구 표 =====
+function renderTable() {
+  const table = document.getElementById('ptable');
+  const cats = CATEGORY_ORDER.filter(c => allTools.some(t => t.category === c));
+
+  table.innerHTML = cats.map(catId => {
     const cat = CATEGORIES[catId];
-    return `<a href="#cat-${catId}"><span class="dot" style="background:${cat.color}"></span>${cat.name}</a>`;
+    const tools = allTools.filter(t => t.category === catId)
+      .sort((a, b) => (b.available !== false) - (a.available !== false));
+
+    const cells = tools.map(t => {
+      const ready = t.available !== false;
+      const out = !matches(t) ? ' is-out' : '';
+      const label = `${t.name}${t.level ? ' (' + t.level + ')' : ''}${ready ? '' : ' — 준비 중'}`;
+      if (!ready) {
+        return `<span class="pt is-ghost${out}" role="img" aria-label="${escape(label)}" title="${escape(label)}">${escape(symbolOf(t))}</span>`;
+      }
+      return `<a class="pt${out}" href="#tool-${escape(t.id)}" data-tool="${escape(t.id)}" aria-label="${escape(label)}">${escape(symbolOf(t))}<span class="pt-tip" aria-hidden="true">${escape(t.name)}</span></a>`;
+    }).join('');
+
+    const hasReady = tools.some(t => t.available !== false);
+    const headHref = hasReady ? `#cat-${catId}` : '#cat-soon';
+
+    return `<div class="prow" style="--cat:var(--c-${catId})">
+        <a class="prow-head" href="${headHref}">${icon(catId)}<span>${cat.short}</span></a>
+        <div class="prow-cells">${cells}</div>
+      </div>`;
   }).join('');
+
+  table.querySelectorAll('a.pt').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      goToTool(a.dataset.tool);
+    });
+  });
+}
+
+// 표의 칸을 누르면 그 도구 칸으로 이동해 한 번 강조
+function goToTool(id) {
+  let el = document.getElementById(`tool-${id}`);
+  if (!el) {
+    // 검색·학년 필터 때문에 숨어 있으면 필터를 풀고 다시 찾기
+    resetFilters();
+    el = document.getElementById(`tool-${id}`);
+  }
+  if (!el) return;
+  el.scrollIntoView({ block: 'center' });
+  el.classList.remove('is-arrived');
+  void el.offsetWidth;
+  el.classList.add('is-arrived');
+  el.focus({ preventScroll: true });
+  history.replaceState(null, '', `#tool-${id}`);
+}
+
+function resetFilters() {
+  searchQuery = '';
+  document.getElementById('search').value = '';
+  activeGrade = 'all';
+  save('activeGrade', 'all');
+  updateGradeButtons();
+  renderTable();
+  renderTiles();
 }
 
 // ===== 학년 필터 =====
 function renderGradeFilter() {
   const wrap = document.getElementById('grade-filter');
-  const chips = GRADE_FILTERS.map(f => {
-    const isActive = f.id === activeGrade;
-    return `<button class="filter-chip" type="button" role="radio" aria-pressed="${isActive}" data-grade="${f.id}">${f.name}</button>`;
-  }).join('');
-  wrap.innerHTML = `<span class="filter-label">학년</span>${chips}`;
+  wrap.innerHTML = GRADE_FILTERS.map(f =>
+    `<button class="grade-btn" type="button" role="radio" data-grade="${f.id}">${f.name}</button>`
+  ).join('');
 
-  wrap.querySelectorAll('.filter-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeGrade = btn.dataset.grade;
-      try { localStorage.setItem('activeGrade', activeGrade); } catch {}
-      wrap.querySelectorAll('.filter-chip').forEach(b => {
-        b.setAttribute('aria-pressed', b.dataset.grade === activeGrade ? 'true' : 'false');
-      });
-      renderAll();
+  const buttons = [...wrap.querySelectorAll('.grade-btn')];
+  buttons.forEach((btn, i) => {
+    btn.addEventListener('click', () => selectGrade(btn.dataset.grade));
+    // 화살표 키로 옆 버튼으로 이동 (라디오 버튼 묶음의 표준 조작법)
+    btn.addEventListener('keydown', e => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const next = buttons[(i + step + buttons.length) % buttons.length];
+      selectGrade(next.dataset.grade);
+      next.focus();
     });
   });
+  updateGradeButtons();
 }
 
-// ===== 필터링 =====
-function filterTools(tools) {
-  const gradeFilter = GRADE_FILTERS.find(f => f.id === activeGrade);
+function selectGrade(id) {
+  activeGrade = id;
+  save('activeGrade', id);
+  updateGradeButtons();
+  renderTable();
+  renderTiles();
+}
 
-  return tools.filter(t => {
-    // 학년 필터
-    if (gradeFilter && !gradeFilter.match(t.level || '')) return false;
-
-    // 검색 필터
-    if (searchQuery) {
-      const haystack = [
-        t.name, t.description, t.subcategory,
-        ...(t.tags || []),
-        t.level, t.target, t.activityType,
-        CATEGORIES[t.category]?.name
-      ].filter(Boolean).join(' ').toLowerCase();
-      if (!haystack.includes(searchQuery)) return false;
-    }
-
-    return true;
+function updateGradeButtons() {
+  document.querySelectorAll('.grade-btn').forEach(b => {
+    const on = b.dataset.grade === activeGrade;
+    b.setAttribute('aria-checked', String(on));
+    b.tabIndex = on ? 0 : -1;
   });
-}
-
-// ===== 전체 렌더링 =====
-function renderAll() {
-  const filtered = filterTools(allTools);
-  renderFeatured(filtered);
-  renderCategories(filtered);
 }
 
 // ===== 추천 도구 =====
 function renderFeatured(tools) {
-  const container = document.getElementById('featured');
-  const featured = tools.filter(t => t.featured && t.available !== false);
+  const box = document.getElementById('featured');
+  const featured = tools.filter(t => t.featured && t.available !== false).slice(0, 6);
+  if (featured.length === 0) { box.innerHTML = ''; return; }
 
-  if (featured.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-
-  const cards = featured.slice(0, 6)
-    .map(t => renderCard(t, CATEGORIES[t.category], { isFeatured: true }))
-    .join('');
-
-  container.innerHTML = `
-    <section class="featured-section">
-      <div class="featured-header">
-        <h2 class="featured-title"><span class="star">★</span>추천 도구</h2>
-        <span class="featured-subtitle">자주 쓰이거나 새로 추가된 도구</span>
+  box.innerHTML = `
+    <section class="featured-section" aria-labelledby="featured-title">
+      <div class="section-head">
+        <h2 class="section-title" id="featured-title">${icon('star')}추천 도구</h2>
+        <span class="section-note">자주 쓰거나 새로 들어온 도구</span>
       </div>
-      <div class="card-grid">${cards}</div>
-    </section>
-  `;
+      <div class="tile-grid">${featured.map(t => renderTile(t, { inFeatured: true })).join('')}</div>
+    </section>`;
 }
 
-// ===== 카테고리별 도구 =====
+// ===== 분야별 영역 =====
 function renderCategories(tools) {
-  const content = document.getElementById('content');
+  const box = document.getElementById('sections');
 
   if (tools.length === 0) {
-    content.innerHTML = `<div class="empty-state">검색·필터 결과가 없습니다.</div>`;
+    box.innerHTML = `
+      <div class="empty-state">
+        <strong>찾는 조건에 맞는 도구가 없어요.</strong>
+        검색어를 줄이거나 학년을 '전체'로 바꿔 보세요.<br>
+        <button type="button" id="reset-filters">검색과 학년 필터 지우기</button>
+      </div>`;
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
     return;
   }
 
-  const byCategory = {};
-  CATEGORY_ORDER.forEach(cat => { byCategory[cat] = []; });
-
-  tools.forEach(tool => {
-    if (byCategory[tool.category]) {
-      byCategory[tool.category].push(tool);
-    } else {
-      console.warn(`알 수 없는 카테고리: ${tool.category} (도구: ${tool.name})`);
-    }
+  const byCat = {};
+  CATEGORY_ORDER.forEach(c => { byCat[c] = []; });
+  tools.forEach(t => {
+    if (byCat[t.category]) byCat[t.category].push(t);
+    else console.warn(`알 수 없는 분야: ${t.category} (도구: ${t.name})`);
   });
 
-  const sections = CATEGORY_ORDER
-    .filter(catId => byCategory[catId].length > 0)
-    .map(catId => renderCategorySection(catId, byCategory[catId]))
-    .join('');
+  const withReady = CATEGORY_ORDER.filter(c => byCat[c].some(t => t.available !== false));
+  const onlySoon  = CATEGORY_ORDER.filter(c => byCat[c].length > 0 && !withReady.includes(c));
 
-  content.innerHTML = sections || `<div class="empty-state">검색·필터 결과가 없습니다.</div>`;
+  box.innerHTML =
+    withReady.map(c => renderCategorySection(c, byCat[c])).join('') +
+    renderSoonSection(onlySoon, byCat);
 }
 
-// ===== 카테고리 섹션 =====
+// 아직 쓸 수 있는 도구가 하나도 없는 분야는 마지막에 한 영역으로 모읍니다
+function renderSoonSection(catIds, byCat) {
+  if (!catIds.length) return '';
+  return `
+    <section class="soon-section" id="cat-soon" aria-labelledby="cat-title-soon">
+      <div class="section-head">
+        <h2 class="section-title" id="cat-title-soon">곧 열릴 분야</h2>
+        <span class="section-note">도구 폴더를 올리면 자동으로 해당 분야 칸이 채워져요</span>
+      </div>
+      ${catIds.map(c => `
+        <div class="soon-cat" id="cat-${c}" style="--cat:var(--c-${c})">
+          <h3 class="soon-cat-name">${icon(c)}${CATEGORIES[c].name}</h3>
+          ${ghostList(byCat[c])}
+        </div>`).join('')}
+    </section>`;
+}
+
+function ghostList(tools) {
+  return `<ul class="ghost-list">
+    ${tools.map(t => `
+      <li class="ghost" aria-label="${escape(t.name)} (준비 중)">
+        <span class="ghost-symbol" aria-hidden="true">${escape(symbolOf(t))}</span>
+        <span>${escape(t.name)}</span>
+        ${t.level ? `<span class="ghost-level">${escape(t.level)}</span>` : ''}
+      </li>`).join('')}
+  </ul>`;
+}
+
 function renderCategorySection(catId, tools) {
   const cat = CATEGORIES[catId];
+  const ready = tools.filter(t => t.available !== false);
+  const soon = tools.filter(t => t.available === false);
 
-  // 하위 분류로 그룹화
-  const subcats = {};
-  let hasAnySubcategory = false;
-
-  tools.forEach(tool => {
-    const sub = (tool.subcategory || '').trim();
-    if (sub) hasAnySubcategory = true;
-    if (!subcats[sub]) subcats[sub] = [];
-    subcats[sub].push(tool);
-  });
-
-  let cardsHtml;
-  if (hasAnySubcategory) {
-    const subOrder = Object.keys(subcats).sort((a, b) => {
-      if (a === '') return 1;
-      if (b === '') return -1;
-      return a.localeCompare(b, 'ko');
+  // 하위 분류: 하나라도 채워져 있으면 그룹으로 나눔
+  let body = '';
+  if (ready.some(t => (t.subcategory || '').trim())) {
+    const groups = {};
+    ready.forEach(t => {
+      const sub = (t.subcategory || '').trim();
+      (groups[sub] = groups[sub] || []).push(t);
     });
-
-    cardsHtml = subOrder.map(subName => {
-      const subTitle = subName ? `<h3 class="subcategory-name">${escape(subName)}</h3>` : '';
-      const cards = subcats[subName].map(t => renderCard(t, cat)).join('');
-      return `<div class="subcategory-group">${subTitle}<div class="card-grid">${cards}</div></div>`;
-    }).join('');
-  } else {
-    cardsHtml = `<div class="card-grid">${tools.map(t => renderCard(t, cat)).join('')}</div>`;
+    body = Object.keys(groups)
+      .sort((a, b) => (a === '') - (b === '') || a.localeCompare(b, 'ko'))
+      .map(sub => `
+        <div class="subcategory-group">
+          ${sub ? `<h3 class="subcategory-name">${escape(sub)}</h3>` : (Object.keys(groups).length > 1 ? `<h3 class="subcategory-name">기타</h3>` : '')}
+          <div class="tile-grid">${groups[sub].map(t => renderTile(t)).join('')}</div>
+        </div>`).join('');
+  } else if (ready.length) {
+    body = `<div class="tile-grid">${ready.map(t => renderTile(t)).join('')}</div>`;
   }
 
+  const ghosts = soon.length ? `
+    <div class="ghost-row">
+      <p class="ghost-title">곧 채워질 칸</p>
+      ${ghostList(soon)}
+    </div>` : '';
+
+  const countText = soon.length ? `${ready.length}개, 준비 중 ${soon.length}개` : `${ready.length}개`;
+
   return `
-    <section class="category-section" id="cat-${catId}" style="--cat-color:${cat.color}">
-      <header class="category-header">
-        <h2 class="category-name">${cat.name}</h2>
-        <span class="category-count">${tools.length}개</span>
-      </header>
-      <p class="category-description">${cat.description}</p>
-      ${cardsHtml}
-    </section>
-  `;
+    <section class="category-section" id="cat-${catId}" style="--cat:var(--c-${catId})" aria-labelledby="cat-title-${catId}">
+      <div class="section-head">
+        <h2 class="section-title" id="cat-title-${catId}"><span class="cat-icon">${icon(catId)}</span>${cat.name}</h2>
+        <span class="section-count">${countText}</span>
+        <span class="section-note">${cat.description}</span>
+      </div>
+      ${body}
+      ${ghosts}
+    </section>`;
 }
 
-// ===== 카드 한 개 =====
-function renderCard(tool, cat, options = {}) {
-  const { isFeatured = false } = options;
-  const isAvailable = tool.available !== false;
+// ===== 도구 칸 한 개 =====
+function renderTile(tool, { inFeatured = false } = {}) {
+  const catId = CATEGORIES[tool.category] ? tool.category : 'common';
+  const classes = ['tile'];
+  const showStar = tool.featured && !inFeatured;
+  if (showStar) classes.push('has-star');
 
-  // 카드 클래스 조합
-  const classes = ['tool-card'];
-  if (!isAvailable) classes.push('coming-soon');
-  if (isFeatured) classes.push('featured-card');
-
-  // 준비 중 배지
-  const statusBadge = !isAvailable
-    ? `<span class="status-badge">준비 중</span>`
-    : '';
-
-  // 활동 유형 배지
-  const activityPill = tool.activityType
-    ? `<span class="activity-pill">${escape(tool.activityType)}</span>`
-    : '';
-
-  // 레벨 / 태그
-  const level = tool.level ? `<span class="level">${escape(tool.level)}</span>` : '';
-  const tags = (tool.tags || [])
-    .map(t => `<span class="tag">${escape(t)}</span>`)
-    .join('');
-
-  // 메이커 추가 정보 (난이도·소요시간)
-  let makerInfo = '';
-  if (tool.category === 'maker' && (tool.difficulty || tool.duration)) {
+  // 메이커: 난이도·시간 + 안전 주의
+  let maker = '';
+  if (tool.category === 'maker') {
     const items = [];
     if (tool.difficulty) {
-      const f = Math.max(0, Math.min(3, tool.difficulty));
-      const stars = '★'.repeat(f) + '☆'.repeat(3 - f);
-      items.push(`<span class="info-item"><span class="difficulty-stars">${stars}</span> 난이도</span>`);
+      const d = Math.max(0, Math.min(3, Number(tool.difficulty)));
+      items.push(`<span><span class="difficulty-stars" aria-hidden="true">${'★'.repeat(d)}${'☆'.repeat(3 - d)}</span> 난이도 ${['', '쉬움', '보통', '어려움'][d] || ''}</span>`);
     }
-    if (tool.duration) {
-      items.push(`<span class="info-item">⏱ ${escape(tool.duration)}</span>`);
-    }
-    makerInfo = `<div class="maker-info">${items.join('')}</div>`;
+    if (tool.duration) items.push(`<span>⏱ ${escape(tool.duration)}</span>`);
+    if (items.length) maker += `<div class="maker-info">${items.join('')}</div>`;
+    if (tool.safetyNotes) maker += `<div class="safety-note"><strong>⚠️ 안전 주의</strong> ${escape(tool.safetyNotes)}</div>`;
   }
 
-  // 교사용 정보 (토글 ON일 때만)
-  let teacherInfoHtml = '';
+  // 교사용 정보 (스위치를 켰을 때만)
+  let teacher = '';
   if (teacherMode) {
     const rows = [];
-    if (tool.target) {
-      rows.push(`<div class="teacher-row"><span class="label">대상</span><span class="value">${escape(tool.target)}</span></div>`);
-    }
-    if (tool.sessions) {
-      rows.push(`<div class="teacher-row"><span class="label">차시</span><span class="value">${escape(tool.sessions)}</span></div>`);
-    }
-    if (Array.isArray(tool.materials) && tool.materials.length > 0) {
-      const mats = tool.materials.map(escape).join(', ');
-      rows.push(`<div class="teacher-row"><span class="label">준비물</span><span class="value">${mats}</span></div>`);
-    }
-    if (rows.length > 0) {
-      teacherInfoHtml = `
-        <div class="teacher-info">
-          <div class="teacher-info-title">수업용 정보</div>
-          ${rows.join('')}
-        </div>
-      `;
+    if (tool.target)   rows.push(['대상', escape(tool.target)]);
+    if (tool.sessions) rows.push(['차시', escape(tool.sessions)]);
+    if (Array.isArray(tool.materials) && tool.materials.length) rows.push(['준비물', tool.materials.map(escape).join(', ')]);
+    const stds = toArray(tool.achievementStandard);
+    if (stds.length) rows.push(['성취기준', stds.map(s => `<span class="std-code">[${escape(s)}]</span>`).join('')]);
+    if (tool.source) rows.push(['출처', escape(tool.source)]);
+    if (rows.length) {
+      teacher = `<div class="teacher-info"><dl class="teacher-box">
+        ${rows.map(([k, v]) => `<div class="teacher-row"><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
+      </dl></div>`;
     }
   }
 
-  // 준비 중이면 <a> 대신 <div>로 — 클릭 방지
-  const tag = isAvailable ? 'a' : 'div';
-  const hrefAttr = isAvailable ? `href="${escape(tool.path)}"` : '';
-  const ariaAttr = !isAvailable ? `role="article" aria-label="${escape(tool.name)} (준비 중)"` : '';
+  const idAttr = inFeatured ? '' : `id="tool-${escape(tool.id)}"`;
 
   return `
-    <${tag} class="${classes.join(' ')}" ${hrefAttr} ${ariaAttr} style="--cat-color:${cat.color}">
-      <div class="card-header-row">
-        <span class="card-cat-label">${cat.name}</span>
-        ${statusBadge}
+    <a class="${classes.join(' ')}" ${idAttr} href="${escape(tool.path)}" style="--cat:var(--c-${catId})">
+      <div class="tile-top">
+        <span class="tile-level">${escape(tool.level || '')}</span>
+        <span class="tile-activity">${escape(tool.activityType || '')}</span>
       </div>
-      <h3 class="card-title">${escape(tool.name)}</h3>
-      <p class="card-description">${escape(tool.description || '')}</p>
-      <div class="card-meta">${level}${activityPill}${tags}</div>
-      ${makerInfo}
-      ${teacherInfoHtml}
-    </${tag}>
-  `;
+      ${showStar ? `<span class="tile-star">★ 추천</span>` : ''}
+      <div class="tile-symbol" aria-hidden="true">${escape(symbolOf(tool))}</div>
+      <h3 class="tile-name">${escape(tool.name)}</h3>
+      <p class="tile-desc">${escape(tool.description || '')}</p>
+      ${maker}
+      ${teacher}
+    </a>`;
 }
 
 // ===== 검색 =====
@@ -343,8 +472,19 @@ function setupSearch() {
   const input = document.getElementById('search');
   input.addEventListener('input', () => {
     searchQuery = input.value.trim().toLowerCase();
-    renderAll();
+    renderTable();
+    renderTiles();
   });
+}
+
+// ===== "도구 표" 돌아가기 버튼 =====
+function setupBackToTable() {
+  const btn = document.getElementById('to-table');
+  const hero = document.getElementById('top');
+  if (!('IntersectionObserver' in window)) { btn.classList.add('is-visible'); return; }
+  new IntersectionObserver(([entry]) => {
+    btn.classList.toggle('is-visible', !entry.isIntersecting);
+  }).observe(hero);
 }
 
 // ===== HTML 이스케이프 =====
@@ -358,5 +498,4 @@ function escape(str) {
     .replaceAll("'", '&#039;');
 }
 
-// ===== 실행 =====
 document.addEventListener('DOMContentLoaded', init);
