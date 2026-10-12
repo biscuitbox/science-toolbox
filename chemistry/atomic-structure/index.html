@@ -10,7 +10,7 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 <style>
 /* ============================================================
-   과학 도구상자 · 도구 공통 틀 v1
+   과학 도구상자 · 도구 공통 틀 v1.1
    - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
    - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
    - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
@@ -161,6 +161,52 @@ body {
   white-space: nowrap;
 }
 
+/* ----- 도구 전체에 걸리는 조작(교사용 보기, 인쇄 등) 한 줄 ----- */
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+/* 켜고 끄는 스위치 — 홈페이지의 '교사용 정보' 스위치와 같은 모양 */
+.tb-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--graphite);
+  cursor: pointer;
+  user-select: none;
+}
+.tb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.tb-switch .tb-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 1.5px solid var(--graphite);
+  border-radius: 999px;
+  background: var(--sheet);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-switch .tb-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--graphite);
+  transition: transform .3s var(--ease), background-color .3s var(--ease);
+}
+.tb-switch input:checked + .tb-track { background: var(--ink); border-color: var(--ink); }
+.tb-switch input:checked + .tb-track::after { transform: translateX(16px); background: var(--paper); }
+.tb-switch:has(input:checked) { color: var(--ink); }
+.tb-switch input:focus-visible + .tb-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+
 /* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
 .tb-tabs {
   display: inline-flex;
@@ -172,6 +218,9 @@ body {
   background: var(--sheet);
 }
 .tb-tabs > button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
   font: inherit;
   font-size: .98rem;
   min-height: 44px;
@@ -278,7 +327,7 @@ body {
 @media print {
   body { background: #fff; }
   .tb-wrap { padding: 0; max-width: none; }
-  .tb-tabs, .tb-teacher, .toolbox-back-link { display: none !important; }
+  .tb-tabs, .tb-teacher, .tb-actions, .toolbox-back-link { display: none !important; }
   .tb-stage { box-shadow: none; break-inside: avoid; }
   .tb-emblem { box-shadow: none; }
 }
