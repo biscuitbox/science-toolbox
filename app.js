@@ -142,11 +142,16 @@ async function checkAvailability() {
 
 // ===== 원소 기호 =====
 function symbolOf(tool) {
-  if (tool.symbol) return String(tool.symbol).slice(0, 3);
+  if (tool.symbol) return [...String(tool.symbol)].slice(0, 3).join('');
   const parts = String(tool.id || tool.name || '?').split(/[-_\s]+/).filter(Boolean);
   if (parts.length >= 2) return parts[0][0].toUpperCase() + parts[1][0].toLowerCase();
   const w = parts[0] || '?';
   return w[0].toUpperCase() + (w[1] || '').toLowerCase();
+}
+
+// 세 글자 기호(RGB, LED, H₂O 등)는 칸에 맞게 글자를 조금 줄임
+function longCls(tool) {
+  return [...symbolOf(tool)].length >= 3 ? ' is-long' : '';
 }
 
 // ===== 필터링 =====
@@ -207,9 +212,9 @@ function renderTable() {
       const out = !matches(t) ? ' is-out' : '';
       const label = `${t.name}${t.level ? ' (' + t.level + ')' : ''}${ready ? '' : ' — 준비 중'}`;
       if (!ready) {
-        return `<span class="pt is-ghost${out}" role="img" aria-label="${escape(label)}" title="${escape(label)}">${escape(symbolOf(t))}</span>`;
+        return `<span class="pt is-ghost${out}${longCls(t)}" role="img" aria-label="${escape(label)}" title="${escape(label)}">${escape(symbolOf(t))}</span>`;
       }
-      return `<a class="pt${out}" href="#tool-${escape(t.id)}" data-tool="${escape(t.id)}" aria-label="${escape(label)}">${escape(symbolOf(t))}<span class="pt-tip" aria-hidden="true">${escape(t.name)}</span></a>`;
+      return `<a class="pt${out}${longCls(t)}" href="#tool-${escape(t.id)}" data-tool="${escape(t.id)}" aria-label="${escape(label)}">${escape(symbolOf(t))}<span class="pt-tip" aria-hidden="true">${escape(t.name)}</span></a>`;
     }).join('');
 
     const hasReady = tools.some(t => t.available !== false);
@@ -362,7 +367,7 @@ function ghostList(tools) {
   return `<ul class="ghost-list">
     ${tools.map(t => `
       <li class="ghost" aria-label="${escape(t.name)} (준비 중)">
-        <span class="ghost-symbol" aria-hidden="true">${escape(symbolOf(t))}</span>
+        <span class="ghost-symbol${longCls(t)}" aria-hidden="true">${escape(symbolOf(t))}</span>
         <span>${escape(t.name)}</span>
         ${t.level ? `<span class="ghost-level">${escape(t.level)}</span>` : ''}
       </li>`).join('')}
@@ -459,7 +464,7 @@ function renderTile(tool, { inFeatured = false } = {}) {
         <span class="tile-activity">${escape(tool.activityType || '')}</span>
       </div>
       ${showStar ? `<span class="tile-star">★ 추천</span>` : ''}
-      <div class="tile-symbol" aria-hidden="true">${escape(symbolOf(tool))}</div>
+      <div class="tile-symbol${longCls(tool)}" aria-hidden="true">${escape(symbolOf(tool))}</div>
       <h3 class="tile-name">${escape(tool.name)}</h3>
       <p class="tile-desc">${escape(tool.description || '')}</p>
       ${maker}
