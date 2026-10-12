@@ -7,172 +7,428 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 <style>
-:root{
-  --paper:#faf7f2;
-  --card:#fffdf9;
-  --ink:#2b2b2b;
-  --muted:#6b6459;
-  --border:#e2dbcd;
-  --border2:#cfc6b4;
-  --accent:#2f6fb0;        /* 물리 = 파랑 */
-  --accent-soft:#e8f0f8;
-  --accent-dark:#1d4d7e;
-  --ball:#e07b39;          /* 탁구공 주황 */
-  --wood:#a9773f;
-  --water:#cfe6f2;
-  --water-deep:#a9d3e8;
-  --ok:#2c7a52;
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  background:var(--paper);
-  color:var(--ink);
-  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",sans-serif;
-  font-size:16px;
-  line-height:1.6;
-  padding:18px 14px 60px;
-}
-.wrap{max-width:920px;margin:0 auto}
+/* ============================================================
+   과학 도구상자 · 도구 공통 틀 v1
+   - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
+   - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
+   - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
+     도구만의 디자인은 "공통 틀 끝" 아래에 따로 적습니다.
+   ============================================================ */
+:root {
+  /* 분야 색: 물리 #1D4ED8 · 화학 #B45309 · 생명 #15803D · 지구 #78350F · 메이커 #BE123C · 공통 #57534E · 학급 #6D28D9 */
+  --cat: #1D4ED8;   /* 물리 */
+  --cat-soft: color-mix(in srgb, var(--cat) 9%, var(--sheet));
 
-h1{
-  font-family:"Gowun Batang",serif;
-  font-size:1.55rem;
-  margin:6px 0 2px;
-  letter-spacing:-.01em;
-}
-.sub{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+  --paper:    #F6F2E7;
+  --sheet:    #FFFDF7;
+  --ink:      #24211D;
+  --graphite: #5C564E;
+  --hairline: #D9D1BF;
+  --rule:     rgba(64, 106, 168, 0.11);
+  --focus:    #1D4ED8;
 
-/* ---------- 탭 ---------- */
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.tab{
-  font:inherit;font-size:.95rem;
-  padding:9px 14px;border-radius:10px 10px 0 0;
-  border:1px solid var(--border2);border-bottom:none;
-  background:#f2ece1;color:var(--muted);cursor:pointer;
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+  --radius: 4px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
 }
-.tab[aria-selected="true"]{background:var(--card);color:var(--accent-dark);font-weight:700;box-shadow:inset 0 3px 0 var(--accent)}
-.tab:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
-.card{
-  background:var(--card);
-  border:1px solid var(--border2);
-  border-radius:0 12px 12px 12px;
-  padding:14px;
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px));
+  background-size: 100% 2rem;
+  -webkit-font-smoothing: antialiased;
 }
-.stagewrap{
-  position:relative;
-  background:#fbfaf6;
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-}
-canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
-/* ---------- 컨트롤 ---------- */
-.controls{margin-top:12px;display:grid;gap:10px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-button.btn{
-  font:inherit;font-size:.94rem;
-  padding:9px 14px;border-radius:9px;
-  border:1px solid var(--accent);
-  background:var(--accent);color:#fff;cursor:pointer;
-  transition:background .2s ease;
+/* 화면 폭: 홈페이지와 같은 1200px. 위쪽 여백은 "← 도구상자" 링크 자리 */
+.tb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.25rem 1.5rem 3rem;
 }
-button.btn:hover{background:var(--accent-dark)}
-button.btn.ghost{background:#fff;color:var(--accent-dark)}
-button.btn.ghost:hover{background:var(--accent-soft)}
-button.btn:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
-button.btn[disabled]{opacity:.45;cursor:not-allowed}
 
-.slider{
-  display:flex;align-items:center;gap:10px;
-  background:#fbf8f2;border:1px solid var(--border);
-  border-radius:9px;padding:7px 11px;flex:1 1 250px;min-width:230px;
+/* ----- 머리말: 분야·학년·활동 → 제목 → 한 줄 설명 ----- */
+.tb-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1.5px solid var(--ink);
 }
-.slider label{font-size:.9rem;white-space:nowrap;color:var(--muted)}
-.slider input[type=range]{flex:1;min-width:80px;accent-color:var(--accent)}
-.slider .val{font-variant-numeric:tabular-nums;font-weight:700;min-width:4.6em;text-align:right;font-size:.9rem}
+.tb-emblem {
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-top: .2rem;
+  border: 1.5px solid var(--ink);
+  border-top: 6px solid var(--cat);
+  border-radius: var(--radius);
+  background: var(--cat-soft);
+  color: var(--cat);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 28%, transparent);
+}
+.tb-emblem svg { width: 2.6rem; height: 2.6rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .9rem;
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.tb-meta .tb-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--cat);
+  font-weight: 700;
+}
+.tb-meta .tb-cat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-title {
+  margin: .15rem 0 .3rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.tb-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--graphite);
+  word-break: keep-all;
+}
+.tb-lead b, .tb-lead strong { color: var(--ink); }
 
-.checks{display:flex;flex-wrap:wrap;gap:6px}
-.chk{
-  display:inline-flex;align-items:center;gap:7px;
-  border:1px solid var(--border2);border-radius:20px;
-  padding:6px 13px 6px 10px;background:#fff;cursor:pointer;font-size:.9rem;
+/* ----- 교사용 정보: 학생 화면에서는 접혀 있음 ----- */
+.tb-teacher {
+  margin: 0 0 1.25rem;
+  border: 1.5px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
 }
-.chk input{accent-color:var(--accent);width:16px;height:16px}
+.tb-teacher > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .8rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  list-style: none;
+}
+.tb-teacher > summary::-webkit-details-marker { display: none; }
+.tb-teacher > summary::before {
+  content: '';
+  width: .55rem; height: .55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .3s var(--ease);
+}
+.tb-teacher[open] > summary::before { transform: rotate(45deg); }
+.tb-teacher > summary .tb-hint { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.tb-teacher-body { max-width: 62rem; padding: 0 1rem 1rem; font-size: .95rem; word-break: keep-all; }
+.tb-teacher-body ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.tb-teacher-body li { margin-bottom: .4rem; }
+.tb-std {
+  display: inline-block;
+  padding: .05rem .5rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: 3px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
 
-/* ---------- 안내/설명 ---------- */
-.note{
-  margin-top:12px;background:var(--accent-soft);
-  border-left:4px solid var(--accent);
-  border-radius:0 9px 9px 0;padding:11px 13px;font-size:.92rem;
+/* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
+.tb-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--sheet);
 }
-.note b{color:var(--accent-dark)}
-.readout{
-  margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;
+.tb-tabs > button {
+  font: inherit;
+  font-size: .98rem;
+  min-height: 44px;
+  padding: .5rem 1.1rem;
+  border: 0;
+  border-left: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease);
 }
-.rd{
-  border:1px solid var(--border);border-radius:9px;background:#fbf8f2;padding:8px 11px;
-}
-.rd .k{font-size:.8rem;color:var(--muted);display:block}
-.rd .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.05rem}
+.tb-tabs > button:first-child { border-left: 0; }
+.tb-tabs > button:hover { background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
+.tb-tabs > button[aria-selected="true"],
+.tb-tabs > button.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+.tb-tabs > button:focus-visible { outline-offset: -4px; }
 
-table.terms{border-collapse:collapse;width:100%;margin-top:10px;font-size:.9rem}
-table.terms th,table.terms td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
-table.terms th{background:#f4efe5;width:6.5em;white-space:nowrap}
+/* ----- 실험 무대(그림·캔버스가 들어가는 틀) ----- */
+.tb-stage {
+  position: relative;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
 
-details.teacher{
-  margin-top:14px;border:1px dashed var(--border2);border-radius:10px;
-  background:#fdfbf6;padding:0 12px;
+/* ----- 조작판(버튼·슬라이더가 모인 곳) ----- */
+.tb-panel {
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1rem;
 }
-details.teacher summary{
-  cursor:pointer;padding:10px 0;font-weight:700;font-size:.94rem;color:var(--accent-dark);
+.tb-panel-title {
+  margin: 0 0 .7rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
-details.teacher[open]{padding-bottom:12px}
-details.teacher ul{margin:4px 0 0;padding-left:20px;font-size:.9rem}
-details.teacher li{margin-bottom:5px}
-.std{
-  display:inline-block;background:#fff;border:1px solid var(--accent);
-  color:var(--accent-dark);border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:700;
-}
-footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 
-/* ---------- 인쇄 활동지 ---------- */
-.printonly{display:none}
-@media print{
-  @page{size:A4 portrait;margin:14mm}
-  body{background:#fff;padding:0;font-size:11pt}
-  .tabs,.controls,details.teacher,.no-print,footer.src,.toolbox-back-link{display:none !important}
-  .card{border:none;padding:0;border-radius:0}
-  .stagewrap{border:1px solid #999;page-break-inside:avoid}
-  .printonly{display:block}
-  h1{font-size:16pt;margin-bottom:2px}
-  .note{background:#f4f4f4;border-left:3px solid #666;print-color-adjust:exact;-webkit-print-color-adjust:exact}
-  .sheet h2{font-size:12pt;margin:14px 0 6px;border-bottom:1.5px solid #333;padding-bottom:3px}
-  .sheet ol{padding-left:19px;margin:0}
-  .sheet li{margin-bottom:15px;page-break-inside:avoid}
-  .lines{border-bottom:1px solid #bbb;height:19px;margin-top:5px}
-  .namebar{display:flex;gap:14px;font-size:10.5pt;margin-bottom:8px;border-bottom:1px solid #333;padding-bottom:4px}
-  .namebar span{border-bottom:1px solid #bbb;min-width:80px;display:inline-block}
+/* ----- 버튼 ----- */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sheet);
+  background: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
 }
-@media (max-width:560px){
-  body{padding:14px 10px 50px}
-  h1{font-size:1.3rem}
-  .tab{padding:8px 11px;font-size:.88rem}
-  .slider{min-width:100%}
+.tb-btn:hover { background: color-mix(in srgb, var(--cat) 82%, var(--ink)); }
+.tb-btn.ghost, .tb-btn--ghost {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.tb-btn.ghost:hover, .tb-btn--ghost:hover { background: var(--cat-soft); }
+.tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ----- 안내 상자 ----- */
+.tb-note {
+  margin: 0;
+  padding: .8rem 1rem;
+  background: var(--cat-soft);
+  border-left: 5px solid var(--cat);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: .97rem;
+  word-break: keep-all;
+}
+.tb-note b, .tb-note strong { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* ----- 출처 ----- */
+.tb-foot {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--graphite);
+}
+
+/* ----- 화면 크기별 ----- */
+@media (max-width: 640px) {
+  .tb-wrap { padding: 3.75rem 1rem 2.5rem; }
+  .tb-head { column-gap: .8rem; }
+  .tb-emblem { width: 3.3rem; height: 3.3rem; border-top-width: 5px; }
+  .tb-emblem svg { width: 2rem; height: 2rem; }
+  /* 휴대폰: 탭을 같은 폭으로 한 줄에 */
+  .tb-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .tb-tabs > button { padding: .4rem .35rem; font-size: .88rem; line-height: 1.3; word-break: keep-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print {
+  body { background: #fff; }
+  .tb-wrap { padding: 0; max-width: none; }
+  .tb-tabs, .tb-teacher, .toolbox-back-link { display: none !important; }
+  .tb-stage { box-shadow: none; break-inside: avoid; }
+  .tb-emblem { box-shadow: none; }
+}
+/* ===== 공통 틀 끝 ===== */
+
+/* ============================================================
+   물결파 가상실험만의 디자인
+   ============================================================ */
+[hidden] { display: none !important; }
+
+/* 넓은 화면: 왼쪽은 수조(실험 무대), 오른쪽은 조작판 */
+.card { display: grid; gap: 1rem; }
+@media (min-width: 980px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) 21.5rem;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .card > .stagewrap { grid-column: 1; grid-row: 1 / span 2; }
+  .card > .controls, .card > .tb-note { grid-column: 2; }
+  .card > table.terms { grid-column: 1 / -1; }
+}
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+/* 조작판 */
+.controls { display: grid; gap: .8rem; }
+.row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.row .tb-btn { flex: 1 1 auto; }
+
+.slider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .3rem .7rem;
+  flex: 1 1 100%;
+  padding: .55rem .8rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+}
+.slider label { font-size: .95rem; font-weight: 600; white-space: nowrap; }
+.slider input[type=range] { width: 100%; min-width: 0; accent-color: var(--cat); height: 28px; }
+.slider .val {
+  min-width: 4.6em;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cat);
+}
+
+.checks { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 40px;
+  padding: .35rem .8rem .35rem .6rem;
+  font-size: .93rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chk:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--cat); }
+.chk:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* 측정값: 원소 칸처럼 작은 값 상자 */
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .5rem; }
+.rd {
+  padding: .45rem .7rem .5rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-top: 4px solid var(--cat);
+  border-radius: var(--radius);
+}
+.rd .k { display: block; font-size: .85rem; color: var(--graphite); }
+.rd .v { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* 용어 정리 표 */
+table.terms {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  font-size: .95rem;
+}
+table.terms th, table.terms td { padding: .55rem .8rem; border-top: 1px solid var(--hairline); text-align: left; vertical-align: top; }
+table.terms tr:first-child th, table.terms tr:first-child td { border-top: 0; }
+table.terms th {
+  width: 7.5em;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  color: var(--cat);
+  background: var(--cat-soft);
+}
+
+/* 인쇄 활동지 */
+.printonly { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  body { font-size: 11pt; }
+  .tb-tabs, .controls, .tb-teacher, .no-print, .tb-foot, .toolbox-back-link { display: none !important; }
+  .card { display: block; }
+  .tb-stage { border: 1px solid #999; page-break-inside: avoid; }
+  .printonly { display: block; }
+  .tb-head { grid-template-columns: 1fr; border-bottom-width: 1px; }
+  .tb-emblem, .tb-meta { display: none; }
+  .tb-title { font-size: 16pt; }
+  .tb-note { background: #f4f4f4; border-left: 3px solid #666; margin-top: 8px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .sheet h2 { font-size: 12pt; margin: 14px 0 6px; border-bottom: 1.5px solid #333; padding-bottom: 3px; }
+  .sheet ol { padding-left: 19px; margin: 0; }
+  .sheet li { margin-bottom: 15px; page-break-inside: avoid; }
+  .lines { border-bottom: 1px solid #bbb; height: 19px; margin-top: 5px; }
+  .namebar { display: flex; gap: 14px; font-size: 10.5pt; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+  .namebar span { border-bottom: 1px solid #bbb; min-width: 80px; display: inline-block; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="tb-wrap">
 
-  <h1>물결파의 움직임 가상실험</h1>
-  <p class="sub">수조에 물결을 일으켜 <b>탁구공이 어떻게 움직이는지</b> 관찰하고, 마루·골·파장·진폭·주기·진동수를 확인합니다.</p>
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true">
+      <svg viewBox="0 0 48 48"><path d="M3 32 Q11 16 19 32 T35 32 T45 28"/><circle cx="11" cy="19" r="4.5"/><path d="M11 11V4M8 7l3-3 3 3"/></svg>
+    </div>
+    <p class="tb-meta">
+      <span class="tb-cat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2-5.5 4.5-5.5 6.5 0s4.5 5.5 6.5 0 4.5-5.5 7-1"/></svg>물리</span>
+      <span>중2~중3</span><span>시뮬레이션</span>
+    </p>
+    <h1 class="tb-title">물결파의 움직임 가상실험</h1>
+    <p class="tb-lead">수조에 물결을 일으켜 <b>탁구공이 어떻게 움직이는지</b> 관찰하고, 마루, 골, 파장, 진폭, 주기, 진동수를 확인합니다.</p>
+  </header>
 
-  <div class="tabs" role="tablist" aria-label="화면 선택">
+  <details class="tb-teacher no-print">
+    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과10-04], 수준별 활용, 자주 나오는 오개념</span></summary>
+    <div class="tb-teacher-body">
+    <p style="margin:6px 0"><span class="tb-std">[9과10-04]</span> 파동의 발생과 전달 과정을 이해하고, 소리의 특성을 진폭, 진동수, 파형 등의 과학적 용어로 표현할 수 있다.</p>
+    <ul>
+      <li><b>교육과정 유의점</b> — 성취기준 해설에 따라 <b>종파와 횡파는 구분하지 않습니다.</b> 이 도구도 두 용어를 쓰지 않습니다.</li>
+      <li><b>속력 v = fλ</b>는 중학교 성취기준에 포함되지 않아 화면에 넣지 않았습니다. 필요하면 심화 발문으로만 다루세요.</li>
+      <li><b>수준별 활용</b> — 하(D·E): 탭①에서 "한 번 누르기"만 반복하며 탁구공이 가로로 가지 않는다는 것 한 가지만 확인. 중(B·C): 탭②에서 진동수를 바꿔 파장 변화를 읽기. 상(A): 탭③에서 두 그래프의 가로축 차이를 설명하고 주기·진동수의 역수 관계를 계산.</li>
+      <li><b>자주 나오는 오개념</b> — "물결과 함께 물도 따라 흘러간다"(탭① 물 입자 보기로 교정), "파장은 마루의 높이다"(탭③ 진폭 화살표와 나란히 비교).</li>
+      <li><b>실물 실험 연계</b> — 사각 수조에 물을 <sup>2</sup>⁄<sub>3</sub> 채우고 탁구공을 띄운 뒤 나무 막대로 수면을 한 번 누릅니다. 실물에서는 물결이 벽에 반사되어 관찰이 어렵습니다. 이 도구는 반사를 넣지 않아 첫 관찰에 적합합니다.</li>
+      <li><b>모형의 한계</b> — 실제 물 입자는 원에 가깝게 돕니다. 이 도구는 중학교 수준에 맞춰 <b>위아래 진동</b>으로 단순화한 모형입니다.</li>
+    </ul>
+    </div>
+  </details>
+
+  <div class="tabs tb-tabs" role="tablist" aria-label="화면 선택">
     <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 수조에서 관찰</button>
     <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false">② 위에서 본 물결파</button>
     <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false">③ 파형 그래프</button>
@@ -180,14 +436,14 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 
   <!-- ================= 탭 1 ================= -->
   <section class="card" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
-    <div class="stagewrap"><canvas id="cv1" height="360" aria-label="사각 수조를 옆에서 본 모습. 나무 막대로 수면을 누르면 물결이 퍼지고 탁구공이 위아래로 진동합니다."></canvas></div>
+    <div class="stagewrap tb-stage"><canvas id="cv1" height="360" aria-label="사각 수조를 옆에서 본 모습. 나무 막대로 수면을 누르면 물결이 퍼지고 탁구공이 위아래로 진동합니다."></canvas></div>
 
     <div class="controls no-print">
       <div class="row">
-        <button class="btn" id="b1-pulse">막대로 한 번 누르기</button>
-        <button class="btn ghost" id="b1-cont">계속 흔들기</button>
-        <button class="btn ghost" id="b1-reset">처음으로</button>
-        <button class="btn ghost" id="b1-shot">📷 화면 저장</button>
+        <button class="tb-btn" id="b1-pulse">막대로 한 번 누르기</button>
+        <button class="tb-btn ghost" id="b1-cont">계속 흔들기</button>
+        <button class="tb-btn ghost" id="b1-reset">처음으로</button>
+        <button class="tb-btn ghost" id="b1-shot">📷 화면 저장</button>
       </div>
       <div class="row">
         <div class="slider">
@@ -208,7 +464,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
       </div>
     </div>
 
-    <div class="note">
+    <div class="tb-note">
       <b>무엇을 볼까요?</b> 물결은 오른쪽·왼쪽으로 <b>퍼져 나가지만</b>, 탁구공과 물 입자는 <b>제자리에서 위아래로만</b> 진동합니다.
       파동을 전달하는 물질(여기서는 물)을 <b>매질</b>이라고 하며, 매질은 파동과 함께 이동하지 않습니다.
     </div>
@@ -216,13 +472,13 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 
   <!-- ================= 탭 2 ================= -->
   <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
-    <div class="stagewrap"><canvas id="cv2" height="360" aria-label="수면을 위에서 본 모습. 마루와 골이 동심원 모양으로 번갈아 퍼져 나갑니다."></canvas></div>
+    <div class="stagewrap tb-stage"><canvas id="cv2" height="360" aria-label="수면을 위에서 본 모습. 마루와 골이 동심원 모양으로 번갈아 퍼져 나갑니다."></canvas></div>
 
     <div class="controls no-print">
       <div class="row">
-        <button class="btn" id="b2-play">⏸ 멈춤</button>
-        <button class="btn ghost" id="b2-reset">처음으로</button>
-        <button class="btn ghost" id="b2-shot">📷 화면 저장</button>
+        <button class="tb-btn" id="b2-play">⏸ 멈춤</button>
+        <button class="tb-btn ghost" id="b2-reset">처음으로</button>
+        <button class="tb-btn ghost" id="b2-shot">📷 화면 저장</button>
       </div>
       <div class="row">
         <div class="slider">
@@ -247,7 +503,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
       </div>
     </div>
 
-    <div class="note">
+    <div class="tb-note">
       <b>무엇을 볼까요?</b> 높은 곳(<b>마루</b>)과 낮은 곳(<b>골</b>)이 번갈아 만들어지며 원 모양으로 퍼집니다.
       이웃한 마루와 마루 사이의 거리가 <b>파장</b>입니다. 빠르게 흔들수록(진동수↑) 파장은 <b>짧아집니다</b>.
       가운데의 탁구공은 계속 <b>제자리</b>에 있고 높이만 오르내립니다.
@@ -256,12 +512,12 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
 
   <!-- ================= 탭 3 ================= -->
   <section class="card" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
-    <div class="stagewrap"><canvas id="cv3" height="430" aria-label="위쪽은 거리에 따른 물결 모양 그래프로 파장과 진폭을, 아래쪽은 시간에 따른 탁구공의 높이 그래프로 주기를 나타냅니다."></canvas></div>
+    <div class="stagewrap tb-stage"><canvas id="cv3" height="430" aria-label="위쪽은 거리에 따른 물결 모양 그래프로 파장과 진폭을, 아래쪽은 시간에 따른 탁구공의 높이 그래프로 주기를 나타냅니다."></canvas></div>
 
     <div class="controls no-print">
       <div class="row">
-        <button class="btn" id="b3-play">⏸ 멈춤</button>
-        <button class="btn ghost" id="b3-shot">📷 화면 저장</button>
+        <button class="tb-btn" id="b3-play">⏸ 멈춤</button>
+        <button class="tb-btn ghost" id="b3-shot">📷 화면 저장</button>
       </div>
       <div class="row">
         <div class="slider">
@@ -288,7 +544,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
       </div>
     </div>
 
-    <div class="note" id="n3">
+    <div class="tb-note" id="n3">
       <b>진동수와 주기는 역수 관계</b> — 진동수 = 1 ÷ 주기 = 1 ÷ 1.00초 = <b>1.0 Hz</b>.
       위 그래프의 가로축은 <b>거리</b>라서 파장을, 아래 그래프의 가로축은 <b>시간</b>이라서 주기를 읽습니다. 가로축이 무엇인지 꼭 확인하세요.
     </div>
@@ -302,20 +558,6 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
       <tr><th>진동수</th><td>1초 동안 매질의 한 점이 진동하는 횟수. 단위는 헤르츠(Hz). 진동수 = 1 ÷ 주기.</td></tr>
     </table>
   </section>
-
-  <!-- ================= 교사용 정보 ================= -->
-  <details class="teacher no-print">
-    <summary>교사용 정보 보기</summary>
-    <p style="margin:6px 0"><span class="std">9과10-04</span> 파동의 발생과 전달 과정을 이해하고, 소리의 특성을 진폭, 진동수, 파형 등의 과학적 용어로 표현할 수 있다.</p>
-    <ul>
-      <li><b>교육과정 유의점</b> — 성취기준 해설에 따라 <b>종파와 횡파는 구분하지 않습니다.</b> 이 도구도 두 용어를 쓰지 않습니다.</li>
-      <li><b>속력 v = fλ</b>는 중학교 성취기준에 포함되지 않아 화면에 넣지 않았습니다. 필요하면 심화 발문으로만 다루세요.</li>
-      <li><b>수준별 활용</b> — 하(D·E): 탭①에서 "한 번 누르기"만 반복하며 탁구공이 가로로 가지 않는다는 것 한 가지만 확인. 중(B·C): 탭②에서 진동수를 바꿔 파장 변화를 읽기. 상(A): 탭③에서 두 그래프의 가로축 차이를 설명하고 주기·진동수의 역수 관계를 계산.</li>
-      <li><b>자주 나오는 오개념</b> — "물결과 함께 물도 따라 흘러간다"(탭① 물 입자 보기로 교정), "파장은 마루의 높이다"(탭③ 진폭 화살표와 나란히 비교).</li>
-      <li><b>실물 실험 연계</b> — 사각 수조에 물을 <sup>2</sup>⁄<sub>3</sub> 채우고 탁구공을 띄운 뒤 나무 막대로 수면을 한 번 누릅니다. 실물에서는 물결이 벽에 반사되어 관찰이 어렵습니다. 이 도구는 반사를 넣지 않아 첫 관찰에 적합합니다.</li>
-      <li><b>모형의 한계</b> — 실제 물 입자는 원에 가깝게 돕니다. 이 도구는 중학교 수준에 맞춰 <b>위아래 진동</b>으로 단순화한 모형입니다.</li>
-    </ul>
-  </details>
 
   <!-- ================= 인쇄 활동지 ================= -->
   <div class="printonly sheet">
@@ -340,7 +582,7 @@ footer.src{margin-top:16px;font-size:.78rem;color:#8d8577;text-align:right}
     </ol>
   </div>
 
-  <footer class="src">모든 그림은 직접 그린 것입니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과10-04]</footer>
+  <footer class="tb-foot">모든 그림은 직접 그린 것입니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과10-04]</footer>
 </div>
 
 <script src="../../toolbox-nav.js"></script>

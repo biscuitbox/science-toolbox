@@ -89,7 +89,8 @@
       "activityType": "개념학습",
       "target": "중2~중3 과학 학생",
       "sessions": "1차시",
-      "materials": ["태블릿/PC"]
+      "materials": ["태블릿/PC"],
+      "achievementStandard": ["9과11-02", "9과11-03"]
     },
     {
       "id": "ph-calculator",
