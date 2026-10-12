@@ -279,3 +279,62 @@ python3 -m http.server 8000
 - [ ] `path` 끝에 슬래시(`/`)가 붙어있나?
 - [ ] 학년 필터를 위해 `level`에 `초/중/고/전 학년` 중 적절한 글자가 들어있나?
 - [ ] 새로고침 후 카드가 보이나?
+- [ ] 도구 공통 틀(아래 15번)을 넣었나?
+
+---
+
+## 15. 도구 공통 틀 (모든 도구 페이지가 같은 모양을 쓰도록)
+
+모든 도구는 홈페이지와 같은 머리말·탭·버튼·글꼴·화면 폭을 씁니다. 부모 사이트 CSS에 기대지 않도록, **같은 CSS 덩어리를 도구마다 복사해 넣는 방식**입니다.
+
+**1) CSS 복사** — 아무 도구(예: `physics/wave-motion-lab/index.html`)의 `<style>` 안에서
+`과학 도구상자 · 도구 공통 틀`로 시작해 `/* ===== 공통 틀 끝 ===== */`로 끝나는 부분을 통째로 복사해 새 도구의 `<style>`에 붙여 넣습니다. 그다음 맨 위 `--cat` 한 줄만 분야 색으로 바꿉니다.
+
+| 분야 | `--cat` |
+|------|---------|
+| 물리 | `#1D4ED8` |
+| 화학 | `#B45309` |
+| 생명과학 | `#15803D` |
+| 지구과학 | `#78350F` |
+| 메이커 | `#BE123C` |
+| 공통 도구 | `#57534E` |
+| 학급 운영 | `#6D28D9` |
+
+**2) 글꼴** — `<head>`에 이 두 줄이 있어야 합니다.
+```html
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+```
+
+**3) 머리말 뼈대** — `<body>` 바로 안쪽을 이렇게 시작합니다. 도구 문장(`tb-emblem`)에는 도구를 나타내는 간단한 선 그림을 넣습니다.
+```html
+<div class="tb-wrap">
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true"><svg viewBox="0 0 48 48">…선 그림…</svg></div>
+    <p class="tb-meta"><span class="tb-cat">물리</span><span>중2~중3</span><span>시뮬레이션</span></p>
+    <h1 class="tb-title">도구 이름</h1>
+    <p class="tb-lead">한 줄 설명</p>
+  </header>
+
+  <details class="tb-teacher">
+    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과10-04]</span></summary>
+    <div class="tb-teacher-body"><span class="tb-std">[9과10-04]</span> 성취기준 문장 …</div>
+  </details>
+
+  <div class="tb-tabs" role="tablist">…탭 버튼들…</div>
+  <div class="tb-stage">…실험 그림·캔버스…</div>
+  …
+  <footer class="tb-foot">출처 표기</footer>
+</div>
+```
+
+**4) 자주 쓰는 부품**
+
+| 클래스 | 쓰임 |
+|--------|------|
+| `tb-btn` / `tb-btn ghost` | 주 버튼(분야 색) / 보조 버튼(흰 바탕 검은 테) |
+| `tb-stage` | 실험 그림이 들어가는 틀 (굵은 테두리 + 분야 색 그림자) |
+| `tb-note` | 왼쪽 굵은 선이 있는 안내 상자 |
+| `tb-actions` + `tb-switch` | 교사용 보기·인쇄처럼 도구 전체에 걸리는 조작 줄과 켜고 끄는 스위치 |
+
+공통 틀을 고칠 때는 모든 도구의 같은 부분을 함께 바꿔야 모양이 어긋나지 않습니다. 클로드에게 "도구 공통 틀을 이렇게 바꿔서 모든 도구에 반영해줘"라고 요청하면 됩니다.
