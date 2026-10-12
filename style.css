@@ -140,7 +140,6 @@ body::before {
   font-size: 1.08rem;
   color: var(--graphite);
   margin: 0 0 1rem;
-  max-width: 34em;
   word-break: keep-all;
 }
 
