@@ -179,7 +179,7 @@ function toArray(v) {
 
 // ===== 전체 그리기 =====
 function renderAll() {
-  renderTable();
+  renderMenu();
   renderTiles();
   renderCount();
 }
@@ -197,59 +197,132 @@ function renderCount() {
     `지금 쓸 수 있는 도구 <strong>${ready}개</strong>` + (soon ? `, 준비 중 ${soon}개` : '');
 }
 
-// ===== 맨 위 도구 표 =====
-function renderTable() {
-  const table = document.getElementById('ptable');
-  const cats = CATEGORY_ORDER.filter(c => allTools.some(t => t.category === c));
+// ===== 분야 메뉴 =====
+// 분야 이름에 마우스를 올리면(또는 누르면) 그 분야의 도구 목록이 펼쳐집니다.
+// 목록의 도구를 누르면 그 도구가 바로 열립니다.
+let menuCloseTimer = null;
+let lastPointer = 'mouse';
 
-  table.innerHTML = cats.map(catId => {
+function renderMenu() {
+  const menu = document.getElementById('cat-menu');
+  const cats = CATEGORY_ORDER.filter(c => allTools.some(t => t.category === c));
+  menu.style.setProperty('--cols', cats.length);
+
+  menu.innerHTML = cats.map((catId, i) => {
     const cat = CATEGORIES[catId];
     const tools = allTools.filter(t => t.category === catId)
       .sort((a, b) => (b.available !== false) - (a.available !== false));
+    const readyCount = tools.filter(t => t.available !== false).length;
+    const countText = readyCount ? `${readyCount}개` : '준비 중';
+    const endCls = i >= cats.length - 3 ? ' is-end' : '';
 
-    const cells = tools.map(t => {
-      const ready = t.available !== false;
-      const out = !matches(t) ? ' is-out' : '';
-      const label = `${t.name}${t.level ? ' (' + t.level + ')' : ''}${ready ? '' : ' — 준비 중'}`;
-      if (!ready) {
-        return `<span class="pt is-ghost${out}${longCls(t)}" role="img" aria-label="${escape(label)}" title="${escape(label)}">${escape(symbolOf(t))}</span>`;
+    const items = tools.map(t => {
+      const meta = [t.level, t.activityType].filter(Boolean).map(escape).join(', ');
+      if (t.available === false) {
+        return `<li><span class="cat-link is-soon">
+            <span class="cat-link-name">${escape(t.name)}<span class="soon-badge">준비 중</span></span>
+            ${meta ? `<span class="cat-link-meta">${meta}</span>` : ''}
+          </span></li>`;
       }
-      return `<a class="pt${out}${longCls(t)}" href="#tool-${escape(t.id)}" data-tool="${escape(t.id)}" aria-label="${escape(label)}">${escape(symbolOf(t))}<span class="pt-tip" aria-hidden="true">${escape(t.name)}</span></a>`;
+      return `<li><a class="cat-link" href="${escape(t.path)}">
+          <span class="cat-link-name">${escape(t.name)}</span>
+          ${meta ? `<span class="cat-link-meta">${meta}</span>` : ''}
+        </a></li>`;
     }).join('');
 
-    const hasReady = tools.some(t => t.available !== false);
-    const headHref = hasReady ? `#cat-${catId}` : '#cat-soon';
-
-    return `<div class="prow" style="--cat:var(--c-${catId})">
-        <a class="prow-head" href="${headHref}">${icon(catId)}<span>${cat.short}</span></a>
-        <div class="prow-cells">${cells}</div>
-      </div>`;
+    return `<li class="cat-item${endCls}" style="--cat:var(--c-${catId})">
+        <button class="cat-btn" type="button" aria-expanded="false" aria-controls="menu-${catId}">
+          ${icon(catId)}
+          <span class="cat-btn-name">${cat.name}</span>
+          <span class="cat-btn-count">${countText}</span>
+        </button>
+        <div class="cat-panel" id="menu-${catId}" hidden>
+          <p class="cat-panel-desc">${cat.description}</p>
+          <ul class="cat-panel-list">${items}</ul>
+          <a class="cat-panel-all" href="#cat-${catId}">${cat.name} 도구 설명 모두 보기</a>
+        </div>
+      </li>`;
   }).join('');
 
-  table.querySelectorAll('a.pt').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      goToTool(a.dataset.tool);
-    });
-  });
+  menu.querySelectorAll('.cat-item').forEach(setupMenuItem);
 }
 
-// 표의 칸을 누르면 그 도구 칸으로 이동해 한 번 강조
-function goToTool(id) {
-  let el = document.getElementById(`tool-${id}`);
-  if (!el) {
-    // 검색·학년 필터 때문에 숨어 있으면 필터를 풀고 다시 찾기
-    resetFilters();
-    el = document.getElementById(`tool-${id}`);
-  }
-  if (!el) return;
-  el.scrollIntoView({ block: 'center' });
-  el.classList.remove('is-arrived');
-  void el.offsetWidth;
-  el.classList.add('is-arrived');
-  el.focus({ preventScroll: true });
-  history.replaceState(null, '', `#tool-${id}`);
+function setupMenuItem(item) {
+  const btn = item.querySelector('.cat-btn');
+  const panel = item.querySelector('.cat-panel');
+
+  // 마우스: 올리면 펼치고, 벗어나면 잠깐 뒤에 접기(목록으로 옮겨 가는 동안 닫히지 않게)
+  item.addEventListener('pointerenter', e => {
+    if (e.pointerType !== 'mouse') return;
+    clearTimeout(menuCloseTimer);
+    openMenu(item);
+  });
+  item.addEventListener('pointerleave', e => {
+    if (e.pointerType !== 'mouse') return;
+    clearTimeout(menuCloseTimer);
+    menuCloseTimer = setTimeout(() => closeMenu(item), 250);
+  });
+
+  // 누르기: 터치·키보드는 열기/닫기, 마우스는 이미 열려 있으므로 그대로 둠
+  btn.addEventListener('pointerdown', e => { lastPointer = e.pointerType; });
+  btn.addEventListener('keydown', () => { lastPointer = 'keyboard'; });
+  btn.addEventListener('click', () => {
+    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+    if (lastPointer === 'mouse') openMenu(item);
+    else if (isOpen) closeMenu(item);
+    else openMenu(item);
+  });
+
+  // 키보드: ↓ 로 목록에 들어가고, ↑↓ 로 이동, Esc 로 닫기
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      openMenu(item);
+      panelLinks(panel)[0]?.focus();
+    } else if (e.key === 'Escape') {
+      closeMenu(item);
+    }
+  });
+  panel.addEventListener('keydown', e => {
+    const links = panelLinks(panel);
+    const i = links.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); links[Math.min(i + 1, links.length - 1)]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); i <= 0 ? btn.focus() : links[i - 1].focus(); }
+    else if (e.key === 'Escape') { closeMenu(item); btn.focus(); }
+  });
+
+  // Tab으로 메뉴 밖으로 나가면 닫기
+  item.addEventListener('focusout', e => {
+    if (!item.contains(e.relatedTarget)) closeMenu(item);
+  });
+
+  // "설명 모두 보기"를 누르면 메뉴를 닫고 해당 분야로 이동
+  panel.querySelector('.cat-panel-all').addEventListener('click', () => closeMenu(item));
 }
+
+function panelLinks(panel) {
+  return [...panel.querySelectorAll('a.cat-link, a.cat-panel-all')];
+}
+
+function openMenu(item) {
+  document.querySelectorAll('.cat-item.is-open').forEach(other => { if (other !== item) closeMenu(other); });
+  item.classList.add('is-open');
+  item.querySelector('.cat-btn').setAttribute('aria-expanded', 'true');
+  item.querySelector('.cat-panel').hidden = false;
+}
+
+function closeMenu(item) {
+  item.classList.remove('is-open');
+  item.querySelector('.cat-btn').setAttribute('aria-expanded', 'false');
+  item.querySelector('.cat-panel').hidden = true;
+}
+
+// 메뉴 바깥을 누르면 모두 닫기
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cat-item')) {
+    document.querySelectorAll('.cat-item.is-open').forEach(closeMenu);
+  }
+});
 
 function resetFilters() {
   searchQuery = '';
@@ -257,7 +330,6 @@ function resetFilters() {
   activeGrade = 'all';
   save('activeGrade', 'all');
   updateGradeButtons();
-  renderTable();
   renderTiles();
 }
 
@@ -288,7 +360,6 @@ function selectGrade(id) {
   activeGrade = id;
   save('activeGrade', id);
   updateGradeButtons();
-  renderTable();
   renderTiles();
 }
 
@@ -477,8 +548,7 @@ function setupSearch() {
   const input = document.getElementById('search');
   input.addEventListener('input', () => {
     searchQuery = input.value.trim().toLowerCase();
-    renderTable();
-    renderTiles();
+      renderTiles();
   });
 }
 

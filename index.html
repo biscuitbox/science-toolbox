@@ -21,21 +21,16 @@
 <body>
   <a class="skip-link" href="#content">도구 목록으로 바로 가기</a>
 
-  <!-- ===== 첫 화면: 제목 + 도구 주기율표 ===== -->
+  <!-- ===== 첫 화면: 제목 + 분야 메뉴 ===== -->
   <header class="hero container" id="top">
-    <div class="hero-text">
-      <h1 class="site-title">과학 도구상자</h1>
-      <p class="site-intro">가상실험, 계산기, 수업 도구를 분야별로 모았어요.<br>
-        도구 표의 칸을 누르면 그 도구 설명으로 바로 이동해요.</p>
-      <p class="site-count" id="site-count" aria-live="polite"></p>
-    </div>
+    <h1 class="site-title">과학 도구상자</h1>
+    <p class="site-intro">가상실험, 계산기, 수업 도구를 분야별로 모았어요.<br>
+      분야 이름에 마우스를 올리면(휴대폰은 누르면) 도구 목록이 펼쳐지고, 도구를 누르면 바로 열려요.</p>
+    <p class="site-count" id="site-count" aria-live="polite"></p>
 
-    <nav class="ptable-wrap" aria-label="도구 표 — 분야별 도구 바로가기">
-      <div class="ptable" id="ptable"><!-- app.js가 채움 --></div>
-      <p class="ptable-legend">
-        <span class="legend-item"><span class="legend-box"></span>쓸 수 있는 도구</span>
-        <span class="legend-item"><span class="legend-box is-ghost"></span>준비 중</span>
-      </p>
+    <!-- ===== 분야 메뉴: 마우스를 올리면 도구 목록이 펼쳐짐 ===== -->
+    <nav aria-label="분야별 도구 메뉴">
+      <ul class="cat-menu" id="cat-menu"><!-- app.js가 채움 --></ul>
     </nav>
   </header>
 
@@ -77,9 +72,9 @@
     </div>
   </footer>
 
-  <a class="to-table" id="to-table" href="#top" aria-label="도구 표로 돌아가기">
+  <a class="to-table" id="to-table" href="#top" aria-label="분야 메뉴로 돌아가기">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    <span>도구 표</span>
+    <span>분야 메뉴</span>
   </a>
 
   <script src="app.js"></script>
