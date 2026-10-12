@@ -206,15 +206,15 @@ body::before {
 }
 .cat-btn:focus-visible { outline-offset: -4px; }
 
-/* 펼쳐지는 도구 목록 */
+/* 펼쳐지는 도구 목록: 메뉴 전체 폭으로 펼쳐 도구 이름을 여러 칸으로 나열 */
+.cat-item { position: static; }
 .cat-panel {
   position: absolute;
   top: calc(100% + 1.5px);
   left: -1.5px;
+  right: -1.5px;
   z-index: 60;
-  width: 23rem;
-  max-width: calc(100vw - 2rem);
-  padding: .9rem .6rem .6rem;
+  padding: .9rem 1rem 1rem;
   background: var(--sheet);
   border: 1.5px solid var(--ink);
   border-top: 5px solid var(--cat);
@@ -223,61 +223,80 @@ body::before {
   text-align: left;
 }
 .cat-panel[hidden] { display: none; }
-.cat-item.is-end .cat-panel { left: auto; right: -1.5px; }
 
+.cat-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .3rem 1.5rem;
+  margin-bottom: .8rem;
+}
 .cat-panel-desc {
-  margin: 0 .5rem .6rem;
-  font-size: .9rem;
+  margin: 0;
+  font-size: .92rem;
   color: var(--graphite);
   word-break: keep-all;
 }
+.cat-panel-desc strong { color: var(--cat); margin-right: .35rem; }
 
-.cat-panel-list { margin: 0; padding: 0; list-style: none; }
+.cat-panel-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
 .cat-link {
   display: flex;
-  flex-direction: column;
-  gap: .1rem;
-  padding: .55rem .6rem;
-  border-radius: var(--tile-radius);
-  color: var(--ink);
-  text-decoration: none;
-  transition: background-color .3s var(--ease);
-}
-a.cat-link:hover, a.cat-link:focus-visible {
-  background: color-mix(in srgb, var(--cat) 14%, var(--sheet));
-}
-a.cat-link:focus-visible { outline-offset: -3px; }
-.cat-link-name {
+  align-items: center;
+  height: 100%;
+  min-height: 2.9rem;
+  padding: .55rem .8rem;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
   word-break: keep-all;
+  color: var(--ink);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--cat) 7%, var(--sheet));
+  border: 1.5px solid color-mix(in srgb, var(--cat) 45%, var(--sheet));
+  border-left: 5px solid var(--cat);
+  border-radius: var(--tile-radius);
+  transition: background-color .3s var(--ease), color .3s var(--ease);
 }
-a.cat-link .cat-link-name::after { content: ' ›'; color: var(--cat); }
-.cat-link-meta { font-size: .85rem; color: var(--graphite); }
-.cat-link.is-soon { color: var(--graphite); cursor: default; }
-.cat-link.is-soon .cat-link-name { font-weight: 500; }
+a.cat-link:hover, a.cat-link:focus-visible {
+  background: var(--cat);
+  color: var(--sheet);
+}
+a.cat-link:focus-visible { outline-offset: 2px; }
+.cat-link.is-soon {
+  flex-wrap: wrap;
+  gap: .2rem .5rem;
+  font-weight: 500;
+  color: var(--graphite);
+  background: transparent;
+  border: 1.5px dashed var(--ghost);
+  cursor: default;
+}
 .soon-badge {
-  display: inline-block;
-  margin-left: .35rem;
+  flex-shrink: 0;
+  margin-left: auto;
   padding: 0 .4rem;
-  font-size: .8rem;
+  font-size: .78rem;
   font-weight: 600;
   border: 1px dashed var(--ghost);
   border-radius: 3px;
-  vertical-align: 1px;
 }
 
 .cat-panel-all {
-  display: block;
-  margin: .5rem .1rem 0;
-  padding: .6rem .5rem .3rem;
-  border-top: 1px dashed var(--hairline);
   font-size: .9rem;
   font-weight: 600;
   color: var(--cat);
   text-decoration: none;
+  white-space: nowrap;
 }
 .cat-panel-all:hover { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -498,25 +517,13 @@ a.tile:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 .tile-level { font-weight: 700; color: var(--ink); }
 .tile-activity { color: var(--cat); font-weight: 700; text-align: right; }
 
-.tile-symbol {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 3rem;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--cat);
-  margin: .55rem 0 .65rem;
-}
-
-.tile-symbol.is-long { font-size: 2.4rem; }
-
 .tile-name {
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.01em;
-  margin: 0 0 .35rem;
+  margin: .55rem 0 .35rem;
   color: var(--ink);
   word-break: keep-all;
 }
@@ -625,18 +632,6 @@ a.tile:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
   color: var(--graphite);
   font-size: .95rem;
 }
-.ghost-symbol {
-  display: inline-grid;
-  place-items: center;
-  min-width: 2.1rem; height: 2.1rem;
-  padding: 0 .2rem;
-  border: 1px dashed var(--ghost);
-  border-radius: 3px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: .95rem;
-  color: var(--ghost);
-}
 .ghost-level { font-size: .85rem; color: var(--graphite); opacity: .9; }
 
 /* 아직 쓸 수 있는 도구가 없는 분야는 한 곳에 모아 짧게 */
@@ -719,9 +714,6 @@ a.tile:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
   .cat-item + .cat-item { border-left: 0; }
   .cat-item { border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
   .cat-item:nth-child(4n) { border-right: 0; }
-  /* 메뉴 전체 폭 아래로 펼침 */
-  .cat-item { position: static; }
-  .cat-panel, .cat-item.is-end .cat-panel { left: -1.5px; right: -1.5px; width: auto; max-width: none; }
 }
 
 @media (max-width: 640px) {
@@ -738,23 +730,11 @@ a.tile:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
   .grade-filter { width: 100%; }
   .grade-btn { flex: 1; padding: .45rem .3rem; }
   .tile-grid { grid-template-columns: 1fr; gap: .9rem; }
-  /* 휴대폰: 기호를 왼쪽에 두어 칸 높이를 줄임 */
-  .tile {
-    display: grid;
-    grid-template-columns: 3.9rem minmax(0, 1fr);
-    column-gap: .85rem;
-    padding: .8rem .9rem .9rem;
-    border-top-width: 1.5px;
-    border-left: 6px solid var(--cat);
-  }
-  .tile > * { grid-column: 2; }
-  .tile-symbol { grid-column: 1; grid-row: 1 / span 3; align-self: start; font-size: 2.2rem; margin: .1rem 0 0; }
-  .tile-symbol.is-long { font-size: 1.45rem; margin-top: .45rem; }
-  .tile-top { grid-row: 1; }
-  .tile-name { font-size: 1.1rem; margin-top: .2rem; }
-  .tile-star { position: static; grid-row: auto; font-size: .85rem; }
-  .tile.has-star .tile-top { padding-right: 0; }
-  .maker-info, .safety-note, .teacher-info { grid-column: 1 / -1; }
+  .tile { padding: .85rem .95rem 1rem; border-top-width: 6px; }
+  .tile-name { font-size: 1.1rem; margin-top: .45rem; }
+  .cat-panel { padding: .8rem .7rem .8rem; }
+  .cat-panel-list { grid-template-columns: repeat(auto-fill, minmax(8.4rem, 1fr)); gap: .4rem; }
+  .cat-link { font-size: .95rem; padding: .5rem .6rem; }
   .category-section { padding-top: 2.25rem; scroll-margin-top: 1rem; }
   .tile { scroll-margin-top: 1rem; }
 }

@@ -2,7 +2,6 @@
   "tools": [
     {
     "id": "wave-motion-lab",
-    "symbol": "Wv",
     "name": "물결파의 움직임 가상실험",
     "description": "물결을 일으켜 매질의 제자리 진동과 파장·주기를 관찰",
     "category": "physics",
@@ -18,7 +17,6 @@
     },
     {
     "id": "mirror-lens-image-ms",
-    "symbol": "Ml",
     "name": "거울과 렌즈로 본 모습",
     "description": "물체를 끌어 옮기며 거울·렌즈에 보이는 모습을 견주는 관찰 실험",
     "category": "physics",
@@ -34,7 +32,6 @@
     },
     {
     "id": "light-color-lab",
-    "symbol": "RGB",
     "name": "빛의 합성 가상실험",
     "description": "빨강·초록·파랑 빛을 겹쳐 보고 화면 픽셀과 물체의 색까지 알아보는 실험",
     "category": "physics",
@@ -50,7 +47,6 @@
     },
     {
     "id": "instrument-sound-wave",
-    "symbol": "Sd",
     "name": "악기 소리 파형 실험실",
     "description": "여러 악기 소리를 진폭·진동수·파형으로 비교하는 가상실험",
     "category": "physics",
@@ -67,7 +63,6 @@
     },
     {
     "id": "light-ray-lab",
-    "symbol": "Ry",
     "name": "빛의 반사와 굴절 가상실험",
     "description": "레이저를 끌어 옮기며 반사·굴절·전반사를 살펴보는 광선 실험실",
     "category": "physics",
@@ -83,7 +78,6 @@
     },
     {
       "id": "atomic-structure",
-      "symbol": "e⁻",
       "name": "원자 구조 탐험",
       "description": "보어 모형으로 배우는 원자 구조 + 주기율표 학습 + 10문제 퀴즈",
       "category": "chemistry",
@@ -99,7 +93,6 @@
     },
     {
       "id": "ph-calculator",
-      "symbol": "pH",
       "name": "pH 계산기",
       "description": "산·염기 농도로 pH와 pOH를 계산해봅니다",
       "category": "chemistry",
@@ -115,7 +108,6 @@
     },
     {
       "id": "molar-mass",
-      "symbol": "mol",
       "name": "몰질량 계산기",
       "description": "분자식을 입력하면 몰질량을 알려줍니다",
       "category": "chemistry",
@@ -130,7 +122,6 @@
     },
     {
       "id": "pendulum-simulator",
-      "symbol": "Pn",
       "name": "진자 시뮬레이터",
       "description": "끈 길이와 중력에 따라 진자의 주기가 어떻게 변하는지 관찰",
       "category": "physics",
@@ -146,7 +137,6 @@
     },
     {
       "id": "circuit-builder",
-      "symbol": "Cb",
       "name": "전기회로 그리기",
       "description": "건전지·전구·저항을 연결하며 회로를 만들어봐요",
       "category": "physics",
@@ -161,7 +151,6 @@
     },
     {
       "id": "cell-explorer",
-      "symbol": "Cel",
       "name": "세포 관찰",
       "description": "동물·식물 세포의 구조를 클릭으로 탐험합니다",
       "category": "biology",
@@ -177,7 +166,6 @@
     },
     {
       "id": "constellation-finder",
-      "symbol": "Sky",
       "name": "별자리 찾기",
       "description": "계절과 시각에 따라 보이는 별자리를 확인",
       "category": "earth",
@@ -192,7 +180,6 @@
     },
     {
       "id": "unit-converter",
-      "symbol": "Uc",
       "name": "과학 범용 단위 변환기",
       "description": "분야별 과학 단위(물리, 화학, 생명과학 등)를 변환하고 계산 공식을 확인하는 도구",
       "category": "common",
@@ -208,7 +195,6 @@
     },
     {
       "id": "periodic-table",
-      "symbol": "Pe",
       "name": "주기율표",
       "description": "원소의 성질과 정보를 한눈에",
       "category": "common",
@@ -221,7 +207,6 @@
     },
     {
       "id": "led-mood-light",
-      "symbol": "LED",
       "name": "LED 무드등 만들기",
       "description": "아두이노로 색이 바뀌는 무드등을 직접 만들어봐요",
       "category": "maker",
@@ -238,7 +223,6 @@
     },
     {
       "id": "lemon-battery",
-      "symbol": "Lb",
       "name": "레몬 전지 만들기",
       "description": "과일로 LED를 켜보는 화학 전지 실험",
       "category": "maker",
@@ -255,7 +239,6 @@
     },
     {
       "id": "random-group",
-      "symbol": "Gr",
       "name": "모둠 구성 도우미",
       "description": "학생 이름을 붙여넣으면 무작위로 모둠을 나눠줍니다",
       "category": "classroom",
@@ -270,7 +253,6 @@
     },
     {
       "id": "class-timer",
-      "symbol": "Ct",
       "name": "수업 타이머",
       "description": "실험·토론·발표 등 활동별 카운트다운 타이머",
       "category": "classroom",
@@ -284,7 +266,6 @@
     },
     {
       "id": "random-picker",
-      "symbol": "Rp",
       "name": "발표자 뽑기",
       "description": "이름 목록에서 랜덤으로 발표자·모둠을 선택합니다",
       "category": "classroom",
@@ -298,7 +279,6 @@
     },
     {
     "id": "qr-code-maker",
-    "symbol": "QR",
     "name": "QR코드 만들기",
     "description": "사이트·와이파이·모둠별 자료를 QR로 즉시 변환",
     "category": "common",
@@ -313,7 +293,6 @@
     },
     {
     "id": "water-electrolysis",
-    "symbol": "H₂O",
     "name": "물 전기분해 가상실험",
     "description": "물에 전기를 흘려 수소와 산소로 분해되는 과정을 관찰해요",
     "category": "chemistry",
@@ -329,7 +308,6 @@
     },
     {
     "id": "strobe-photo",
-    "symbol": "Sp",
     "name": "다중섬광사진",
     "description": "움직이는 물체를 일정 간격으로 겹쳐 찍어 운동 분석",
     "category": "physics",
@@ -346,7 +324,6 @@
     },
     {
     "id": "ion-movement",
-    "symbol": "Ion",
     "name": "이온의 이동",
     "description": "전기력으로 이온이 양 끝 극으로 갈라지는 가상실험",
     "category": "chemistry",
@@ -361,7 +338,6 @@
     },
     {
     "id": "seat-shuffle",
-    "symbol": "Ss",
     "name": "자리 바꾸기",
     "description": "명단을 붙여넣어 1줄·2줄·자유 배치로 자리를 랜덤 배정",
     "category": "classroom",

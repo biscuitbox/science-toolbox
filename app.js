@@ -1,11 +1,7 @@
 /* ============================================================
    과학 도구상자 — 메인 스크립트
-   tools.json을 읽어 ① 맨 위 "도구 표"와 ② 분야별 도구 칸을 그립니다.
-
-   ✅ 새로 생긴 선택 필드
-      "symbol": "Lr"  ← 도구 칸에 크게 보이는 원소 기호(1~3글자)
-                        비워 두면 id에서 자동으로 만듭니다.
-                        예) light-ray-lab → "Lr", qr-code-maker → "Qc"
+   tools.json을 읽어 ① 맨 위 분야 메뉴(펼쳐지는 도구 목록)와
+   ② 분야별 도구 카드를 그립니다.
    ============================================================ */
 
 // ===== 분야(카테고리) 설정 =====
@@ -140,20 +136,6 @@ async function checkAvailability() {
   if (changed) renderAll();
 }
 
-// ===== 원소 기호 =====
-function symbolOf(tool) {
-  if (tool.symbol) return [...String(tool.symbol)].slice(0, 3).join('');
-  const parts = String(tool.id || tool.name || '?').split(/[-_\s]+/).filter(Boolean);
-  if (parts.length >= 2) return parts[0][0].toUpperCase() + parts[1][0].toLowerCase();
-  const w = parts[0] || '?';
-  return w[0].toUpperCase() + (w[1] || '').toLowerCase();
-}
-
-// 세 글자 기호(RGB, LED, H₂O 등)는 칸에 맞게 글자를 조금 줄임
-function longCls(tool) {
-  return [...symbolOf(tool)].length >= 3 ? ' is-long' : '';
-}
-
 // ===== 필터링 =====
 function matches(t) {
   const grade = GRADE_FILTERS.find(f => f.id === activeGrade);
@@ -163,7 +145,7 @@ function matches(t) {
     const standards = toArray(t.achievementStandard);
     const haystack = [
       t.name, t.description, t.subcategory, ...(t.tags || []),
-      t.level, t.target, t.activityType, symbolOf(t),
+      t.level, t.target, t.activityType,
       CATEGORIES[t.category]?.name,
       ...standards, ...standards.map(s => `[${s}]`)
     ].filter(Boolean).join(' ').toLowerCase();
@@ -208,38 +190,34 @@ function renderMenu() {
   const cats = CATEGORY_ORDER.filter(c => allTools.some(t => t.category === c));
   menu.style.setProperty('--cols', cats.length);
 
-  menu.innerHTML = cats.map((catId, i) => {
+  menu.innerHTML = cats.map(catId => {
     const cat = CATEGORIES[catId];
     const tools = allTools.filter(t => t.category === catId)
       .sort((a, b) => (b.available !== false) - (a.available !== false));
     const readyCount = tools.filter(t => t.available !== false).length;
     const countText = readyCount ? `${readyCount}개` : '준비 중';
-    const endCls = i >= cats.length - 3 ? ' is-end' : '';
 
+    // 도구 이름만 여러 칸으로 나열 (학년·활동 유형은 마우스를 올리면 작은 설명으로 보임)
     const items = tools.map(t => {
-      const meta = [t.level, t.activityType].filter(Boolean).map(escape).join(', ');
+      const hint = [t.level, t.activityType].filter(Boolean).join(', ');
       if (t.available === false) {
-        return `<li><span class="cat-link is-soon">
-            <span class="cat-link-name">${escape(t.name)}<span class="soon-badge">준비 중</span></span>
-            ${meta ? `<span class="cat-link-meta">${meta}</span>` : ''}
-          </span></li>`;
+        return `<li><span class="cat-link is-soon" title="${escape(hint ? hint + ', 준비 중' : '준비 중')}">${escape(t.name)}<span class="soon-badge">준비 중</span></span></li>`;
       }
-      return `<li><a class="cat-link" href="${escape(t.path)}">
-          <span class="cat-link-name">${escape(t.name)}</span>
-          ${meta ? `<span class="cat-link-meta">${meta}</span>` : ''}
-        </a></li>`;
+      return `<li><a class="cat-link" href="${escape(t.path)}"${hint ? ` title="${escape(hint)}"` : ''}>${escape(t.name)}</a></li>`;
     }).join('');
 
-    return `<li class="cat-item${endCls}" style="--cat:var(--c-${catId})">
+    return `<li class="cat-item" style="--cat:var(--c-${catId})">
         <button class="cat-btn" type="button" aria-expanded="false" aria-controls="menu-${catId}">
           ${icon(catId)}
           <span class="cat-btn-name">${cat.name}</span>
           <span class="cat-btn-count">${countText}</span>
         </button>
         <div class="cat-panel" id="menu-${catId}" hidden>
-          <p class="cat-panel-desc">${cat.description}</p>
+          <div class="cat-panel-head">
+            <p class="cat-panel-desc"><strong>${cat.name}</strong> ${cat.description}</p>
+            <a class="cat-panel-all" href="#cat-${catId}">${cat.name} 도구 설명 모두 보기</a>
+          </div>
           <ul class="cat-panel-list">${items}</ul>
-          <a class="cat-panel-all" href="#cat-${catId}">${cat.name} 도구 설명 모두 보기</a>
         </div>
       </li>`;
   }).join('');
@@ -286,8 +264,8 @@ function setupMenuItem(item) {
   panel.addEventListener('keydown', e => {
     const links = panelLinks(panel);
     const i = links.indexOf(document.activeElement);
-    if (e.key === 'ArrowDown') { e.preventDefault(); links[Math.min(i + 1, links.length - 1)]?.focus(); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); i <= 0 ? btn.focus() : links[i - 1].focus(); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); links[Math.min(i + 1, links.length - 1)]?.focus(); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); i <= 0 ? btn.focus() : links[i - 1].focus(); }
     else if (e.key === 'Escape') { closeMenu(item); btn.focus(); }
   });
 
@@ -301,7 +279,7 @@ function setupMenuItem(item) {
 }
 
 function panelLinks(panel) {
-  return [...panel.querySelectorAll('a.cat-link, a.cat-panel-all')];
+  return [...panel.querySelectorAll('a.cat-link')];
 }
 
 function openMenu(item) {
@@ -438,7 +416,6 @@ function ghostList(tools) {
   return `<ul class="ghost-list">
     ${tools.map(t => `
       <li class="ghost" aria-label="${escape(t.name)} (준비 중)">
-        <span class="ghost-symbol${longCls(t)}" aria-hidden="true">${escape(symbolOf(t))}</span>
         <span>${escape(t.name)}</span>
         ${t.level ? `<span class="ghost-level">${escape(t.level)}</span>` : ''}
       </li>`).join('')}
@@ -535,7 +512,6 @@ function renderTile(tool, { inFeatured = false } = {}) {
         <span class="tile-activity">${escape(tool.activityType || '')}</span>
       </div>
       ${showStar ? `<span class="tile-star">★ 추천</span>` : ''}
-      <div class="tile-symbol${longCls(tool)}" aria-hidden="true">${escape(symbolOf(tool))}</div>
       <h3 class="tile-name">${escape(tool.name)}</h3>
       <p class="tile-desc">${escape(tool.description || '')}</p>
       ${maker}
