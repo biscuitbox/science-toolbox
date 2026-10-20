@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}img{max-width:100%}</style></head><body><title>원격 기울기 미로</title>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><style>[hidden]{display:none!important}img{max-width:100%}</style></head><body><title>원격 기울기 미로</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,7 +234,7 @@ html.rc-mode .wrap { display: none; }
 .rc .plate .h { left: 6%; right: 6%; top: 50%; height: 1px; }
 .rc .plate .v { top: 6%; bottom: 6%; left: 50%; width: 1px; }
 .rc .plate .front { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #f08c3e; white-space: nowrap; }
-.rc .ball { position: absolute; width: 16%; aspect-ratio: 1; border-radius: 50%; left: 42%; top: 42%; background: radial-gradient(circle at 35% 30%, #fff 0 12%, #c9ced5 25%, #7d848d 75%); box-shadow: 0 3px 10px rgba(0,0,0,.5); }
+.rc .ball { position: absolute; width: 16%; aspect-ratio: 1; border-radius: 50%; left: 42%; top: 42%; background: radial-gradient(circle at 35% 30%, #fff 0 12%, #c9ced5 25%, #7d848d 75%); box-shadow: 0 3px 10px rgba(0,0,0,.5); outline: 2px solid #c9ced5; outline-offset: -2px; }
 .rc .real { position: absolute; width: 9%; aspect-ratio: 1; border-radius: 50%; left: 45.5%; top: 45.5%; border: 3px solid #4fc08d; opacity: 0; transition: opacity .3s; }
 .rc .real.show { opacity: 1; }
 .rc .readout { display: flex; justify-content: center; gap: 18px; font-family: var(--f-mono); font-size: 15px; color: #9aa0a7; font-variant-numeric: tabular-nums; }
@@ -1119,6 +1119,8 @@ if (typeof module !== "undefined") module.exports = TiltSim;
 
   function runController(code) {
     document.documentElement.classList.add('rc-mode');
+    document.documentElement.style.colorScheme = 'dark';     // 삼성 인터넷 등 '강제 다크 모드'가 색을 바꾸지 않게
+    if (!document.querySelector('meta[name=color-scheme]')) { const mt = document.createElement('meta'); mt.name = 'color-scheme'; mt.content = 'dark'; document.head.appendChild(mt); }
     document.title = '기울기 미로 조종기';
     $('rc').hidden = false; $('rcCode').textContent = code;
     const tilt = makePhoneTilt();
