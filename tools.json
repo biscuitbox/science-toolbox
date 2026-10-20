@@ -352,6 +352,21 @@
     "sessions": "수시",
     "materials": [],
     "achievementStandard": []
+    },
+    {
+    "id": "tilt-maze",
+    "name": "원격 기울기 미로",
+    "description": "조종기나 스마트폰을 기울여 멀리 있는 미로판의 구슬을 도착점까지 보내는 무선 미로",
+    "category": "maker",
+    "subcategory": "",
+    "path": "maker/tilt-maze/",
+    "tags": ["ESP32", "서보모터", "MPU6050", "기울기 센서", "ESP-NOW", "블루투스", "PID 제어", "3D프린팅", "피지컬 컴퓨팅", "구슬 미로", "시뮬레이터", "기록 대결"],
+    "level": "중2~고2",
+    "featured": true,
+    "difficulty": 3,
+    "duration": "조립·코딩 약 4시간 (3D 출력 별도)",
+    "activityType": "만들기",
+    "safetyNotes": "서보 전원의 +5V와 GND가 닿지 않게 하고, 전원을 넣기 전에 멀티미터로 확인합니다. 움직이는 링크 사이에 손가락을 넣지 않습니다."
     }
   ]
 }
