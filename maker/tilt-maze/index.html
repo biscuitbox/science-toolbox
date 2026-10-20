@@ -38,6 +38,7 @@ body {
   margin: 0;
   background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: 16px; line-height: 1.7;
+  word-break: keep-all; overflow-wrap: break-word;   /* 한국어: 낱말 중간에서 줄이 끊기지 않게 */
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 28px 64px;
@@ -48,14 +49,14 @@ header { display: grid; gap: 10px; }
 .eyebrow { font-family: var(--f-mono); font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(36px, 7vw, 60px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
 h1 em { font-style: normal; color: var(--pla); }
-.lede { font-size: 18px; color: var(--muted); max-width: 62ch; margin: 0; }
+.lede { font-size: 18px; color: var(--muted); max-width: 46em; margin: 0; }
 .specs { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--f-mono); font-size: 14px; margin-top: 6px; }
 .specs span b { font-weight: 500; color: var(--ink); }
 .specs span { color: var(--muted); }
 
 h2 { font-family: var(--f-display); font-weight: 400; font-size: 28px; line-height: 1.2; margin: 0 0 6px; text-wrap: balance; }
 h3 { font-size: 17px; margin: 22px 0 6px; }
-section > p, li { max-width: 68ch; }
+section > p, li { max-width: 52em; }
 section p { margin: 8px 0; }
 .sec-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 14px; }
 .sec-head .tag { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
@@ -96,11 +97,11 @@ section p { margin: 8px 0; }
 #btnSerial.on { background: var(--wire); color: #fff; }
 .src { margin: 0; font-size: 14px; }
 .src span { color: var(--muted); }
-.hint { margin: 0; font-size: 13.5px; color: var(--muted); max-width: 68ch; }
+.hint { margin: 0; font-size: 13.5px; color: var(--muted); max-width: 60em; }
 @media (max-width: 560px) { .play { grid-template-columns: 1fr; justify-items: start; } }
 figure.fig { margin: 0; display: grid; gap: 6px; }
 figure.fig img { width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line); background: #f4f3ef; }
-figure.fig figcaption { font-size: 14px; color: var(--muted); max-width: 68ch; }
+figure.fig figcaption { font-size: 14px; color: var(--muted); max-width: 56em; }
 .figs { display: grid; grid-template-columns: 1fr; gap: 22px; }
 .figs > * { min-width: 0; }
 @media (max-width: 720px) { .figs { grid-template-columns: 1fr; } }
@@ -139,12 +140,12 @@ ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 44px
 ol.steps > li::before { content: counter(s); font-family: var(--f-display); font-size: 26px; line-height: 1.1; color: var(--pla); text-align: center; border-right: 2px solid var(--line); padding-right: 6px; }
 ol.steps > li > div { min-width: 0; }
 ol.steps b { display: block; }
-.note { border-left: 3px solid var(--warn); padding: 8px 14px; background: color-mix(in srgb, var(--warn) 8%, var(--surface)); border-radius: 0 6px 6px 0; max-width: 68ch; }
+.note { border-left: 3px solid var(--warn); padding: 8px 14px; background: color-mix(in srgb, var(--warn) 8%, var(--surface)); border-radius: 0 6px 6px 0; max-width: 52em; }
 .note.info { border-left-color: var(--wire); background: color-mix(in srgb, var(--wire) 8%, var(--surface)); }
 kbd { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 6px; background: var(--surface); }
 dl.trouble { display: grid; gap: 12px; margin: 0; }
 dl.trouble dt { font-weight: 700; }
-dl.trouble dd { margin: 2px 0 0; color: var(--ink); max-width: 68ch; }
+dl.trouble dd { margin: 2px 0 0; color: var(--ink); max-width: 52em; }
 /* 난이도 */
 .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
 .levels button { font: inherit; font-size: 15px; font-weight: 500; padding: 8px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; line-height: 1.25; }
