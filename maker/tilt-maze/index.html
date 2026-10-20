@@ -139,7 +139,7 @@ ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; display: g
 ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 12px; max-width: none; }
 ol.steps > li::before { content: counter(s); font-family: var(--f-display); font-size: 26px; line-height: 1.1; color: var(--pla); text-align: center; border-right: 2px solid var(--line); padding-right: 6px; }
 ol.steps > li > div { min-width: 0; }
-ol.steps b { display: block; }
+ol.steps > li > div > b:first-child { display: block; }   /* 단계 제목만 한 줄로, 본문 속 굵은 글자는 문장 안에 */
 .note { border-left: 3px solid var(--warn); padding: 8px 14px; background: color-mix(in srgb, var(--warn) 8%, var(--surface)); border-radius: 0 6px 6px 0; max-width: 52em; }
 .note.info { border-left-color: var(--wire); background: color-mix(in srgb, var(--wire) 8%, var(--surface)); }
 kbd { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 6px; background: var(--surface); }
