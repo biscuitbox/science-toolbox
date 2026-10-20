@@ -255,6 +255,9 @@ html.rc-mode .wrap { display: none; }
 .rc form p { margin: 0; font-size: 16px; }
 .rc form b { font-family: var(--f-mono); color: #f08c3e; }
 .rc form input { font: 500 24px/1 var(--f-mono); letter-spacing: .25em; text-transform: uppercase; padding: 10px; border-radius: 8px; border: 1px solid #2e333a; background: #101214; color: #eceae4; width: 100%; }
+/* 사이트 공통 "← 도구상자" 버튼(toolbox-nav.js)과 겹치지 않게 */
+.toolbox-back-link ~ .wrap { padding-top: 34px; }
+html.rc-mode .toolbox-back-link, html.playing .toolbox-back-link { display: none !important; }
 footer { font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 :focus-visible { outline: 2px solid var(--pla); outline-offset: 2px; }
 </style>
@@ -1914,4 +1917,5 @@ if (typeof module !== "undefined") module.exports = TiltSim;
 })();
 
 </script>
+<script src="../../toolbox-nav.js"></script>
 </body></html>
