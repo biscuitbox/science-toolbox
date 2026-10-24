@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>코일 주위의 자기장 가상실험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+/* ============================================================
+   과학 도구상자 · 도구 공통 틀 v1.1
+   - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
+   - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
+   - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
+     도구만의 디자인은 "공통 틀 끝" 아래에 따로 적습니다.
+   ============================================================ */
+:root {
+  /* 분야 색: 물리 #1D4ED8 · 화학 #B45309 · 생명 #15803D · 지구 #78350F · 메이커 #BE123C · 공통 #57534E · 학급 #6D28D9 */
+  --cat: #1D4ED8;   /* 물리 */
+  --cat-soft: color-mix(in srgb, var(--cat) 9%, var(--sheet));
+
+  --paper:    #F6F2E7;
+  --sheet:    #FFFDF7;
+  --ink:      #24211D;
+  --graphite: #5C564E;
+  --hairline: #D9D1BF;
+  --rule:     rgba(64, 106, 168, 0.11);
+  --focus:    #1D4ED8;
+
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+  --radius: 4px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px));
+  background-size: 100% 2rem;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* 화면 폭: 홈페이지와 같은 1200px. 위쪽 여백은 "← 도구상자" 링크 자리 */
+.tb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.25rem 1.5rem 3rem;
+}
+
+/* ----- 머리말: 분야·학년·활동 → 제목 → 한 줄 설명 ----- */
+.tb-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+.tb-emblem {
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-top: .2rem;
+  border: 1.5px solid var(--ink);
+  border-top: 6px solid var(--cat);
+  border-radius: var(--radius);
+  background: var(--cat-soft);
+  color: var(--cat);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 28%, transparent);
+}
+.tb-emblem svg { width: 2.6rem; height: 2.6rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .9rem;
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.tb-meta .tb-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--cat);
+  font-weight: 700;
+}
+.tb-meta .tb-cat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-title {
+  margin: .15rem 0 .3rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.tb-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--graphite);
+  word-break: keep-all;
+}
+.tb-lead b, .tb-lead strong { color: var(--ink); }
+
+/* ----- 교사용 정보: 학생 화면에서는 접혀 있음 ----- */
+.tb-teacher {
+  margin: 0 0 1.25rem;
+  border: 1.5px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+.tb-teacher > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .8rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  list-style: none;
+}
+.tb-teacher > summary::-webkit-details-marker { display: none; }
+.tb-teacher > summary::before {
+  content: '';
+  width: .55rem; height: .55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .3s var(--ease);
+}
+.tb-teacher[open] > summary::before { transform: rotate(45deg); }
+.tb-teacher > summary .tb-hint { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.tb-teacher-body { max-width: 62rem; padding: 0 1rem 1rem; font-size: .95rem; word-break: keep-all; }
+.tb-teacher-body ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.tb-teacher-body li { margin-bottom: .4rem; }
+.tb-std {
+  display: inline-block;
+  padding: .05rem .5rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: 3px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
+
+/* ----- 도구 전체에 걸리는 조작(교사용 보기, 인쇄 등) 한 줄 ----- */
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+/* 켜고 끄는 스위치 — 홈페이지의 '교사용 정보' 스위치와 같은 모양 */
+.tb-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--graphite);
+  cursor: pointer;
+  user-select: none;
+}
+.tb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.tb-switch .tb-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 1.5px solid var(--graphite);
+  border-radius: 999px;
+  background: var(--sheet);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-switch .tb-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--graphite);
+  transition: transform .3s var(--ease), background-color .3s var(--ease);
+}
+.tb-switch input:checked + .tb-track { background: var(--ink); border-color: var(--ink); }
+.tb-switch input:checked + .tb-track::after { transform: translateX(16px); background: var(--paper); }
+.tb-switch:has(input:checked) { color: var(--ink); }
+.tb-switch input:focus-visible + .tb-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
+.tb-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--sheet);
+}
+.tb-tabs > button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: .98rem;
+  min-height: 44px;
+  padding: .5rem 1.1rem;
+  border: 0;
+  border-left: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease);
+}
+.tb-tabs > button:first-child { border-left: 0; }
+.tb-tabs > button:hover { background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
+.tb-tabs > button[aria-selected="true"],
+.tb-tabs > button.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+.tb-tabs > button:focus-visible { outline-offset: -4px; }
+
+/* ----- 실험 무대(그림·캔버스가 들어가는 틀) ----- */
+.tb-stage {
+  position: relative;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
+
+/* ----- 조작판(버튼·슬라이더가 모인 곳) ----- */
+.tb-panel {
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.tb-panel-title {
+  margin: 0 0 .7rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ----- 버튼 ----- */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sheet);
+  background: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-btn:hover { background: color-mix(in srgb, var(--cat) 82%, var(--ink)); }
+.tb-btn.ghost, .tb-btn--ghost {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.tb-btn.ghost:hover, .tb-btn--ghost:hover { background: var(--cat-soft); }
+.tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ----- 안내 상자 ----- */
+.tb-note {
+  margin: 0;
+  padding: .8rem 1rem;
+  background: var(--cat-soft);
+  border-left: 5px solid var(--cat);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: .97rem;
+  word-break: keep-all;
+}
+.tb-note b, .tb-note strong { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* ----- 출처 ----- */
+.tb-foot {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--graphite);
+}
+
+/* ----- 화면 크기별 ----- */
+@media (max-width: 640px) {
+  .tb-wrap { padding: 3.75rem 1rem 2.5rem; }
+  .tb-head { column-gap: .8rem; }
+  .tb-emblem { width: 3.3rem; height: 3.3rem; border-top-width: 5px; }
+  .tb-emblem svg { width: 2rem; height: 2rem; }
+  /* 휴대폰: 탭을 같은 폭으로 한 줄에 */
+  .tb-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .tb-tabs > button { padding: .4rem .35rem; font-size: .88rem; line-height: 1.3; word-break: keep-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print {
+  body { background: #fff; }
+  .tb-wrap { padding: 0; max-width: none; }
+  .tb-tabs, .tb-teacher, .tb-actions, .toolbox-back-link { display: none !important; }
+  .tb-stage { box-shadow: none; break-inside: avoid; }
+  .tb-emblem { box-shadow: none; }
+}
+/* ===== 공통 틀 끝 ===== */
+[hidden] { display: none !important; }
+
+/* 넓은 화면: 왼쪽은 실험 무대, 오른쪽은 조작판 */
+.card { display: grid; gap: 1rem; }
+@media (min-width: 980px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) 21.5rem;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .card > .stagewrap { grid-column: 1; grid-row: 1 / span 2; }
+  .card > .controls, .card > .tb-note, .card > .safe { grid-column: 2; }
+  .card > table.terms { grid-column: 1 / -1; }
+}
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+/* 조작판 */
+.controls { display: grid; gap: .8rem; }
+.row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.row .tb-btn { flex: 1 1 auto; }
+
+.slider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .3rem .7rem;
+  flex: 1 1 100%;
+  padding: .55rem .8rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+}
+.slider label { font-size: .95rem; font-weight: 600; white-space: nowrap; }
+.slider input[type=range] { width: 100%; min-width: 0; accent-color: var(--cat); height: 28px; }
+.slider .val {
+  min-width: 4.6em;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cat);
+}
+
+.checks { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 40px;
+  padding: .35rem .8rem .35rem .6rem;
+  font-size: .93rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chk:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--cat); }
+.chk:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* 측정값: 원소 칸처럼 작은 값 상자 */
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .5rem; }
+.rd {
+  padding: .45rem .7rem .5rem;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-top: 4px solid var(--cat);
+  border-radius: var(--radius);
+}
+.rd .k { display: block; font-size: .85rem; color: var(--graphite); }
+.rd .v { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* 용어 정리 표 */
+table.terms {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  font-size: .95rem;
+}
+table.terms th, table.terms td { padding: .55rem .8rem; border-top: 1px solid var(--hairline); text-align: left; vertical-align: top; }
+table.terms tr:first-child th, table.terms tr:first-child td { border-top: 0; }
+table.terms th {
+  width: 7.5em;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  color: var(--cat);
+  background: var(--cat-soft);
+}
+
+
+/* ---- 코일 자기장 가상실험만의 디자인 (위 레이아웃 부분은 물결파 실험과 같은 틀) ---- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+#cv1 { touch-action: none; cursor: default; }
+#cv1:focus-visible, #cv3:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.kbd-hint { margin: .35rem .2rem 0; font-size: .85rem; color: var(--graphite); }
+
+.tb-btn[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"]:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* 안전 주의 (실물 실험 연계) */
+.safe {
+  display: flex; gap: .55rem; align-items: flex-start;
+  margin: 0; padding: .6rem .85rem;
+  border: 1.5px dashed #9A3412; border-radius: var(--radius);
+  background: color-mix(in srgb, #9A3412 6%, var(--sheet));
+  font-size: .93rem; word-break: keep-all;
+}
+.safe b { color: #9A3412; }
+
+/* 탭② 결과 그리기 판 */
+.boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.board {
+  margin: 0; background: var(--sheet);
+  border: 1.5px solid var(--ink); border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
+.board figcaption {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem .6rem;
+  padding: .5rem .75rem; border-bottom: 1px solid var(--hairline);
+  font-weight: 700; font-size: .95rem; word-break: keep-all;
+}
+.board figcaption .no {
+  display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; margin-right: .35rem;
+  border-radius: 50%; background: var(--ink); color: var(--paper); font-size: .9rem;
+}
+.board figcaption .cond { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.board svg { display: block; width: 100%; height: auto; }
+.board .fb { margin: 0; padding: .45rem .75rem .6rem; min-height: 2.4rem; font-size: .9rem; border-top: 1px solid var(--hairline); word-break: keep-all; }
+.board .go { margin: 0 .75rem .7rem; width: calc(100% - 1.5rem); }
+.cmp { cursor: pointer; }
+.cmp:focus { outline: none; }
+.cmp:focus-visible .face { stroke: var(--focus); stroke-width: 4; }
+.cmp:hover .face { fill: var(--cat-soft); }
+.cmp .face { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+.cmp.ok .face { stroke: #15803D; stroke-width: 3; }
+.cmp.bad .face { stroke: #9A3412; stroke-width: 3; stroke-dasharray: 5 3; }
+.cmp .ghost { display: none; }
+.boards.reveal .cmp.bad .ghost { display: inline; }
+
+/* 탭③ 정리 */
+.sum-grid { display: grid; gap: 1rem; grid-column: 1 / -1; }
+@media (min-width: 820px) { .sum-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.rhr { margin: 0; padding: .8rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.rhr svg { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
+.rhr figcaption { margin-top: .5rem; font-size: .93rem; word-break: keep-all; }
+.qa { display: grid; gap: .6rem; align-content: start; }
+.qa details { background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.qa summary { padding: .65rem .85rem; cursor: pointer; font-weight: 700; word-break: keep-all; }
+.qa summary .peek { font-weight: 500; font-size: .85rem; color: var(--graphite); }
+.qa details[open] summary { border-bottom: 1px dashed var(--hairline); }
+.qa .ans { padding: .6rem .9rem .8rem; font-size: .95rem; word-break: keep-all; }
+.qa .ans p { margin: 0 0 .4rem; }
+
+@media (max-width: 640px) {
+  .boards { grid-template-columns: 1fr; }
+}
+
+/* 인쇄 활동지 */
+.printonly { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  body { font-size: 11pt; }
+  .tb-tabs, .controls, .tb-teacher, .no-print, .tb-foot, .toolbox-back-link { display: none !important; }
+  .card { display: block; }
+  .tb-stage, .board { border: 1px solid #999; box-shadow: none; page-break-inside: avoid; }
+  .boards { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .board .fb { font-size: 9pt; }
+  .printonly { display: block; page-break-before: always; }
+  .tb-head { grid-template-columns: 1fr; border-bottom-width: 1px; }
+  .tb-emblem, .tb-meta { display: none; }
+  .tb-title { font-size: 16pt; }
+  .tb-note, .safe { background: #f4f4f4; border-left: 3px solid #666; margin-top: 8px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .sheet h2 { font-size: 12pt; margin: 14px 0 6px; border-bottom: 1.5px solid #333; padding-bottom: 3px; }
+  .sheet ol { padding-left: 19px; margin: 0; }
+  .sheet li { margin-bottom: 15px; page-break-inside: avoid; }
+  .sheet .pboards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sheet .pboards figure { margin: 0; border: 1px solid #999; text-align: center; font-size: 9.5pt; }
+  .sheet .pboards svg { display: block; width: 100%; height: auto; }
+  .lines { border-bottom: 1px solid #bbb; height: 19px; margin-top: 5px; }
+  .namebar { display: flex; gap: 14px; font-size: 10.5pt; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+  .namebar span { border-bottom: 1px solid #bbb; min-width: 80px; display: inline-block; }
+  .qa details > .ans { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="tb-wrap">
+
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true">
+      <svg viewBox="0 0 48 48"><ellipse cx="15" cy="24" rx="5" ry="16"/><path d="M20 30v-12M17.5 20.5 20 17.5l2.5 3"/><circle cx="35" cy="24" r="9.5"/><path d="M35 16.5 38 24 35 31.5 32 24Z"/></svg>
+    </div>
+    <p class="tb-meta">
+      <span class="tb-cat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2-5.5 4.5-5.5 6.5 0s4.5 5.5 6.5 0 4.5-5.5 7-1"/></svg>물리</span>
+      <span>중2~중3</span><span>시뮬레이션</span>
+    </p>
+    <h1 class="tb-title">코일 주위의 자기장 가상실험</h1>
+    <p class="tb-lead">에나멜선 코일에 전류를 흘리고 <b>나침반 바늘의 N극</b>이 가리키는 방향을 관찰해, 전류의 방향·세기와 자기장의 관계를 알아봅니다.</p>
+  </header>
+
+  <details class="tb-teacher no-print">
+    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과14-04], 수준별 활용, 자주 나오는 오개념, 모델 값</span></summary>
+    <div class="tb-teacher-body">
+    <p style="margin:6px 0"><span class="tb-std">[9과14-04]</span> 자기장 안에 놓인 전류가 흐르는 코일이 받는 힘의 특성을 추리하고, 전동기 등 일상생활에서 활용한 예를 찾을 수 있다.</p>
+    <ul>
+      <li><b>교육과정 위치</b> — 이 성취기준의 탐구 활동 "전류가 흐르는 코일 주위의 자기장 관찰하기"에 해당합니다. 성취기준 해설에 따라 전류의 세기·방향에 따른 자기장의 세기·방향을 <b>정성적으로</b>만 다룹니다. 학생 화면에는 자기장 수치(μT)를 보여 주지 않습니다.</li>
+      <li><b>수준별 활용</b> — 하(D·E): 탭①에서 스위치를 켜고 끄며 "전류가 흐르면 나침반 바늘이 움직인다 → 코일 주위에 자기장이 생긴다"까지. 중(B·C): 탭②의 ②·③을 그리고 비교해 전류 방향과 자기장 방향의 관계를 말하기, 탭③ 오른손 규칙. 상(A): ④와 "지구 자기장" 끄기를 비교해 세기에 따라 바늘이 더 돌아가는 까닭을 설명하고, 코일이 자석처럼 행동한다는 점을 전동기 원리로 이어 가기.</li>
+      <li><b>자주 나오는 오개념</b> — "나침반 N극은 언제나 북쪽" (전류 근처에서는 지구 자기장과 코일 자기장이 합쳐진 방향), "코일 옆과 코일 위·아래 나침반은 같은 쪽을 가리킨다" (실제로는 반대쪽 — 탭②에서 확인), "전류를 세게 하면 자기장 방향도 바뀐다" (방향은 그대로, 세기만 커짐).</li>
+      <li><b>지구 자기장 스위치</b> — 켜 두면(기본) 실제 교실처럼 북쪽을 향한 지구 자기장(수평 성분 약 30 μT로 가정)이 합쳐집니다. 끄면 코일 자기장만 남아 <b>전류 세기를 바꿔도 바늘 방향은 거의 그대로</b>입니다. "세기"의 효과가 실제 실험에서 바늘이 북쪽에서 얼마나 더 돌아가는가로 보이는 까닭을 상위 학생 발문으로 쓰세요.</li>
+      <li><b>모델 값</b> — 코일 반지름 3 cm, 30회 감음, 나침반 8개는 코일 중심에서 6.5 cm 떨어진 원 위. 바늘 방향은 비오-사바르 법칙으로 계산한 실제 방향이며, 코일 면은 남북 방향(위쪽이 북)으로 놓았습니다. 전원 장치 전압은 저항 1 Ω + 코일 0.2 Ω으로 계산한 표시용 값입니다.</li>
+      <li><b>결과 그리기 판정</b> — 학생이 돌린 바늘이 계산한 방향과 <b>30° 이내</b>면 같다고 봅니다(8방향 선택이므로 가장 가까운 방향은 항상 정답 처리).</li>
+      <li><b>실물 실험 팁</b> — 코일 면을 남북 방향으로 맞춰 놓으면 바늘이 가장 크게 돌아갑니다. 나침반끼리 너무 붙으면 서로 끌어당겨 방향이 흐트러집니다. 전류를 오래 흘리면 코일과 저항이 뜨거워지므로 스위치는 관찰할 때만 잠깐 켭니다.</li>
+    </ul>
+    </div>
+  </details>
+
+  <div class="tabs tb-tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 실험하기</button>
+    <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">② 결과 그리기</button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 정리하기</button>
+  </div>
+
+  <!-- ================= 탭 1 : 실험하기 ================= -->
+  <section class="card" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+    <div class="stagewrap">
+      <div class="tb-stage"><canvas id="cv1" height="560" tabindex="0" aria-label="실험 장치를 위에서 본 모습. 가운데 세로로 선 코일 주위에 나침반 8개가 놓여 있고, 아래에 전원 장치, 스위치, 저항이 연결되어 있습니다. 탐색 나침반은 끌거나 방향키로 옮길 수 있습니다."></canvas></div>
+      <p class="kbd-hint no-print">탐색 나침반(파란 테두리)은 끌어서 옮깁니다. 키보드: 그림을 선택하고 방향키(Shift와 함께 누르면 크게)로 옮기기.</p>
+    </div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="tb-btn" id="b1-switch" aria-pressed="false">스위치 켜기</button>
+        <button class="tb-btn ghost" id="b1-dir">⇅ 전류 방향 바꾸기</button>
+      </div>
+      <div class="row">
+        <div class="slider">
+          <label for="s1-i">전류의 세기</label>
+          <input type="range" id="s1-i" min="0.5" max="3" value="1" step="0.5">
+          <span class="val" id="s1-i-v">1.0 A</span>
+        </div>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c1-earth" checked> 지구 자기장 함께 계산</label>
+        <label class="chk"><input type="checkbox" id="c1-probe" checked> 탐색 나침반</label>
+        <label class="chk"><input type="checkbox" id="c1-flow" checked> 전류 흐름 표시</label>
+      </div>
+      <div class="readout">
+        <div class="rd"><span class="k">스위치</span><span class="v" id="r1-sw">꺼짐</span></div>
+        <div class="rd"><span class="k">코일 앞쪽 전류</span><span class="v" id="r1-dir">↑ 위로</span></div>
+        <div class="rd"><span class="k">전류의 세기</span><span class="v" id="r1-i">0 A</span></div>
+        <div class="rd"><span class="k">탐색 나침반 N극</span><span class="v" id="r1-probe">북쪽</span></div>
+      </div>
+      <div class="row">
+        <button class="tb-btn ghost" id="b1-reset">처음으로</button>
+        <button class="tb-btn ghost" id="b1-shot">📷 화면 저장</button>
+      </div>
+    </div>
+
+    <div class="tb-note">
+      <b>과정 2</b> 스위치를 켜고 나침반 바늘의 N극(빨갛게 칠한 쪽)이 가리키는 방향을 관찰합니다.
+      <b>과정 3</b> <b>전류의 방향만</b> 바꾸어 다시 관찰합니다. <b>과정 4</b> 이어서 <b>전류의 세기</b>를 바꾸며 관찰합니다.
+      관찰한 것은 <b>결과 그리기</b> 화면에 그려 봅니다.
+    </div>
+    <p class="safe"><span aria-hidden="true">⚠️</span><span><b>실제 실험에서는</b> 전류가 흐르는 동안 코일이 뜨거워지므로 코일을 만지지 않고, 스위치는 관찰할 때만 잠깐 켭니다.</span></p>
+    <p class="sr-only" aria-live="polite" id="live1"></p>
+  </section>
+
+  <!-- ================= 탭 2 : 결과 그리기 ================= -->
+  <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+    <div class="tb-note no-print" style="grid-column:1/-1">
+      <b>그리는 법</b> 나침반을 누를 때마다 바늘이 시계 방향으로 45°씩 돌아갑니다. 키보드는 Tab으로 나침반을 고르고 ←·→ 방향키(또는 Enter)로 돌립니다.
+      다 그렸으면 <b>실험 결과와 비교하기</b>를 누르세요. 헷갈리면 각 판 아래 버튼으로 ① 화면에서 같은 조건을 다시 실험해 볼 수 있어요.
+    </div>
+    <div class="boards" id="boards" style="grid-column:1/-1"></div>
+    <div class="controls no-print" style="grid-column:1/-1">
+      <div class="row">
+        <button class="tb-btn" id="b2-check">실험 결과와 비교하기</button>
+        <button class="tb-btn ghost" id="b2-reveal" aria-pressed="false" disabled>다른 바늘 정답 보기</button>
+        <button class="tb-btn ghost" id="b2-clear">모두 북쪽으로 되돌리기</button>
+        <button class="tb-btn ghost" id="b2-shot">📷 그림 저장</button>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c2-earth" checked> 지구 자기장 함께 계산 (① 화면과 같게)</label>
+      </div>
+    </div>
+    <p class="sr-only" aria-live="polite" id="live2"></p>
+  </section>
+
+  <!-- ================= 탭 3 : 정리하기 ================= -->
+  <section class="card" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+    <div class="stagewrap tb-stage"><canvas id="cv3" height="420" aria-label="코일이 만드는 자기장을 자기력선으로 나타낸 그림. 코일 안쪽을 지나는 자기력선이 코일 바깥에서 돌아 다시 이어집니다."></canvas></div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="tb-btn" id="b3-dir">⇅ 전류 방향 바꾸기</button>
+        <button class="tb-btn ghost" id="b3-shot">📷 화면 저장</button>
+      </div>
+      <div class="row">
+        <div class="slider">
+          <label for="s3-i">전류의 세기</label>
+          <input type="range" id="s3-i" min="0.5" max="3" value="1" step="0.5">
+          <span class="val" id="s3-i-v">1.0 A</span>
+        </div>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c3-lines" checked> 자기력선</label>
+        <label class="chk"><input type="checkbox" id="c3-cmp" checked> 나침반 함께 보기</label>
+        <label class="chk"><input type="checkbox" id="c3-pole" checked> 코일의 극</label>
+      </div>
+    </div>
+
+    <div class="tb-note">
+      <b>자기력선</b>은 나침반 N극이 가리키는 방향을 이어 그린 선입니다. 선 위의 화살표가 <b>자기장의 방향</b>이고, 선이 <b>촘촘할수록 자기장이 셉니다</b>.
+      이 그림은 지구 자기장을 빼고 코일이 만드는 자기장만 나타냈습니다.
+    </div>
+
+    <div class="sum-grid">
+      <figure class="rhr">
+        <svg viewBox="0 0 360 200" role="img" aria-label="오른손 규칙 그림. 코일에 감긴 전류 방향을 따라 네 손가락을 감아쥐면, 엄지손가락이 가리키는 쪽이 코일 안쪽 자기장 방향이고 그쪽이 N극처럼 행동합니다.">
+          <defs>
+            <marker id="ahB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1D4ED8"/></marker>
+            <marker id="ahC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#B45309"/></marker>
+          </defs>
+          <ellipse cx="180" cy="100" rx="34" ry="70" fill="none" stroke="#C9A27A" stroke-width="5" stroke-dasharray="6 5"/>
+          <path d="M180 30 A34 70 0 0 1 180 170" fill="none" stroke="#B45309" stroke-width="5"/>
+          <line x1="330" y1="100" x2="50" y2="100" stroke="#1D4ED8" stroke-width="5" marker-end="url(#ahB)"/>
+          <path d="M207 154 L213 128" stroke="#B45309" stroke-width="4" marker-end="url(#ahC)"/>
+          <text x="222" y="152" font-size="14" font-weight="700" fill="#7C2D12">전류</text>
+          <text x="14" y="80" font-size="14" font-weight="700" fill="#1E3A8A">N극 쪽</text>
+          <text x="300" y="80" font-size="14" font-weight="700" fill="#1E3A8A">S극 쪽</text>
+          <text x="14" y="148" font-size="13" fill="#24211D">엄지 = 코일 안 자기장</text>
+          <text x="222" y="186" font-size="13" fill="#24211D">네 손가락 = 전류</text>
+        </svg>
+        <figcaption><b>오른손 규칙</b> — 오른손 네 손가락을 코일에 흐르는 전류 방향으로 감아쥐면, 엄지손가락이 가리키는 쪽이 <b>코일 안쪽의 자기장 방향</b>입니다. 그 끝이 막대자석의 <b>N극</b>처럼 행동합니다.</figcaption>
+      </figure>
+
+      <div class="qa">
+        <details>
+          <summary>Q1. 전류가 흐를 때 나침반 바늘 방향으로 무엇을 알 수 있나요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>코일에 전류가 흐르면 <b>코일 주위에 자기장이 생깁니다</b>. 나침반마다 가리키는 방향이 다른 것은 자기장의 방향이 장소마다 다르기 때문입니다.</p><p>코일 옆(동·서)의 나침반과 코일 위·아래(남·북)의 나침반은 <b>서로 반대쪽</b>을 가리킵니다. 코일은 한쪽 끝이 N극, 반대쪽 끝이 S극인 막대자석처럼 행동합니다.</p></div>
+        </details>
+        <details>
+          <summary>Q2. 전류의 방향을 바꾸었을 때 바늘의 변화로 무엇을 알 수 있나요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>모든 나침반 바늘이 <b>반대 방향</b>으로 돌아갑니다. 코일 주위 자기장의 방향은 <b>전류의 방향에 따라 달라지며</b>, 전류가 반대면 자기장도 반대가 됩니다.</p></div>
+        </details>
+        <details>
+          <summary>Q3. 전류의 세기를 바꾸었을 때 바늘의 변화로 무엇을 알 수 있나요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>전류가 셀수록 바늘이 북쪽(지구 자기장 방향)에서 <b>더 많이 돌아가고</b>, 멀리 있는 나침반도 더 뚜렷하게 움직입니다. <b>전류가 셀수록 코일 주위 자기장이 셉니다.</b></p><p>자기장의 <b>방향</b>은 전류의 세기가 아니라 전류의 방향이 정합니다. "지구 자기장 함께 계산"을 끄고 세기를 바꿔 보면 바늘 방향이 그대로인 것을 확인할 수 있어요.</p></div>
+        </details>
+      </div>
+    </div>
+
+    <table class="terms">
+      <tr><th>자기장</th><td>자석이나 전류 주위에서 자기력이 작용하는 공간. 방향은 그곳에 놓은 나침반 바늘의 N극이 가리키는 방향이다.</td></tr>
+      <tr><th>자기력선</th><td>자기장의 모양을 나타낸 선. N극에서 나와 S극으로 들어가며, 촘촘할수록 자기장이 세다.</td></tr>
+      <tr><th>코일</th><td>도선을 여러 번 감은 것. 전류가 흐르면 막대자석처럼 N극과 S극이 생긴다(전자석).</td></tr>
+      <tr><th>전류와 자기장</th><td>자기장의 방향은 전류의 방향에 따라 달라지고, 자기장의 세기는 전류가 셀수록 세다.</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 인쇄 활동지 ================= -->
+  <div class="printonly sheet">
+    <div class="namebar"><b>코일 주위의 자기장 관찰하기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
+    <h2>1. 결과 그리기 — 각 나침반에 바늘을 그리고 N극 쪽을 칠해 봅시다</h2>
+    <div class="pboards" id="pboards"></div>
+    <h2>2. 정리하기</h2>
+    <ol>
+      <li>코일에 전류가 흐를 때 나침반 바늘이 가리키는 방향으로 알 수 있는 것을 써 봅시다.
+        <div class="lines"></div><div class="lines"></div></li>
+      <li>전류의 방향을 바꾸었을 때 바늘 방향이 어떻게 달라졌나요? 이것으로 알 수 있는 것은?
+        <div class="lines"></div><div class="lines"></div></li>
+      <li>전류의 세기를 바꾸었을 때 바늘 방향이 어떻게 달라졌나요? 이것으로 알 수 있는 것은?
+        <div class="lines"></div><div class="lines"></div></li>
+    </ol>
+  </div>
+
+  <footer class="tb-foot">모든 그림은 직접 그린 것이며, 나침반 바늘 방향은 비오-사바르 법칙으로 계산했습니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과14-04]</footer>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   공통 도우미
+   ========================================================= */
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+var REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var FONT = "Pretendard, -apple-system, 'Malgun Gothic', sans-serif";
+var C = {
+  ink: "#24211D", graphite: "#5C564E", hair: "#D9D1BF", sheet: "#FFFDF7",
+  cat: "#1D4ED8", catDeep: "#1E3A8A",
+  copper: "#B45309", copperBack: "#C9A27A",
+  red: "#C81E1E", board: "#EEF4F7", boardEdge: "#9FB4C2"
+};
+
+function fitCanvas(cv, cssH){
+  var w = cv.parentNode.clientWidth;
+  cv.width  = Math.round(w * DPR);
+  cv.height = Math.round(cssH * DPR);
+  cv.style.height = cssH + "px";
+  var ctx = cv.getContext("2d");
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  return {w:w, h:cssH, ctx:ctx};
+}
+
+function arrow(ctx, x1,y1,x2,y2, color, width, head){
+  head = head || 9; width = width || 3;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = width; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  var a = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2 + Math.cos(a)*2, y2 + Math.sin(a)*2);
+  ctx.lineTo(x2 - head*Math.cos(a-0.45), y2 - head*Math.sin(a-0.45));
+  ctx.lineTo(x2 - head*Math.cos(a+0.45), y2 - head*Math.sin(a+0.45));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* 배경이 있는 글자 — 어떤 그림 위에서도 읽히도록 */
+function tag(ctx, text, x, y, opt){
+  opt = opt || {};
+  var pad = opt.pad === undefined ? 5 : opt.pad;
+  ctx.save();
+  ctx.font = opt.font || ("bold 13px " + FONT);
+  var w = ctx.measureText(text).width;
+  var h = opt.h || 20;
+  var bx = opt.align === "right" ? x - w - pad*2 : (opt.align === "center" ? x - w/2 - pad : x);
+  ctx.fillStyle = opt.bg || "rgba(255,253,249,.94)";
+  ctx.strokeStyle = opt.border || "#cfc6b4";
+  ctx.lineWidth = 1;
+  if (ctx.roundRect){ ctx.beginPath(); ctx.roundRect(bx, y-h/2, w+pad*2, h, 6); ctx.fill(); ctx.stroke(); }
+  else { ctx.fillRect(bx, y-h/2, w+pad*2, h); ctx.strokeRect(bx, y-h/2, w+pad*2, h); }
+  ctx.fillStyle = opt.color || C.ink;
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, bx+pad, y+1);
+  ctx.restore();
+  return {x:bx, w:w+pad*2};
+}
+
+function rrect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+  else ctx.rect(x, y, w, h);
+}
+
+function stamp(){
+  var d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+/* PNG 저장 — 제목 띠를 얹어 한 장으로 */
+function saveCanvas(src, title){
+  var out = document.createElement("canvas");
+  var band = 46 * DPR;
+  out.width = src.width; out.height = src.height + band;
+  var c = out.getContext("2d");
+  c.fillStyle = "#fffdf9"; c.fillRect(0,0,out.width,out.height);
+  c.drawImage(src, 0, band);
+  c.fillStyle = C.cat; c.fillRect(0,0,out.width, 4*DPR);
+  c.fillStyle = C.ink;
+  c.font = "bold " + (17*DPR) + "px " + FONT;
+  c.fillText(title, 14*DPR, 30*DPR);
+  c.font = (12*DPR) + "px " + FONT; c.fillStyle = "#8d8577";
+  var s = "코일 주위의 자기장 가상실험 · " + stamp();
+  var sw = c.measureText(s).width;
+  if (sw + c.measureText(title).width + 40*DPR < out.width) c.fillText(s, out.width - sw - 14*DPR, 30*DPR);
+  var a = document.createElement("a");
+  a.download = "코일주위의자기장_" + stamp() + ".png";
+  a.href = out.toDataURL("image/png");
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* 방위(북=0°, 시계 방향)를 말로 */
+var DIR8 = ["북쪽","북동쪽","동쪽","남동쪽","남쪽","남서쪽","서쪽","북서쪽"];
+function dirWord(b){ return DIR8[Math.round(((b % 360) + 360) % 360 / 45) % 8]; }
+function angDiff(a, b){ var d = ((a - b) % 360 + 540) % 360 - 180; return Math.abs(d); }
+
+/* =========================================================
+   물리 모델 — 원형 코일(비오-사바르 법칙)
+   · 판(아크릴) 위 좌표: x = 동쪽(+), y = 북쪽(+), 단위 cm
+   · 코일은 남북 방향으로 세운 원(반지름 3 cm, 30회 감음), 중심이 판 위에 있음
+   · dir = +1 : 판 위로 올라온 코일 앞쪽 반원에서 전류가 남→북(화면 ↑)으로 흐름
+               → 코일 안쪽 자기장은 서쪽(화면 ←)
+   ========================================================= */
+var COIL_R = 3, TURNS = 30, EARTH = 30, RING = 6.5, NSEG = 96;
+var SEGS = [];
+(function(){
+  for (var k = 0; k < NSEG; k++){
+    var t0 = 2*Math.PI*k/NSEG, t1 = 2*Math.PI*(k+1)/NSEG, tm = (t0+t1)/2;
+    // 코일 위의 점 P(t) = (0, -R cos t, R sin t) : t=0 남쪽 꿰뚫는 점 → 위로 → t=π 북쪽
+    SEGS.push([ -COIL_R*Math.cos(tm), COIL_R*Math.sin(tm),
+                COIL_R*(Math.cos(t0) - Math.cos(t1)), COIL_R*(Math.sin(t1) - Math.sin(t0)) ]);
+  }
+})();
+
+/* 코일만의 자기장 [동쪽 성분, 북쪽 성분] (μT) */
+function coilB(x, y, I, dir){
+  // 도선이 판을 꿰뚫는 두 점 바로 옆은 값이 무한히 커지므로 살짝 떼어 계산
+  var dN = Math.hypot(x, y - COIL_R), dS = Math.hypot(x, y + COIL_R), m = 0.35;
+  if (dN < m){ var f = m/(dN||1e-6); x *= f; y = COIL_R + (y - COIL_R)*f; if (dN === 0) x = m; }
+  else if (dS < m){ var g = m/(dS||1e-6); x *= g; y = -COIL_R + (y + COIL_R)*g; if (dS === 0) x = m; }
+  var bx = 0, by = 0;
+  for (var i = 0; i < NSEG; i++){
+    var s = SEGS[i], py = s[0], pz = s[1], dly = s[2], dlz = s[3];
+    var dy = y - py, r2 = x*x + dy*dy + pz*pz, r3 = r2 * Math.sqrt(r2);
+    bx += (-dly*pz - dlz*dy) / r3;
+    by += (dlz*x) / r3;
+  }
+  var k = 10 * TURNS * I * dir;   // μ0/4π 를 cm·μT 단위로 바꾼 값 = 10
+  return [bx*k, by*k];
+}
+
+function fieldAt(x, y, st){
+  var b = st.on ? coilB(x, y, st.I, st.dir) : [0, 0];
+  if (st.earth) b[1] += EARTH;
+  return b;
+}
+function bearing(b){ return (Math.atan2(b[0], b[1]) * 180/Math.PI + 360) % 360; }
+
+/* 나침반 8개 — 코일 중심에서 6.5 cm 떨어진 원 위 */
+var RING_POS = [];
+for (var q = 0; q < 8; q++){
+  var a0 = q * Math.PI/4;
+  RING_POS.push({ x: RING*Math.sin(a0), y: RING*Math.cos(a0), name: DIR8[q].replace("쪽","") });
+}
+
+/* =========================================================
+   공유 상태
+   ========================================================= */
+var S = { on:false, dir:1, I:1.0, earth:true, showProbe:true, flow:true,
+          probe:{x:-8.4, y:8.4} };
+var needle = [];          // 화면에 그려지는 바늘 각도(부드럽게 따라감)
+for (var n0 = 0; n0 < 9; n0++) needle.push(0);
+
+/* =========================================================
+   탭 전환
+   ========================================================= */
+var tabs = [].slice.call(document.querySelectorAll(".tab"));
+var panels = [1,2,3].map(function(n){ return document.getElementById("panel-"+n); });
+var current = 1;
+
+function selectTab(n, focus){
+  current = n;
+  tabs.forEach(function(t,i){
+    var on = (i+1) === n;
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+    if (on && focus) t.focus();
+  });
+  panels.forEach(function(p,i){ p.hidden = (i+1) !== n; });
+  resizeAll();
+}
+tabs.forEach(function(t,i){
+  t.addEventListener("click", function(){ selectTab(i+1); });
+  t.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
+      e.preventDefault();
+      var n = i + (e.key === "ArrowRight" ? 1 : -1);
+      if (n < 0) n = tabs.length - 1;
+      if (n >= tabs.length) n = 0;
+      selectTab(n+1, true);
+    }
+  });
+});
+
+/* =========================================================
+   판·코일·나침반 그리기 (탭①·③ 공용)
+   ========================================================= */
+function boardGeom(W, top, maxS){
+  var S0 = Math.min(W - 20, maxS);
+  var g = { S:S0, bx:(W - S0)/2, by:top };
+  g.cx = g.bx + S0/2; g.cy = g.by + S0/2;
+  g.Rpx = S0 * 0.13;
+  g.k = g.Rpx / COIL_R;                       // 1 cm 가 몇 px 인지
+  g.rx = Math.max(7, g.Rpx * 0.17);           // 코일을 비스듬히 위에서 본 폭
+  g.cr = Math.max(15, S0 * 0.055);            // 나침반 반지름(px)
+  g.half = (S0/2) / g.k;                      // 판 절반 길이(cm)
+  return g;
+}
+function toPx(g, x, y){ return [g.cx + x*g.k, g.cy - y*g.k]; }
+
+function drawBoard(ctx, g, small){
+  ctx.save();
+  rrect(ctx, g.bx, g.by, g.S, g.S, 10);
+  ctx.fillStyle = C.board; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = C.boardEdge; ctx.stroke();
+  // 아크릴 판의 구멍 줄(장식) — 코일과 겹치지 않게 테두리 쪽만
+  ctx.fillStyle = "rgba(95,125,145,.18)";
+  var step = g.S / 12;
+  for (var i = 1; i < 12; i++){
+    [[g.bx + i*step, g.by + step*0.5], [g.bx + i*step, g.by + g.S - step*0.5],
+     [g.bx + step*0.5, g.by + i*step], [g.bx + g.S - step*0.5, g.by + i*step]].forEach(function(p){
+      ctx.beginPath(); ctx.arc(p[0], p[1], 2, 0, Math.PI*2); ctx.fill();
+    });
+  }
+  // 북쪽 표시
+  var nx = g.bx + g.S - 26, ny = g.by + 40;
+  arrow(ctx, nx, ny + 16, nx, ny - 14, C.graphite, 2.5, 8);
+  ctx.fillStyle = C.ink; ctx.font = "bold 13px " + FONT; ctx.textAlign = "center";
+  ctx.fillText("북", nx, ny + 31);
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
+/* 코일: 앞쪽 반원(판 위)은 진한 구리색 실선, 뒤쪽 반원(판 아래, 아크릴 너머)은 연한 점선 */
+function drawCoil(ctx, g, st, phase){
+  var cx = g.cx, cy = g.cy, rx = g.rx, ry = g.Rpx;
+  ctx.save();
+  // 판을 꿰뚫는 구멍
+  ctx.fillStyle = "rgba(36,33,29,.45)";
+  [cy - ry, cy + ry].forEach(function(yy){ ctx.beginPath(); ctx.ellipse(cx, yy, rx*0.9, 3.5, 0, 0, Math.PI*2); ctx.fill(); });
+  // 뒤쪽 반원
+  ctx.setLineDash([5, 4]); ctx.lineWidth = 3; ctx.strokeStyle = C.copperBack;
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, Math.PI/2, Math.PI*3/2); ctx.stroke();
+  ctx.setLineDash([]);
+  // 앞쪽 반원 — 여러 번 감은 느낌으로 세 겹
+  [-2.2, 0, 2.2].forEach(function(o, i){
+    ctx.lineWidth = i === 1 ? 3.2 : 2;
+    ctx.strokeStyle = i === 1 ? C.copper : "#D08A3C";
+    ctx.beginPath(); ctx.ellipse(cx + o, cy, rx, ry, 0, -Math.PI/2, Math.PI/2); ctx.stroke();
+  });
+  ctx.restore();
+
+  if (!st.on) return;
+  // 전류가 흐르는 모습: 앞쪽 반원 위를 움직이는 점 + 화살표
+  if (st.flow){
+    var nd = 7, sp = phase || 0;
+    ctx.fillStyle = "#7C2D12";
+    for (var k = 0; k < nd; k++){
+      var u = ((k / nd) + sp) % 1;
+      var phi = st.dir > 0 ? (Math.PI/2 - Math.PI*u) : (-Math.PI/2 + Math.PI*u);
+      ctx.beginPath(); ctx.arc(cx + rx*Math.cos(phi), cy + ry*Math.sin(phi), 2.6, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  var len = Math.min(ry * 0.55, 34), x0 = cx + rx + 10;
+  var w = 2 + st.I * 0.9;
+  if (st.dir > 0) arrow(ctx, x0, cy + len/2, x0, cy - len/2, "#7C2D12", w, 8 + st.I);
+  else            arrow(ctx, x0, cy - len/2, x0, cy + len/2, "#7C2D12", w, 8 + st.I);
+  tag(ctx, "전류", x0 + 8 + st.I, cy, {color:"#7C2D12", border:"#E7C9A6", font:"bold 12px " + FONT, h:18});
+}
+
+/* 나침반: N극 쪽은 빨갛게 '칠함', S극 쪽은 '테두리만' — 색과 모양 두 단서 */
+function drawCompass(ctx, x, y, r, deg, opt){
+  opt = opt || {};
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2);
+  ctx.fillStyle = "#fff"; ctx.fill();
+  ctx.lineWidth = opt.probe ? 3 : 1.5;
+  ctx.strokeStyle = opt.probe ? C.cat : C.ink; ctx.stroke();
+  if (opt.probe){
+    ctx.setLineDash([4,3]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, r + 5, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.strokeStyle = "rgba(36,33,29,.35)"; ctx.lineWidth = 1;
+  for (var i = 0; i < 8; i++){
+    var a = i * Math.PI/4;
+    ctx.beginPath();
+    ctx.moveTo(Math.sin(a)*(r-1.5), -Math.cos(a)*(r-1.5));
+    ctx.lineTo(Math.sin(a)*(r-(i%2?3.5:5.5)), -Math.cos(a)*(r-(i%2?3.5:5.5)));
+    ctx.stroke();
+  }
+  ctx.rotate(deg * Math.PI/180);
+  var L = r * 0.8, wd = Math.max(3.5, r * 0.22);
+  ctx.beginPath(); ctx.moveTo(0, -L); ctx.lineTo(wd, 0); ctx.lineTo(-wd, 0); ctx.closePath();
+  ctx.fillStyle = C.red; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = "#7F1D1D"; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, L); ctx.lineTo(wd, 0); ctx.lineTo(-wd, 0); ctx.closePath();
+  ctx.fillStyle = "#fff"; ctx.fill(); ctx.lineWidth = 1.4; ctx.strokeStyle = C.ink; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, Math.PI*2); ctx.fillStyle = C.ink; ctx.fill();
+  ctx.restore();
+}
+
+/* =========================================================
+   탭 ① 실험하기
+   ========================================================= */
+var cv1 = document.getElementById("cv1");
+var G1 = null, ctx1 = null, H1 = 0, STRIP = 134;
+
+function layout1(){
+  var W = cv1.parentNode.clientWidth;
+  var g = boardGeom(W, 10, 540);
+  H1 = 10 + g.S + 10 + STRIP;
+  var f = fitCanvas(cv1, H1);
+  ctx1 = f.ctx; G1 = g; G1.W = W;
+}
+
+function clampProbe(){
+  var lim = G1 ? G1.half - (G1.cr + 6)/G1.k : 9;
+  S.probe.x = Math.max(-lim, Math.min(lim, S.probe.x));
+  S.probe.y = Math.max(-lim, Math.min(lim, S.probe.y));
+}
+
+/* 회로(전원 장치 — 스위치 — 저항 — 코일) */
+function drawCircuit(ctx, g){
+  var y0 = g.by + g.S + 10, x0 = g.bx, Wd = g.S;
+  var yA = y0 + 34, yB = y0 + 82;
+  var sw = Math.min(124, Wd * 0.33), sx = x0, sy = y0 + 8, sh = 96;
+  var sx2 = sx + sw;
+  var spread = g.cr + 18;                       // 남쪽 나침반을 비켜 가도록
+  var leadL = g.cx - spread, leadR = g.cx + spread;
+  var resX = Math.min(x0 + Wd - 40, g.cx + Math.max(70, Wd*0.26));
+  var swX = Math.max(sx2 + 46, (sx2 + resX)/2 + 10);
+  var cross = S.dir < 0;
+  var redW = "#B91C1C", blackW = "#2B2B2B";
+  var colA = cross ? blackW : redW, colB = cross ? redW : blackW;
+
+  ctx.save();
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+
+  // 코일에서 나온 두 가닥(판 가장자리까지)
+  var ySouth = g.cy + g.Rpx;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = C.copper;
+  var yBend = g.cy + g.Rpx * 1.45;
+  ctx.beginPath(); ctx.moveTo(g.cx - 3, ySouth); ctx.lineTo(leadL, yBend); ctx.lineTo(leadL, yA); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(g.cx + 3, ySouth); ctx.lineTo(leadR, yBend); ctx.lineTo(leadR, yA); ctx.stroke();
+
+  // 집게 전선 A: 전원(위 단자) ↔ 코일 왼쪽 가닥
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = colA;
+  ctx.beginPath(); ctx.moveTo(sx2 + 26, yA); ctx.lineTo(leadL, yA); ctx.stroke();
+  // 집게 전선 B: 코일 오른쪽 가닥 → 저항 → 스위치 → 전원(아래 단자)
+  ctx.strokeStyle = colB;
+  ctx.beginPath(); ctx.moveTo(leadR, yA); ctx.lineTo(resX - 22, yA); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(resX + 22, yA); ctx.lineTo(resX + 30, yA); ctx.lineTo(resX + 30, yB); ctx.lineTo(swX + 18, yB); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(swX - 18, yB); ctx.lineTo(sx2 + 26, yB); ctx.stroke();
+  // 전원 단자 쪽: 바로 꽂거나(평소) 엇갈려 꽂기(전류 방향 바꿈)
+  ctx.strokeStyle = colA;
+  ctx.beginPath(); ctx.moveTo(sx2 + 26, yA); ctx.lineTo(sx2 + 6, cross ? yB : yA); ctx.stroke();
+  ctx.strokeStyle = colB;
+  ctx.beginPath(); ctx.moveTo(sx2 + 26, yB); ctx.lineTo(sx2 + 6, cross ? yA : yB); ctx.stroke();
+
+  // 저항(시멘트 저항)
+  rrect(ctx, resX - 22, yA - 11, 44, 22, 3);
+  ctx.fillStyle = "#F4F1EA"; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = C.ink; ctx.stroke();
+  ctx.fillStyle = C.ink; ctx.font = "bold 11px " + FONT; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("1 Ω", resX, yA + 1);
+  ctx.font = "12px " + FONT; ctx.fillStyle = C.graphite;
+  ctx.fillText("저항", resX, yA - 21);
+
+  // 스위치
+  ctx.fillStyle = C.ink;
+  [swX - 18, swX + 18].forEach(function(xx){ ctx.beginPath(); ctx.arc(xx, yB, 4, 0, Math.PI*2); ctx.fill(); });
+  ctx.lineWidth = 3.5; ctx.strokeStyle = C.ink;
+  ctx.beginPath(); ctx.moveTo(swX - 18, yB);
+  if (S.on) ctx.lineTo(swX + 18, yB - 2); else ctx.lineTo(swX + 13, yB - 21);
+  ctx.stroke();
+  ctx.font = "12px " + FONT; ctx.fillStyle = C.graphite;
+  ctx.fillText(S.on ? "스위치(닫힘)" : "스위치(열림)", swX, yB + 17);
+
+  // 전원 장치
+  rrect(ctx, sx, sy, sw, sh, 6);
+  ctx.fillStyle = "#3A3A3D"; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = C.ink; ctx.stroke();
+  var lcdW = sw - 34, lcdX = sx + 8;
+  var vTxt = (S.I * 1.2).toFixed(1) + " V", aTxt = (S.on ? S.I.toFixed(1) : "0.0") + " A";
+  [[sy + 14, vTxt], [sy + 50, aTxt]].forEach(function(r){
+    rrect(ctx, lcdX, r[0], lcdW, 28, 3);
+    ctx.fillStyle = "#151515"; ctx.fill();
+    ctx.fillStyle = "#FDE68A"; ctx.font = "bold 15px ui-monospace, Consolas, monospace";
+    ctx.textAlign = "right"; ctx.fillText(r[1], lcdX + lcdW - 6, r[0] + 15);
+  });
+  // 단자 (+ 위, − 아래)
+  [[yA, "+", redW], [yB, "−", blackW]].forEach(function(t){
+    ctx.beginPath(); ctx.arc(sx2 - 9, t[0], 7, 0, Math.PI*2);
+    ctx.fillStyle = t[2]; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.font = "bold 13px " + FONT; ctx.textAlign = "center";
+    ctx.fillText(t[1], sx2 - 9, t[0] + 1);
+  });
+  ctx.fillStyle = "#E7E5E4"; ctx.font = "11px " + FONT; ctx.textAlign = "left";
+  ctx.fillText("전원 장치", lcdX, sy + 88);
+  ctx.restore();
+
+  if (cross) tag(ctx, "⇅ 집게 전선 바꿔 끼움", sx, sy + sh + 14, {font:"bold 11px " + FONT, h:18, color:C.catDeep, border:"#B6C6EE"});
+}
+
+var lastT = 0, phase = 0;
+function draw1(dt){
+  if (!ctx1) return;
+  var ctx = ctx1, g = G1;
+  ctx.clearRect(0, 0, g.W, H1);
+  drawBoard(ctx, g);
+  drawCoil(ctx, g, S, phase);
+
+  // 나침반 바늘 — 목표 방향으로 부드럽게(0.3초 남짓) 돌아감, 흔들림 없음
+  var tau = 0.16, a = REDUCE ? 1 : (1 - Math.exp(-dt / tau));
+  var stillField = !S.on && !S.earth;
+  for (var i = 0; i < 9; i++){
+    var p = i < 8 ? RING_POS[i] : S.probe;
+    if (i === 8 && !S.showProbe) continue;
+    if (!stillField){
+      var target = bearing(fieldAt(p.x, p.y, S));
+      var d = ((target - needle[i]) % 360 + 540) % 360 - 180;
+      needle[i] = (needle[i] + d * a + 360) % 360;
+    }
+    var xy = toPx(g, p.x, p.y);
+    drawCompass(ctx, xy[0], xy[1], g.cr, needle[i], {probe: i === 8});
+  }
+  if (S.showProbe){
+    var pp = toPx(g, S.probe.x, S.probe.y);
+    var lx = Math.min(Math.max(pp[0], g.bx + 52), g.bx + g.S - 52);
+    var ly = pp[1] - g.cr - 17;
+    if (ly < g.by + 12) ly = pp[1] + g.cr + 17;
+    tag(ctx, dragging ? "옮기는 중" : "탐색 나침반", lx, ly, {align:"center", font:"bold 12px " + FONT, h:18, color:C.catDeep, border:"#B6C6EE"});
+  }
+  drawCircuit(ctx, g);
+}
+
+function frame(t){
+  var dt = lastT ? Math.min(0.1, (t - lastT)/1000) : 0.016;
+  lastT = t;
+  if (S.on && S.flow && !REDUCE) phase = (phase + dt * 0.12 * S.I) % 1;
+  if (current === 1) draw1(dt);
+  requestAnimationFrame(frame);
+}
+
+/* 끌어서 옮기기 */
+var dragging = false;
+function evPos(e){
+  var r = cv1.getBoundingClientRect();
+  return [e.clientX - r.left, e.clientY - r.top];
+}
+cv1.addEventListener("pointerdown", function(e){
+  if (!S.showProbe || !G1) return;
+  var m = evPos(e), pp = toPx(G1, S.probe.x, S.probe.y);
+  if (Math.hypot(m[0]-pp[0], m[1]-pp[1]) <= G1.cr + 12){
+    dragging = true;
+    try { cv1.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  }
+});
+cv1.addEventListener("pointermove", function(e){
+  if (!G1) return;
+  var m = evPos(e);
+  if (dragging){
+    S.probe.x = (m[0] - G1.cx) / G1.k;
+    S.probe.y = (G1.cy - m[1]) / G1.k;
+    clampProbe(); updateProbeText();
+  } else if (S.showProbe){
+    var pp = toPx(G1, S.probe.x, S.probe.y);
+    cv1.style.cursor = Math.hypot(m[0]-pp[0], m[1]-pp[1]) <= G1.cr + 12 ? "grab" : "default";
+  }
+});
+function endDrag(){ if (dragging){ dragging = false; announce1(); } }
+cv1.addEventListener("pointerup", endDrag);
+cv1.addEventListener("pointercancel", endDrag);
+cv1.addEventListener("keydown", function(e){
+  var step = e.shiftKey ? 2 : 0.5, moved = true;
+  if (e.key === "ArrowLeft") S.probe.x -= step;
+  else if (e.key === "ArrowRight") S.probe.x += step;
+  else if (e.key === "ArrowUp") S.probe.y += step;
+  else if (e.key === "ArrowDown") S.probe.y -= step;
+  else moved = false;
+  if (moved){
+    e.preventDefault();
+    if (!S.showProbe){ S.showProbe = true; document.getElementById("c1-probe").checked = true; }
+    clampProbe(); updateProbeText(); announce1Soon();
+  }
+});
+
+/* 조작판 */
+var bSwitch = document.getElementById("b1-switch");
+var sI = document.getElementById("s1-i");
+
+function updateUI1(){
+  bSwitch.textContent = S.on ? "스위치 끄기" : "스위치 켜기";
+  bSwitch.setAttribute("aria-pressed", S.on ? "true" : "false");
+  sI.value = S.I;
+  document.getElementById("s1-i-v").textContent = S.I.toFixed(1) + " A";
+  document.getElementById("r1-sw").textContent = S.on ? "켜짐" : "꺼짐";
+  document.getElementById("r1-dir").textContent = S.dir > 0 ? "↑ 위로" : "↓ 아래로";
+  document.getElementById("r1-i").textContent = S.on ? S.I.toFixed(1) + " A" : "0 A";
+  document.getElementById("c1-earth").checked = S.earth;
+  document.getElementById("c2-earth").checked = S.earth;
+  updateProbeText();
+}
+function updateProbeText(){
+  var el = document.getElementById("r1-probe");
+  if (!S.showProbe){ el.textContent = "숨김"; return; }
+  if (!S.on && !S.earth){ el.textContent = "그대로"; return; }
+  el.textContent = dirWord(bearing(fieldAt(S.probe.x, S.probe.y, S)));
+}
+var annTimer = null;
+function announce1Soon(){ clearTimeout(annTimer); annTimer = setTimeout(announce1, 600); }
+function announce1(){
+  var txt;
+  if (!S.on){
+    txt = "스위치가 꺼져 있습니다. " + (S.earth ? "나침반 바늘 N극이 모두 북쪽을 가리킵니다." : "지구 자기장을 껐으므로 바늘이 움직이지 않습니다.");
+  } else {
+    var parts = RING_POS.map(function(p){ return p.name + " 나침반 " + dirWord(bearing(fieldAt(p.x, p.y, S))); });
+    txt = "전류 " + S.I.toFixed(1) + " 암페어, 코일 앞쪽에서 " + (S.dir > 0 ? "위로" : "아래로") + " 흐릅니다. N극 방향: " + parts.join(", ") + ".";
+  }
+  if (S.showProbe) txt += " 탐색 나침반 " + document.getElementById("r1-probe").textContent + ".";
+  document.getElementById("live1").textContent = txt;
+}
+
+bSwitch.addEventListener("click", function(){ S.on = !S.on; updateUI1(); announce1(); });
+document.getElementById("b1-dir").addEventListener("click", function(){ S.dir = -S.dir; updateUI1(); announce1(); });
+sI.addEventListener("input", function(){ S.I = parseFloat(sI.value); updateUI1(); announce1Soon(); });
+document.getElementById("c1-earth").addEventListener("change", function(e){ S.earth = e.target.checked; updateUI1(); announce1(); });
+document.getElementById("c1-probe").addEventListener("change", function(e){ S.showProbe = e.target.checked; updateProbeText(); });
+document.getElementById("c1-flow").addEventListener("change", function(e){ S.flow = e.target.checked; });
+document.getElementById("b1-reset").addEventListener("click", function(){
+  S.on = false; S.dir = 1; S.I = 1; S.earth = true; S.showProbe = true; S.flow = true;
+  S.probe = {x:-8.4, y:8.4};
+  document.getElementById("c1-probe").checked = true;
+  document.getElementById("c1-flow").checked = true;
+  for (var i = 0; i < 9; i++) needle[i] = 0;
+  updateUI1(); announce1();
+});
+document.getElementById("b1-shot").addEventListener("click", function(){
+  var t = "① " + (S.on ? ("전류 " + (S.dir > 0 ? "↑" : "↓") + " " + S.I.toFixed(1) + " A") : "스위치 꺼짐") + (S.earth ? " · 지구 자기장 포함" : " · 코일 자기장만");
+  saveCanvas(cv1, t);
+});
+
+/* =========================================================
+   탭 ② 결과 그리기 (SVG — 나침반 하나하나가 버튼)
+   ========================================================= */
+var CONDS = [
+  { no:"과정 2", n:"2", dir: 1, I:1.0, title:"전류 ↑", cond:"1.0 A" },
+  { no:"과정 3", n:"3", dir:-1, I:1.0, title:"방향만 반대 ↓", cond:"1.0 A" },
+  { no:"과정 4", n:"4", dir:-1, I:3.0, title:"세기를 크게 ↓", cond:"3.0 A" }
+];
+var SVGNS = "http://www.w3.org/2000/svg";
+var drawn = CONDS.map(function(){ return [0,0,0,0,0,0,0,0]; });
+var checked = false;
+var B2 = { k: 40/COIL_R, c: 150, cr: 20 };   // 300×300 판, 코일 반지름 40 px
+
+function el(name, attrs, parent){
+  var e = document.createElementNS(SVGNS, name);
+  for (var a in attrs) e.setAttribute(a, attrs[a]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function needlePaths(parent, r, cls){
+  var L = r*0.8, w = r*0.24;
+  var g = el("g", {"class": cls || "needle"}, parent);
+  el("path", {d:"M0 " + (-L) + " L" + w + " 0 L" + (-w) + " 0Z", fill:C.red, stroke:"#7F1D1D", "stroke-width":1}, g);
+  el("path", {d:"M0 " + L + " L" + w + " 0 L" + (-w) + " 0Z", fill:"#fff", stroke:C.ink, "stroke-width":1.4}, g);
+  return g;
+}
+
+function buildBoardSVG(cd, blank){
+  var svg = el("svg", {viewBox:"0 0 300 300", role: blank ? "img" : "group",
+    "aria-label": cd.no + " " + cd.title + " " + cd.cond + " 결과 그리기 판"});
+  el("rect", {x:4, y:4, width:292, height:292, rx:10, fill:C.board, stroke:C.boardEdge, "stroke-width":2}, svg);
+  // 북쪽
+  el("path", {d:"M276 44 V20 M270 27 L276 19 L282 27", fill:"none", stroke:C.graphite, "stroke-width":2.5, "stroke-linecap":"round", "stroke-linejoin":"round"}, svg);
+  var tn = el("text", {x:276, y:60, "text-anchor":"middle", "font-size":13, "font-weight":700, fill:C.ink}, svg); tn.textContent = "북";
+  // 코일
+  var c = B2.c, ry = 40, rx = 7;
+  el("path", {d:"M"+c+" "+(c-ry)+" A"+rx+" "+ry+" 0 0 0 "+c+" "+(c+ry), fill:"none", stroke:C.copperBack, "stroke-width":3, "stroke-dasharray":"5 4"}, svg);
+  el("path", {d:"M"+c+" "+(c-ry)+" A"+rx+" "+ry+" 0 0 1 "+c+" "+(c+ry), fill:"none", stroke:C.copper, "stroke-width":3.5}, svg);
+  // 전류 화살표
+  var x0 = c + rx + 9, len = 26, sw = cd.I > 2 ? 4.5 : 2.6, hd = cd.I > 2 ? 9 : 7;
+  var yt = cd.dir > 0 ? c - len/2 : c + len/2, yb = cd.dir > 0 ? c + len/2 : c - len/2;
+  var sgn = cd.dir > 0 ? 1 : -1;
+  el("path", {d:"M"+x0+" "+yb+" L"+x0+" "+(yt + sgn*hd*0.8), stroke:"#7C2D12", "stroke-width":sw, "stroke-linecap":"round"}, svg);
+  el("path", {d:"M"+x0+" "+yt+" L"+(x0+hd*0.7)+" "+(yt+sgn*hd)+" L"+(x0-hd*0.7)+" "+(yt+sgn*hd)+"Z", fill:"#7C2D12"}, svg);
+  var tc = el("text", {x:x0 + 8, y:c + 4, "font-size":12, "font-weight":700, fill:"#7C2D12"}, svg);
+  tc.textContent = "전류";
+
+  var groups = [];
+  RING_POS.forEach(function(p, k){
+    var gx = c + p.x*B2.k, gy = c - p.y*B2.k;
+    var g = el("g", {transform:"translate("+gx.toFixed(1)+" "+gy.toFixed(1)+")"}, svg);
+    if (!blank){
+      g.setAttribute("class", "cmp");
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("role", "button");
+    }
+    el("circle", {"class":"face", r:B2.cr, fill:"#fff", stroke:C.ink, "stroke-width":1.5}, g);
+    for (var i = 0; i < 8; i++){
+      var a = i*Math.PI/4, r1 = B2.cr - 1.5, r2 = B2.cr - (i%2 ? 3.5 : 5.5);
+      el("line", {x1:(Math.sin(a)*r1).toFixed(2), y1:(-Math.cos(a)*r1).toFixed(2), x2:(Math.sin(a)*r2).toFixed(2), y2:(-Math.cos(a)*r2).toFixed(2), stroke:"rgba(36,33,29,.35)"}, g);
+    }
+    if (blank){ el("circle", {r:2, fill:C.ink}, g); groups.push(g); return; }
+    // 정답 바늘(숨김) — 점선 테두리만
+    var gh = el("g", {"class":"ghost"}, g);
+    var L = B2.cr*0.8, w = B2.cr*0.24;
+    el("path", {d:"M0 " + (-L) + " L" + w + " 0 L" + (-w) + " 0Z", fill:"rgba(29,78,216,.18)", stroke:C.cat, "stroke-width":1.5, "stroke-dasharray":"3 2"}, gh);
+    var nd = needlePaths(g, B2.cr, "needle");
+    el("circle", {r:2.2, fill:C.ink}, g);
+    var mk = el("g", {"class":"mark", transform:"translate(15 -15)"}, g);
+    groups.push({g:g, needle:nd, ghost:gh, mark:mk, k:k});
+  });
+  return {svg:svg, groups:groups};
+}
+
+var boardsEl = document.getElementById("boards");
+var BOARDS = CONDS.map(function(cd, b){
+  var fig = document.createElement("figure");
+  fig.className = "board";
+  var cap = document.createElement("figcaption");
+  cap.innerHTML = '<span><span class="no" aria-hidden="true">' + cd.n + '</span><span class="sr-only">과정 ' + cd.n + ' </span>' + cd.title + '</span><span class="cond">' + cd.cond + '</span>';
+  fig.appendChild(cap);
+  var built = buildBoardSVG(cd, false);
+  fig.appendChild(built.svg);
+  var fb = document.createElement("p"); fb.className = "fb"; fb.setAttribute("aria-live", "polite");
+  fb.textContent = "나침반을 눌러 바늘을 그려 보세요.";
+  fig.appendChild(fb);
+  var go = document.createElement("button");
+  go.className = "tb-btn ghost go no-print"; go.type = "button";
+  go.textContent = "① 화면에서 이 조건으로 실험하기";
+  go.addEventListener("click", function(){
+    S.on = true; S.dir = cd.dir; S.I = cd.I; updateUI1(); selectTab(1); announce1();
+    document.getElementById("tab-1").focus();
+  });
+  fig.appendChild(go);
+  boardsEl.appendChild(fig);
+
+  built.groups.forEach(function(o){
+    function rot(step){
+      drawn[b][o.k] = (drawn[b][o.k] + step + 360) % 360;
+      paintNeedle(b, o.k);
+      if (checked) runCheck();
+    }
+    o.g.addEventListener("click", function(){ rot(45); });
+    o.g.addEventListener("keydown", function(e){
+      if (e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " "){ e.preventDefault(); rot(45); }
+      else if (e.key === "ArrowLeft" || e.key === "ArrowDown"){ e.preventDefault(); rot(-45); }
+    });
+  });
+  return {fig:fig, groups:built.groups, fb:fb, cd:cd};
+});
+
+function truthFor(cd, k){
+  var p = RING_POS[k];
+  return bearing(fieldAt(p.x, p.y, {on:true, dir:cd.dir, I:cd.I, earth:S.earth}));
+}
+function paintNeedle(b, k){
+  var o = BOARDS[b].groups[k], d = drawn[b][k];
+  o.needle.setAttribute("transform", "rotate(" + d + ")");
+  o.g.setAttribute("aria-label", RING_POS[k].name + "쪽 나침반, 바늘 N극이 " + dirWord(d) + "을 가리킴. 누르면 시계 방향으로 돌아갑니다.");
+}
+function clearMarks(){
+  BOARDS.forEach(function(B){
+    B.groups.forEach(function(o){
+      o.g.classList.remove("ok", "bad");
+      while (o.mark.firstChild) o.mark.removeChild(o.mark.firstChild);
+    });
+  });
+}
+function runCheck(){
+  checked = true;
+  clearMarks();
+  var summary = [];
+  BOARDS.forEach(function(B, b){
+    var okN = 0;
+    B.groups.forEach(function(o){
+      var t = truthFor(B.cd, o.k), ok = angDiff(drawn[b][o.k], t) <= 30;
+      if (ok) okN++;
+      o.g.classList.add(ok ? "ok" : "bad");
+      o.ghost.setAttribute("transform", "rotate(" + t.toFixed(1) + ")");
+      el("circle", {r:8, fill: ok ? "#15803D" : "#9A3412", stroke:"#fff", "stroke-width":1.5}, o.mark);
+      var tx = el("text", {y:4, "text-anchor":"middle", "font-size":11, "font-weight":800, fill:"#fff"}, o.mark);
+      tx.textContent = ok ? "✓" : "✗";
+    });
+    B.fb.textContent = okN === 8
+      ? "✓ 8개 모두 실험 결과와 같아요!"
+      : "8개 중 " + okN + "개가 실험 결과와 같아요. ✗ 표시된 나침반을 다시 살펴보세요.";
+    summary.push(B.cd.no + " " + okN + "개");
+  });
+  var rv = document.getElementById("b2-reveal");
+  rv.disabled = false;
+  document.getElementById("live2").textContent = "비교 결과: " + summary.join(", ") + " 맞음.";
+}
+document.getElementById("b2-check").addEventListener("click", runCheck);
+document.getElementById("b2-reveal").addEventListener("click", function(){
+  var on = !boardsEl.classList.contains("reveal");
+  boardsEl.classList.toggle("reveal", on);
+  this.setAttribute("aria-pressed", on ? "true" : "false");
+  this.textContent = on ? "정답 바늘 숨기기" : "다른 바늘 정답 보기";
+});
+document.getElementById("b2-clear").addEventListener("click", function(){
+  drawn = CONDS.map(function(){ return [0,0,0,0,0,0,0,0]; });
+  checked = false; clearMarks();
+  boardsEl.classList.remove("reveal");
+  var rv = document.getElementById("b2-reveal");
+  rv.disabled = true; rv.setAttribute("aria-pressed", "false"); rv.textContent = "다른 바늘 정답 보기";
+  BOARDS.forEach(function(B, b){ B.fb.textContent = "나침반을 눌러 바늘을 그려 보세요."; for (var k = 0; k < 8; k++) paintNeedle(b, k); });
+});
+document.getElementById("c2-earth").addEventListener("change", function(e){
+  S.earth = e.target.checked; updateUI1();
+  if (checked) runCheck();
+});
+document.getElementById("b2-shot").addEventListener("click", function(){
+  var svgs = BOARDS.map(function(B){ return B.fig.querySelector("svg"); });
+  var cell = 300, gap = 16, top = 34;
+  var out = document.createElement("canvas");
+  out.width = Math.round((cell*3 + gap*4) * DPR); out.height = Math.round((cell + top + gap*2) * DPR);
+  var c = out.getContext("2d");
+  c.scale(DPR, DPR);
+  c.fillStyle = "#fffdf9"; c.fillRect(0, 0, cell*3 + gap*4, cell + top + gap*2);
+  var done = 0;
+  svgs.forEach(function(sv, i){
+    var clone = sv.cloneNode(true);
+    clone.setAttribute("xmlns", SVGNS);
+    clone.setAttribute("width", cell); clone.setAttribute("height", cell);
+    // 숨겨진 정답 바늘은 화면과 같게 처리
+    if (!boardsEl.classList.contains("reveal") || !checked){
+      [].slice.call(clone.querySelectorAll(".ghost")).forEach(function(n){ n.parentNode.removeChild(n); });
+    } else {
+      [].slice.call(clone.querySelectorAll(".cmp:not(.bad) .ghost")).forEach(function(n){ n.parentNode.removeChild(n); });
+    }
+    var img = new Image();
+    img.onload = function(){
+      var x = gap + i*(cell + gap);
+      c.drawImage(img, x, top + gap);
+      c.fillStyle = C.ink; c.font = "bold 15px " + FONT;
+      c.fillText(CONDS[i].no + " " + CONDS[i].title + " · " + CONDS[i].cond, x, top);
+      if (++done === svgs.length) saveCanvas(out, "결과 그리기 (과정 2·3·4)" + (S.earth ? " · 지구 자기장 포함" : ""));
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+  });
+});
+BOARDS.forEach(function(B, b){ for (var k = 0; k < 8; k++) paintNeedle(b, k); });
+
+/* 인쇄 활동지용 빈 판 */
+(function(){
+  var host = document.getElementById("pboards");
+  CONDS.forEach(function(cd){
+    var f = document.createElement("figure");
+    f.appendChild(buildBoardSVG(cd, true).svg);
+    var cp = document.createElement("figcaption");
+    cp.textContent = cd.no + " " + cd.title + " · " + cd.cond;
+    f.appendChild(cp);
+    host.appendChild(f);
+  });
+})();
+
+/* =========================================================
+   탭 ③ 정리하기 — 자기력선
+   ========================================================= */
+var cv3 = document.getElementById("cv3");
+var T3 = { dir:1, I:1.0, lines:true, cmp:true, pole:true };
+var G3 = null, ctx3 = null, H3 = 0, LINES = null;
+
+function layout3(){
+  var W = cv3.parentNode.clientWidth;
+  var g = boardGeom(W, 10, 560);
+  H3 = g.S + 20;
+  var f = fitCanvas(cv3, H3);
+  ctx3 = f.ctx; G3 = g; G3.W = W;
+  LINES = null;
+}
+
+/* 씨앗점(코일 안쪽)에서 출발해 자기장 방향을 따라가며 선을 그림 */
+function traceLines(){
+  var n = 1 + 2*Math.round(2*T3.I), out = [];
+  var lim = G3.half - 0.2, h = 0.07;
+  function dirAt(x, y){
+    var b = coilB(x, y, T3.I, T3.dir), m = Math.hypot(b[0], b[1]) || 1;
+    return [b[0]/m, b[1]/m];
+  }
+  function walk(x, y, sgn){
+    var pts = [[x, y]], sx = x, sy = y;
+    for (var i = 0; i < 4000; i++){
+      var d1 = dirAt(x, y);
+      var mx = x + sgn*d1[0]*h/2, my = y + sgn*d1[1]*h/2;
+      var d2 = dirAt(mx, my);
+      x += sgn*d2[0]*h; y += sgn*d2[1]*h;
+      pts.push([x, y]);
+      if (Math.abs(x) > lim || Math.abs(y) > lim) return {pts:pts, closed:false};
+      if (Math.hypot(x, y - COIL_R) < 0.12 || Math.hypot(x, y + COIL_R) < 0.12) return {pts:pts, closed:false};
+      if (i > 12 && Math.hypot(x - sx, y - sy) < h*1.2){ pts.push([sx, sy]); return {pts:pts, closed:true}; }
+    }
+    return {pts:pts, closed:false};
+  }
+  for (var k = 0; k < n; k++){
+    var y0 = -COIL_R + 2*COIL_R*(k + 0.5)/n;
+    var f = walk(0, y0, 1);
+    if (f.closed){ out.push(f.pts); continue; }
+    var bk = walk(0, y0, -1);
+    out.push(bk.pts.reverse().concat(f.pts.slice(1)));
+  }
+  return out;
+}
+
+function draw3(){
+  if (!ctx3) return;
+  var ctx = ctx3, g = G3;
+  ctx.clearRect(0, 0, g.W, H3);
+  drawBoard(ctx, g);
+  if (T3.lines){
+    if (!LINES) LINES = traceLines();
+    ctx.save();
+    ctx.lineWidth = 1.8; ctx.strokeStyle = "rgba(29,78,216,.78)"; ctx.lineJoin = "round";
+    LINES.forEach(function(pts){
+      ctx.beginPath();
+      pts.forEach(function(p, i){ var q = toPx(g, p[0], p[1]); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); });
+      ctx.stroke();
+      // 화살표: 선을 따라 약 3.5 cm 마다
+      var acc = 0, every = 3.5, startGap = 1.2;
+      for (var i = 1; i < pts.length; i++){
+        acc += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+        if (acc >= startGap){
+          startGap = every; acc = 0;
+          var a = toPx(g, pts[i-1][0], pts[i-1][1]), b2 = toPx(g, pts[i][0], pts[i][1]);
+          var ang = Math.atan2(b2[1]-a[1], b2[0]-a[0]), s = 7;
+          ctx.beginPath();
+          ctx.moveTo(b2[0] + Math.cos(ang)*s*0.6, b2[1] + Math.sin(ang)*s*0.6);
+          ctx.lineTo(b2[0] - s*Math.cos(ang-0.5), b2[1] - s*Math.sin(ang-0.5));
+          ctx.lineTo(b2[0] - s*Math.cos(ang+0.5), b2[1] - s*Math.sin(ang+0.5));
+          ctx.closePath(); ctx.fillStyle = "#1D4ED8"; ctx.fill();
+        }
+      }
+    });
+    ctx.restore();
+  }
+  drawCoil(ctx, g, {on:true, dir:T3.dir, I:T3.I, flow:false}, 0);
+  if (T3.cmp){
+    RING_POS.forEach(function(p){
+      var xy = toPx(g, p.x, p.y);
+      drawCompass(ctx, xy[0], xy[1], g.cr, bearing(coilB(p.x, p.y, T3.I, T3.dir)));
+    });
+  }
+  if (T3.pole){
+    // 코일 안쪽 자기장이 향하는 끝이 N극처럼 (dir=+1 이면 서쪽)
+    var nWest = T3.dir > 0, off = Math.max(g.Rpx * 1.05, g.rx + 42);
+    tag(ctx, "N극처럼", g.cx + (nWest ? -off : off), g.cy - g.Rpx*0.55, {align:"center", color:"#991B1B", border:"#E8B4B4", font:"bold 13px " + FONT});
+    tag(ctx, "S극처럼", g.cx + (nWest ? off : -off), g.cy - g.Rpx*0.55, {align:"center", color:C.catDeep, border:"#B6C6EE", font:"bold 13px " + FONT});
+  }
+}
+
+var sI3 = document.getElementById("s3-i");
+sI3.addEventListener("input", function(){
+  T3.I = parseFloat(sI3.value);
+  document.getElementById("s3-i-v").textContent = T3.I.toFixed(1) + " A";
+  LINES = null; draw3();
+});
+document.getElementById("b3-dir").addEventListener("click", function(){ T3.dir = -T3.dir; LINES = null; draw3(); });
+document.getElementById("c3-lines").addEventListener("change", function(e){ T3.lines = e.target.checked; draw3(); });
+document.getElementById("c3-cmp").addEventListener("change", function(e){ T3.cmp = e.target.checked; draw3(); });
+document.getElementById("c3-pole").addEventListener("change", function(e){ T3.pole = e.target.checked; draw3(); });
+document.getElementById("b3-shot").addEventListener("click", function(){
+  saveCanvas(cv3, "③ 자기력선 · 전류 " + (T3.dir > 0 ? "↑" : "↓") + " " + T3.I.toFixed(1) + " A");
+});
+
+/* =========================================================
+   크기 맞춤·시작
+   ========================================================= */
+function resizeAll(){
+  if (current === 1){ layout1(); draw1(0.016); }
+  if (current === 3){ layout3(); draw3(); }
+}
+var rzT = null;
+window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(resizeAll, 120); });
+window.addEventListener("beforeprint", function(){ resizeAll(); });
+
+updateUI1();
+announce1();
+resizeAll();
+requestAnimationFrame(frame);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(resizeAll);
+
+})();
+</script>
+</body>
+</html>

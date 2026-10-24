@@ -1,6 +1,21 @@
 {
   "tools": [
     {
+    "id": "coil-magnetic-field",
+    "name": "코일 주위의 자기장 가상실험",
+    "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",
+    "category": "physics",
+    "path": "physics/coil-magnetic-field/",
+    "tags": ["전기와 자기", "자기장", "코일", "나침반", "전류", "자기력선", "오른손 규칙", "전자석", "전동기"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "인쇄한 활동지(선택)", "나침반(실물 확인용, 선택)"],
+    "achievementStandard": ["9과14-04"]
+    },
+    {
     "id": "wave-motion-lab",
     "name": "물결파의 움직임 가상실험",
     "description": "물결을 일으켜 매질의 제자리 진동과 파장·주기를 관찰",
