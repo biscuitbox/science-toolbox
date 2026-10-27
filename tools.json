@@ -1,6 +1,21 @@
 {
   "tools": [
     {
+    "id": "electrostatic-induction",
+    "name": "정전기 유도 가상실험",
+    "description": "대전체를 가까이 하고 손·금속구를 대며 자유 전자의 이동을 관찰",
+    "category": "physics",
+    "path": "physics/electrostatic-induction/",
+    "tags": ["전기와 자기", "정전기 유도", "대전", "전기력", "자유 전자", "원자 모형", "접지", "검전기", "도체", "부도체"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "인쇄한 활동지(선택)", "검전기·대전체(실물 확인용, 선택)"],
+    "achievementStandard": ["9과14-01"]
+    },
+    {
     "id": "coil-magnetic-field",
     "name": "코일 주위의 자기장 가상실험",
     "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",
