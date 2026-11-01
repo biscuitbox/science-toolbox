@@ -1717,7 +1717,7 @@ function draw1(){
   rrect(ctx, A1.x, A1.y, A1.w, A1.h, 14); ctx.fillStyle = gr; ctx.fill();
   ctx.strokeStyle = C.metalEdge; ctx.lineWidth = 1.8; ctx.stroke();
   ctx.restore();
-  tag(ctx, st, "금속 막대 A", A1.x, A1.y - 16, {size: 12.5});
+  tag(ctx, st, "금속 막대 A", A1.x + A1.w/2, A1.y - 16, {size: 12.5, align: "center"});
 
   // 금속구 B 또는 플라스틱 자
   if (c.mode === "B"){
@@ -1776,6 +1776,12 @@ function draw1(){
 
   // 가까운 쪽 / 먼 쪽 / 전체
   var n = counts1();
+  // 양쪽 끝이 띠는 전기 — 교과서 그림처럼 막대 위에 (+)·(−) 표시
+  [[n.near, A1.x + 26], [n.far, A1.x + A1.w - 26]].forEach(function(q){
+    if (!q[0]) return;
+    var pos = q[0] > 0;
+    tag(ctx, st, pos ? "(+)" : "(−)", q[1], A1.y - 16, {size: 17, align: "center", color: pos ? C.plusDeep : C.minusDeep, bg: pos ? "#FDECEC" : "#E8EEFD", border: pos ? C.plus : C.minus});
+  });
   tag(ctx, st, "가까운 쪽 " + sgn(n.near), 292, 246, {size: 12, align: "center", color: n.near > 0 ? C.plusDeep : (n.near < 0 ? C.minusDeep : C.ink)});
   tag(ctx, st, "먼 쪽 " + sgn(n.far), 404, 246, {size: 12, align: "center", color: n.far > 0 ? C.plusDeep : (n.far < 0 ? C.minusDeep : C.ink)});
   var bottom = "A 전체 전하량: " + sgn(n.A) + (c.mode === "B" ? "   ·   B 전체: " + sgn(n.B) : "");
