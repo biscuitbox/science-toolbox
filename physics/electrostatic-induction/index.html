@@ -598,7 +598,7 @@ table.scope td:first-child { text-align: left; }
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="#1D4ED8" stroke="#1E3A8A"/><path d="M7 10h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>전자(−)</span>
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#F59E0B" stroke-width="2.2"/><circle cx="10" cy="10" r="5" fill="#1D4ED8"/></svg>방금 이동한 전자</span>
       </div>
-      <p class="kbd-hint no-print">위의 문지르는 물체를 좌우로 끌어 문지르거나 "문지르기"를 누릅니다. 키보드: 그림을 선택하고 ←·→ 방향키.</p>
+      <p class="kbd-hint no-print">위의 문지르는 물체를 막대에 대고 좌우로 끌어 문지르거나 "문지르기"를 누릅니다. 위로 끌어 올리면 떼어지고, 떼어 놓은 물체도 끌어내려 다시 문지를 수 있어요. 키보드: 그림을 선택하고 ←·→ 방향키.</p>
       <div class="explain" id="exf"></div>
     </div>
 
@@ -2677,7 +2677,7 @@ function fUpdate(dt){
     busy = true;
   }
   var lt = FR.lifted ? 1 : 0;
-  if (FR.liftT !== lt){ var st = REDUCE ? 1 : dt * 2.2; FR.liftT = lt > FR.liftT ? Math.min(1, FR.liftT + st) : Math.max(0, FR.liftT - st); busy = true; }
+  if (!FR.drag && FR.liftT !== lt){ var st = REDUCE ? 1 : dt * 2.2; FR.liftT = lt > FR.liftT ? Math.min(1, FR.liftT + st) : Math.max(0, FR.liftT - st); busy = true; }
   for (var i = FR.hops.length - 1; i >= 0; i--){
     var h = FR.hops[i];
     h.t += REDUCE ? 1 : dt / 0.45;
@@ -2800,11 +2800,14 @@ document.getElementById("bf-rub").addEventListener("click", function(){
   if (FR.lifted || FR.rubT >= 0) return;
   FR.rubT = 0; FR.busy = true;
 });
-document.getElementById("bf-lift").addEventListener("click", function(){
-  FR.lifted = !FR.lifted; FR.busy = true;
-  this.textContent = FR.lifted ? "다시 붙이기" : "떼어 놓기";
-  this.setAttribute("aria-pressed", FR.lifted ? "true" : "false");
+function syncLiftBtn(){
+  var b = document.getElementById("bf-lift");
+  b.textContent = FR.lifted ? "다시 붙이기" : "떼어 놓기";
+  b.setAttribute("aria-pressed", FR.lifted ? "true" : "false");
   document.getElementById("bf-rub").disabled = FR.lifted;
+}
+document.getElementById("bf-lift").addEventListener("click", function(){
+  FR.lifted = !FR.lifted; FR.busy = true; syncLiftBtn();
 });
 [].forEach.call(document.querySelectorAll('input[name="fr"], input[name="fp"]'), function(el){
   el.addEventListener("change", function(){
@@ -2824,28 +2827,44 @@ document.getElementById("bf-use").addEventListener("click", function(){
   applyRod(qr > 0 ? 1 : -1, Math.min(3, Math.abs(qr)), josa(mp.pad || mp.name, "으로") + " 문지름", FR.rod);
   selectTab("1", true);
 });
-/* 문지르는 물체 끌기 + 방향키 */
+/* 문지르는 물체 끌기 + 방향키
+   막대에 댄 채 좌우로 끌면 문질러지고, 위로 끌어 올리면 떨어지며, 떼어 놓은 물체도 다시 끌어내려 문지를 수 있음 */
 (function(){
-  var cv = SF.cv, grab = 0, lastX = 0;
+  var cv = SF.cv, gx = 0, gy = 0, wasLifted = false;
+  var BASEY = RODF.y - PADF.h/2;
   function pt(ev){ var b = cv.getBoundingClientRect(); return {x: (ev.clientX - b.left) / SF.scale, y: (ev.clientY - b.top) / SF.scale + VY}; }
   function onPad(p){ var c = padCenter(); return Math.abs(p.x - c.x) < PADF.w/2 + 6 && Math.abs(p.y - c.y) < PADF.h/2 + 8; }
+  function invEase(v){ return v < .5 ? Math.sqrt(v/2) : 1 - Math.sqrt((1 - v)*2)/2; }
   function moveTo(x){
     var nx = clamp(x, PADF.minX, PADF.maxX), d = Math.abs(nx - FR.padX);
-    FR.padX = nx; FR.acc += d;
-    if (FR.acc >= 150){ FR.acc = 0; fHop(); }
+    FR.padX = nx;
+    if (!FR.lifted){ FR.acc += d; if (FR.acc >= 150){ FR.acc = 0; fHop(); } }
     FR.busy = true;
+  }
+  function liftTo(y){
+    var v = clamp((BASEY - y) / PADF.lift, 0, 1);
+    FR.liftT = invEase(v);
+    var up = v > 0.08;                       // 막대에서 조금이라도 뜨면 떨어진 것
+    if (up !== FR.lifted){ FR.lifted = up; FR.acc = 0; syncLiftBtn(); }
   }
   cv.addEventListener("pointerdown", function(ev){
     var p = pt(ev);
-    if (FR.lifted || FR.rubT >= 0 || !onPad(p)) return;
-    FR.drag = true; grab = p.x - FR.padX; cv.setPointerCapture(ev.pointerId); cv.style.cursor = "grabbing"; ev.preventDefault();
+    if (FR.rubT >= 0 || !onPad(p)) return;
+    var c = padCenter();
+    FR.drag = true; gx = p.x - FR.padX; gy = p.y - c.y; wasLifted = FR.lifted;
+    cv.setPointerCapture(ev.pointerId); cv.style.cursor = "grabbing"; ev.preventDefault();
   });
   cv.addEventListener("pointermove", function(ev){
     var p = pt(ev);
-    if (FR.drag) moveTo(p.x - grab);
-    else cv.style.cursor = (!FR.lifted && onPad(p)) ? "grab" : "default";
+    if (FR.drag){ liftTo(p.y - gy); moveTo(p.x - gx); }
+    else cv.style.cursor = (FR.rubT < 0 && onPad(p)) ? "grab" : "default";
   });
-  function end(){ if (FR.drag){ FR.drag = false; cv.style.cursor = "grab"; } }
+  function end(){
+    if (!FR.drag) return;
+    FR.drag = false; cv.style.cursor = "grab";
+    // 놓으면 가까운 쪽으로: 반쯤 이상 들었으면 떼어 놓고, 아니면 막대에 붙임
+    FR.lifted = ease(FR.liftT) > 0.5; FR.acc = 0; FR.busy = true; syncLiftBtn();
+  }
   cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
   cv.addEventListener("keydown", function(ev){
     if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
