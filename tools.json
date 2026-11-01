@@ -16,6 +16,21 @@
     "achievementStandard": ["9과14-01"]
     },
     {
+    "id": "current-voltage",
+    "name": "전류와 전압 가상실험",
+    "description": "스위치를 닫기 전후 전선 속 전자의 움직임을 비교하고 물의 흐름에 비유",
+    "category": "physics",
+    "path": "physics/current-voltage/",
+    "tags": ["전기와 자기", "전류", "전압", "전자", "자유 전자", "전류의 방향", "전기 회로", "스위치", "물의 흐름", "비유", "암페어", "볼트"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "인쇄한 활동지(선택)", "건전지·전구·스위치(실물 확인용, 선택)"],
+    "achievementStandard": ["9과14-02"]
+    },
+    {
     "id": "coil-magnetic-field",
     "name": "코일 주위의 자기장 가상실험",
     "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",

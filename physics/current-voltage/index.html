@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전류와 전압 가상실험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+/* ============================================================
+   과학 도구상자 · 도구 공통 틀 v1.1
+   - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
+   - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
+   - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
+     도구만의 디자인은 "공통 틀 끝" 아래에 따로 적습니다.
+   ============================================================ */
+:root {
+  /* 분야 색: 물리 #1D4ED8 · 화학 #B45309 · 생명 #15803D · 지구 #78350F · 메이커 #BE123C · 공통 #57534E · 학급 #6D28D9 */
+  --cat: #1D4ED8;   /* 물리 */
+  --cat-soft: color-mix(in srgb, var(--cat) 9%, var(--sheet));
+
+  --paper:    #F6F2E7;
+  --sheet:    #FFFDF7;
+  --ink:      #24211D;
+  --graphite: #5C564E;
+  --hairline: #D9D1BF;
+  --rule:     rgba(64, 106, 168, 0.11);
+  --focus:    #1D4ED8;
+
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+  --radius: 4px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px));
+  background-size: 100% 2rem;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* 화면 폭: 홈페이지와 같은 1200px. 위쪽 여백은 "← 도구상자" 링크 자리 */
+.tb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.25rem 1.5rem 3rem;
+}
+
+/* ----- 머리말: 분야·학년·활동 → 제목 → 한 줄 설명 ----- */
+.tb-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+.tb-emblem {
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-top: .2rem;
+  border: 1.5px solid var(--ink);
+  border-top: 6px solid var(--cat);
+  border-radius: var(--radius);
+  background: var(--cat-soft);
+  color: var(--cat);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 28%, transparent);
+}
+.tb-emblem svg { width: 2.6rem; height: 2.6rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .9rem;
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.tb-meta .tb-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--cat);
+  font-weight: 700;
+}
+.tb-meta .tb-cat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-title {
+  margin: .15rem 0 .3rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.tb-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--graphite);
+  word-break: keep-all;
+}
+.tb-lead b, .tb-lead strong { color: var(--ink); }
+
+/* ----- 교사용 정보: 학생 화면에서는 접혀 있음 ----- */
+.tb-teacher {
+  margin: 0 0 1.25rem;
+  border: 1.5px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+.tb-teacher > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .8rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  list-style: none;
+}
+.tb-teacher > summary::-webkit-details-marker { display: none; }
+.tb-teacher > summary::before {
+  content: '';
+  width: .55rem; height: .55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .3s var(--ease);
+}
+.tb-teacher[open] > summary::before { transform: rotate(45deg); }
+.tb-teacher > summary .tb-hint { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.tb-teacher-body { max-width: 62rem; padding: 0 1rem 1rem; font-size: .95rem; word-break: keep-all; }
+.tb-teacher-body ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.tb-teacher-body li { margin-bottom: .4rem; }
+.tb-std {
+  display: inline-block;
+  padding: .05rem .5rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: 3px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
+
+/* ----- 도구 전체에 걸리는 조작(교사용 보기, 인쇄 등) 한 줄 ----- */
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+/* 켜고 끄는 스위치 — 홈페이지의 '교사용 정보' 스위치와 같은 모양 */
+.tb-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--graphite);
+  cursor: pointer;
+  user-select: none;
+}
+.tb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.tb-switch .tb-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 1.5px solid var(--graphite);
+  border-radius: 999px;
+  background: var(--sheet);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-switch .tb-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--graphite);
+  transition: transform .3s var(--ease), background-color .3s var(--ease);
+}
+.tb-switch input:checked + .tb-track { background: var(--ink); border-color: var(--ink); }
+.tb-switch input:checked + .tb-track::after { transform: translateX(16px); background: var(--paper); }
+.tb-switch:has(input:checked) { color: var(--ink); }
+.tb-switch input:focus-visible + .tb-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
+.tb-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--sheet);
+}
+.tb-tabs > button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: .98rem;
+  min-height: 44px;
+  padding: .5rem 1.1rem;
+  border: 0;
+  border-left: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease);
+}
+.tb-tabs > button:first-child { border-left: 0; }
+.tb-tabs > button:hover { background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
+.tb-tabs > button[aria-selected="true"],
+.tb-tabs > button.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+.tb-tabs > button:focus-visible { outline-offset: -4px; }
+
+/* ----- 실험 무대(그림·캔버스가 들어가는 틀) ----- */
+.tb-stage {
+  position: relative;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
+
+/* ----- 조작판(버튼·슬라이더가 모인 곳) ----- */
+.tb-panel {
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.tb-panel-title {
+  margin: 0 0 .7rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ----- 버튼 ----- */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sheet);
+  background: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-btn:hover { background: color-mix(in srgb, var(--cat) 82%, var(--ink)); }
+.tb-btn.ghost, .tb-btn--ghost {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.tb-btn.ghost:hover, .tb-btn--ghost:hover { background: var(--cat-soft); }
+.tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ----- 안내 상자 ----- */
+.tb-note {
+  margin: 0;
+  padding: .8rem 1rem;
+  background: var(--cat-soft);
+  border-left: 5px solid var(--cat);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: .97rem;
+  word-break: keep-all;
+}
+.tb-note b, .tb-note strong { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* ----- 출처 ----- */
+.tb-foot {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--graphite);
+}
+
+/* ----- 화면 크기별 ----- */
+@media (max-width: 640px) {
+  .tb-wrap { padding: 3.75rem 1rem 2.5rem; }
+  .tb-head { column-gap: .8rem; }
+  .tb-emblem { width: 3.3rem; height: 3.3rem; border-top-width: 5px; }
+  .tb-emblem svg { width: 2rem; height: 2rem; }
+  /* 휴대폰: 탭을 같은 폭으로 한 줄에 */
+  .tb-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .tb-tabs > button { padding: .4rem .35rem; font-size: .88rem; line-height: 1.3; word-break: keep-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print {
+  body { background: #fff; }
+  .tb-wrap { padding: 0; max-width: none; }
+  .tb-tabs, .tb-teacher, .tb-actions, .toolbox-back-link { display: none !important; }
+  .tb-stage { box-shadow: none; break-inside: avoid; }
+  .tb-emblem { box-shadow: none; }
+}
+/* ===== 공통 틀 끝 ===== */
+[hidden] { display: none !important; }
+
+/* 넓은 화면: 왼쪽은 실험 무대, 오른쪽은 조작판 (다른 가상실험과 같은 틀) */
+.card { display: grid; gap: 1rem; }
+@media (min-width: 980px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) 21.5rem;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .card > .stagewrap { grid-column: 1; grid-row: 1 / span 3; }
+  .card > .controls, .card > .tb-note, .card > .safe, .card > .pred { grid-column: 2; }
+  .card > .wide { grid-column: 1 / -1; }
+}
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+.controls { display: grid; gap: .8rem; }
+.row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.row .tb-btn { flex: 1 1 auto; }
+.checks { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chk {
+  display: inline-flex; align-items: center; gap: .45rem; min-height: 40px;
+  padding: .35rem .8rem .35rem .6rem; font-size: .93rem;
+  background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: 999px; cursor: pointer;
+}
+.chk:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--cat); }
+.chk:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .5rem; }
+.rd { padding: .45rem .7rem .5rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.rd .k { display: block; font-size: .85rem; color: var(--graphite); }
+.rd .v { font-size: 1.1rem; font-weight: 800; font-variant-numeric: tabular-nums; word-break: keep-all; }
+
+table.terms { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1.5px solid var(--ink); font-size: .95rem; }
+table.terms th, table.terms td { padding: .55rem .8rem; border-top: 1px solid var(--hairline); text-align: left; vertical-align: top; word-break: keep-all; }
+table.terms tr:first-child th, table.terms tr:first-child td { border-top: 0; }
+table.terms th { width: 8.5em; white-space: nowrap; font-family: var(--font-display); color: var(--cat); background: var(--cat-soft); }
+
+/* ---- 전류와 전압 가상실험만의 디자인 ---- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+#cv1, #cv2 { touch-action: none; }
+#cv1:focus-visible, #cv2:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.kbd-hint { margin: .35rem .2rem 0; font-size: .85rem; color: var(--graphite); }
+.tb-btn[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"]:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+.explain { margin: 0; padding: .75rem .95rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); font-size: .97rem; word-break: keep-all; min-height: 5.5rem; }
+.explain .h { display: block; margin-bottom: .3rem; font-family: var(--font-display); font-weight: 700; color: var(--cat); }
+.explain p { margin: 0 0 .35rem; }
+.explain b { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* 예상하기 */
+.pred { margin: 0; padding: .8rem .95rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.pred legend, .pred .ptitle { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; margin-bottom: .45rem; padding: 0; }
+.pred .opts { display: grid; gap: .35rem; }
+.pred label { display: flex; gap: .5rem; align-items: flex-start; padding: .35rem .55rem; border: 1.5px solid var(--hairline); border-radius: var(--radius); cursor: pointer; font-size: .93rem; word-break: keep-all; }
+.pred label:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.pred input { margin-top: .25rem; accent-color: var(--cat); }
+.pred .fbk { margin: .55rem 0 0; font-size: .93rem; word-break: keep-all; }
+.fb-ok { color: #15803D; font-weight: 700; }
+.fb-bad { color: #9A3412; font-weight: 700; }
+
+.safe {
+  display: flex; gap: .55rem; align-items: flex-start; margin: 0; padding: .6rem .85rem;
+  border: 1.5px dashed #9A3412; border-radius: var(--radius);
+  background: color-mix(in srgb, #9A3412 6%, var(--sheet)); font-size: .93rem; word-break: keep-all;
+}
+.safe b { color: #9A3412; }
+
+/* 탭② 짝 맞추기 */
+.match { display: grid; gap: .5rem; }
+.match .mrow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto; gap: .5rem; align-items: center; padding: .4rem .6rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.match .w { font-weight: 700; word-break: keep-all; }
+.match .eq { color: var(--graphite); font-weight: 700; }
+.match select { font: inherit; font-size: .95rem; padding: .35rem .5rem; border: 1.5px solid var(--hairline); border-radius: var(--radius); background: var(--sheet); color: var(--ink); min-width: 0; }
+.match .mk { width: 1.4rem; text-align: center; font-weight: 800; }
+.match .mrow.ok { border-color: #15803D; }
+.match .mrow.ok .mk { color: #15803D; }
+.match .mrow.bad { border-color: #9A3412; }
+.match .mrow.bad .mk { color: #9A3412; }
+
+/* 탭③ 정리 */
+.sum-grid { display: grid; gap: 1rem; grid-column: 1 / -1; }
+@media (min-width: 820px) { .sum-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.qa { display: grid; gap: .6rem; align-content: start; }
+.qa details { background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.qa summary { padding: .65rem .85rem; cursor: pointer; font-weight: 700; word-break: keep-all; }
+.qa summary .peek { font-weight: 500; font-size: .85rem; color: var(--graphite); }
+.qa details[open] summary { border-bottom: 1px dashed var(--hairline); }
+.qa .ans { padding: .6rem .9rem .8rem; font-size: .95rem; word-break: keep-all; }
+.qa .ans p { margin: 0 0 .4rem; }
+.miscon { margin: 0; padding: .8rem 1rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.miscon h3 { margin: 0 0 .5rem; font-family: var(--font-display); font-size: 1.05rem; }
+.miscon ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: .45rem; font-size: .94rem; word-break: keep-all; }
+.miscon .no { color: #9A3412; font-weight: 800; margin-right: .25rem; }
+.miscon .yes { color: #15803D; font-weight: 800; margin: 0 .25rem; }
+.volts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .6rem; grid-column: 1 / -1; margin: 0; padding: 0; list-style: none; }
+.volts li { padding: .6rem .8rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.volts b { display: block; font-size: 1.35rem; color: var(--cat); font-variant-numeric: tabular-nums; }
+.volts span { font-size: .9rem; color: var(--graphite); word-break: keep-all; }
+
+/* 인쇄 활동지 */
+.printonly { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  body { font-size: 11pt; }
+  .tb-tabs, .controls, .tb-teacher, .no-print, .tb-foot, .toolbox-back-link, .card { display: none !important; }
+  .printonly { display: block; }
+  .tb-head { grid-template-columns: 1fr; border-bottom-width: 1px; }
+  .tb-emblem, .tb-meta { display: none; }
+  .tb-title { font-size: 16pt; }
+  .sheet h2 { font-size: 12pt; margin: 14px 0 6px; border-bottom: 1.5px solid #333; padding-bottom: 3px; }
+  .sheet ol { padding-left: 19px; margin: 0; }
+  .sheet li { margin-bottom: 14px; page-break-inside: avoid; }
+  .sheet .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sheet figure { margin: 0; border: 1px solid #999; text-align: center; font-size: 9.5pt; }
+  .sheet svg { display: block; width: 100%; height: auto; }
+  .sheet table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .sheet td, .sheet th { border: 1px solid #999; padding: 5px 8px; }
+  .lines { border-bottom: 1px solid #bbb; height: 19px; margin-top: 5px; }
+  .namebar { display: flex; gap: 14px; font-size: 10.5pt; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+  .namebar span { border-bottom: 1px solid #bbb; min-width: 80px; display: inline-block; }
+}
+</style>
+</head>
+<body>
+<div class="tb-wrap">
+
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true">
+      <svg viewBox="0 0 48 48"><rect x="6" y="14" width="10" height="20" rx="2"/><path d="M11 10v4M8 8h6"/><path d="M11 34v6h26V30"/><path d="M11 14V8h26v10"/><circle cx="37" cy="24" r="6"/><path d="M34.5 24h5"/></svg>
+    </div>
+    <p class="tb-meta">
+      <span class="tb-cat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2-5.5 4.5-5.5 6.5 0s4.5 5.5 6.5 0 4.5-5.5 7-1"/></svg>물리</span>
+      <span>중2~중3</span><span>시뮬레이션</span>
+    </p>
+    <h1 class="tb-title">전류와 전압 가상실험</h1>
+    <p class="tb-lead">스위치를 닫기 전과 닫은 후 <b>전선 속 전자의 움직임</b>을 비교하고, 물의 흐름에 비유해 <b>전류</b>와 <b>전압</b>의 뜻을 알아봅니다.</p>
+  </header>
+
+  <details class="tb-teacher no-print">
+    <summary>교사용 정보 <span class="tb-hint">관련 성취기준 [9과14-02], 수준별 활용, 자주 나오는 오개념, 모델 설명</span></summary>
+    <div class="tb-teacher-body">
+    <p style="margin:6px 0"><span class="tb-std">[9과14-02]</span> 관련 — 전기 회로에서 전류가 흐르는 현상을 <b>전하(전자)의 흐름</b>으로, 전압을 <b>전류를 흐르게 하는 능력</b>으로 모형을 이용해 설명하는 부분(교과서 「전류와 전압」 248~249쪽)입니다.</p>
+    <ul>
+      <li><b>탭 구성</b> — ① 전자의 이동(교과서 '해 보기': 스위치를 닫기 전과 후 전자의 움직임 비교) ② 물의 흐름과 전압(그림 Ⅶ-5 비유, 짝 맞추기) ③ 정리(질문·오개념·생활 속 전압).</li>
+      <li><b>범위</b> — 저항, 옴의 법칙, 직렬·병렬 연결, 전류계·전압계 사용은 다음 차시 내용이라 다루지 않습니다. 전압은 "높이 차이처럼 전류를 흐르게 하는 능력"까지만 정성적으로 다룹니다.</li>
+      <li><b>수준별 활용</b> — 하: ①에서 스위치를 여닫으며 "닫으면 전자가 한 방향으로 움직이고 전구가 켜진다"까지. 중: 전자의 이동 방향과 전류의 방향을 화살표로 구별해 말하기, ②의 짝 맞추기. 상: "전자 하나 따라가기"로 전자가 느리게 움직이는데도 전구가 바로 켜지는 까닭, ②에서 물 비유가 맞지 않는 점(비유의 한계)을 설명하기.</li>
+      <li><b>자주 나오는 오개념</b> — "스위치를 열면 전자가 멈춰 있다"(불규칙하게 계속 움직임), "전자는 전지에서 새로 나온다"(전선 속에 원래 있던 자유 전자가 움직임), "전구를 지나면 전류(전자)가 줄어든다"(사라지지 않고 회로를 돈다), "전류의 방향 = 전자의 이동 방향"(서로 반대).</li>
+      <li><b>모델 설명</b> — 확대 그림의 (+)는 제자리에 있는 원자(양이온), (−)는 자유 전자입니다. 실제로 전자가 한 방향으로 나아가는 속도는 불규칙한 움직임보다 <b>훨씬 느리지만</b>(대략 1초에 1 mm보다 느림), 눈으로 보이도록 크게 키워 그렸습니다. 회로 전체의 전자 점은 한꺼번에 움직이는 모습만 보여 주는 표시용입니다.</li>
+      <li><b>실물 실험 연결</b> — 건전지·전구·스위치로 회로를 꾸며 보게 하고, 건전지의 (+)극과 (−)극을 전선만으로 직접 잇지 않도록(단락) 지도합니다.</li>
+    </ul>
+    </div>
+  </details>
+
+  <div class="tb-actions no-print">
+    <button class="tb-btn ghost" id="b-print">🖨 활동지 인쇄</button>
+  </div>
+
+  <div class="tabs tb-tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 전자의 이동</button>
+    <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">② 물의 흐름과 전압</button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 정리하기</button>
+  </div>
+
+  <!-- ================= 탭 1 : 전자의 이동 ================= -->
+  <section class="card" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+    <div class="stagewrap">
+      <div class="tb-stage"><canvas id="cv1" tabindex="0" aria-label="전지, 전구, 스위치를 전선으로 연결한 전기 회로. 위쪽 전선의 한 부분을 오른쪽에 크게 확대해, 제자리에 있는 원자(+)와 그 사이를 움직이는 자유 전자(−)를 보여 줍니다. 그림 속 스위치를 눌러 열고 닫을 수 있습니다."></canvas></div>
+      <p class="kbd-hint no-print">그림 속 스위치를 눌러도 열고 닫을 수 있어요. 키보드: 그림을 선택하고 Space 또는 Enter.</p>
+    </div>
+
+    <fieldset class="pred no-print" id="pred1">
+      <legend>먼저 예상해 보기</legend>
+      <p style="margin:0 0 .45rem;font-size:.93rem">스위치를 닫으면 전선 속 전자는 어떻게 움직일까요?</p>
+      <div class="opts">
+        <label><input type="radio" name="p1" value="0"> 모두 그 자리에 멈춘다</label>
+        <label><input type="radio" name="p1" value="1"> 지금처럼 이리저리 불규칙하게만 움직인다</label>
+        <label><input type="radio" name="p1" value="2"> 불규칙하게 움직이면서 전체가 한 방향으로 나아간다</label>
+        <label><input type="radio" name="p1" value="3"> 전지에서 새 전자가 나와 전선을 채운다</label>
+      </div>
+      <p class="fbk" id="pred1-fb">하나를 고른 뒤 스위치를 닫아 확인해 보세요.</p>
+    </fieldset>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="tb-btn" id="b1-sw" aria-pressed="false">스위치 닫기</button>
+      </div>
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="c1-e" checked> 전자의 이동 방향</label>
+        <label class="chk"><input type="checkbox" id="c1-i"> 전류의 방향</label>
+        <label class="chk"><input type="checkbox" id="c1-loop" checked> 회로 전체의 전자</label>
+        <label class="chk"><input type="checkbox" id="c1-follow"> 전자 하나 따라가기</label>
+      </div>
+      <div class="readout">
+        <div class="rd"><span class="k">스위치</span><span class="v" id="r1-sw">열림</span></div>
+        <div class="rd"><span class="k">전구</span><span class="v" id="r1-bulb">꺼짐</span></div>
+        <div class="rd"><span class="k">전자의 움직임</span><span class="v" id="r1-e">불규칙</span></div>
+        <div class="rd"><span class="k">전류</span><span class="v" id="r1-i">흐르지 않음</span></div>
+      </div>
+      <div class="row">
+        <button class="tb-btn ghost" id="b1-reset">처음으로</button>
+        <button class="tb-btn ghost" id="b1-shot">📷 화면 저장</button>
+      </div>
+    </div>
+
+    <div class="explain" id="ex1" aria-live="polite"></div>
+    <div class="tb-note wide">
+      <b>해 볼 것</b> ① 스위치가 열려 있을 때 확대 그림 속 전자가 어떻게 움직이는지 봅니다.
+      ② 스위치를 닫고 다시 관찰한 뒤, <b>닫기 전과 닫은 후</b>를 비교해 설명해 봅니다.
+      ③ "전류의 방향"을 켜서 <b>전자의 이동 방향과 비교</b>해 봅니다.
+      ④ "회로 전체의 전자"를 보며, 전구를 지난 전자가 사라지는지 살펴봅니다.
+    </div>
+    <p class="sr-only" aria-live="polite" id="live1"></p>
+  </section>
+
+  <!-- ================= 탭 2 : 물의 흐름과 전압 ================= -->
+  <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+    <div class="stagewrap">
+      <div class="tb-stage"><canvas id="cv2" tabindex="0" aria-label="왼쪽은 펌프가 물을 위 물통으로 끌어올리고, 물이 수도꼭지를 지나 물레방아를 돌리며 아래 수조로 흐르는 장치. 오른쪽은 전지, 스위치, 전구로 만든 전기 회로. 장치를 누르면 서로 짝이 되는 부분이 함께 표시됩니다."></canvas></div>
+      <p class="kbd-hint no-print">그림 속 펌프·물통·수도꼭지·물레방아 또는 전지·스위치·전구를 누르면 짝이 되는 부분이 함께 빛나요.</p>
+    </div>
+
+    <div class="controls no-print">
+      <div class="row">
+        <button class="tb-btn" id="b2-pump" aria-pressed="true">펌프 멈추기 · 전지 빼기</button>
+      </div>
+      <div class="row">
+        <button class="tb-btn" id="b2-valve" aria-pressed="true">수도꼭지 잠그기 · 스위치 열기</button>
+      </div>
+      <div class="readout">
+        <div class="rd"><span class="k">물의 높이 차이</span><span class="v" id="r2-h">큼</span></div>
+        <div class="rd"><span class="k">물의 흐름</span><span class="v" id="r2-q">흐름</span></div>
+        <div class="rd"><span class="k">전압</span><span class="v" id="r2-v">1.5 V</span></div>
+        <div class="rd"><span class="k">전류</span><span class="v" id="r2-i">흐름</span></div>
+      </div>
+      <div class="row">
+        <button class="tb-btn ghost" id="b2-reset">처음으로</button>
+        <button class="tb-btn ghost" id="b2-shot">📷 화면 저장</button>
+      </div>
+    </div>
+
+    <div class="explain" id="ex2" aria-live="polite"></div>
+
+    <div class="wide">
+      <h2 class="tb-panel-title" style="margin:.4rem 0 .6rem">짝 맞추기 — 물의 흐름의 각 부분은 전기 회로의 무엇과 같은 역할을 할까요?</h2>
+      <div class="match" id="match"></div>
+      <div class="row" style="margin-top:.6rem">
+        <button class="tb-btn" id="b2-check">채점하기</button>
+        <button class="tb-btn ghost" id="b2-clear">다시 하기</button>
+        <span id="match-msg" style="font-weight:700"></span>
+      </div>
+    </div>
+    <p class="sr-only" aria-live="polite" id="live2"></p>
+  </section>
+
+  <!-- ================= 탭 3 : 정리하기 ================= -->
+  <section class="card" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+    <div class="sum-grid">
+      <div class="qa">
+        <details>
+          <summary>Q1. 스위치를 닫기 전과 닫은 후, 전선 속 전자의 움직임은 어떻게 다른가요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>스위치가 열려 있을 때도 전자는 멈춰 있지 않고 <b>불규칙하게</b> 움직입니다. 그래서 전체적으로는 어느 쪽으로도 흐르지 않아 전류가 흐르지 않습니다.</p><p>스위치를 닫으면 전자들이 불규칙하게 움직이면서도 <b>전지의 (−)극에서 (+)극 쪽으로</b> 함께 나아갑니다. 이렇게 전하가 흐르는 것이 <b>전류</b>입니다.</p></div>
+        </details>
+        <details>
+          <summary>Q2. 전류의 방향과 전자의 이동 방향은 왜 반대인가요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>전자가 발견되기 전에 과학자들이 전류의 방향을 <b>(+)극에서 (−)극 쪽</b>으로 먼저 정해 두었습니다. 나중에 실제로 움직이는 것이 (−)전하를 띤 전자라는 것이 밝혀졌지만, 약속은 그대로 쓰고 있습니다.</p><p>그래서 회로도에 그리는 화살표(전류)와 전자가 움직이는 방향은 <b>서로 반대</b>입니다.</p></div>
+        </details>
+        <details>
+          <summary>Q3. 전구를 지나면 전자가 사라지거나 줄어드나요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>아닙니다. 전선 속에 <b>원래 있던 자유 전자</b>가 회로를 따라 돌 뿐이고, 전구에서 쓰여 없어지지 않습니다. 전지도 전자를 새로 만들어 내는 것이 아니라 전자를 <b>움직이게</b> 합니다.</p><p>물레방아를 돌린 물이 사라지지 않고 다시 펌프로 돌아오는 것과 같습니다.</p></div>
+        </details>
+        <details>
+          <summary>Q4. 전자는 느리게 움직이는데, 스위치를 누르자마자 전구가 켜지는 까닭은? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>전구가 켜지려고 전지에서 출발한 전자가 전구까지 달려가야 하는 것이 아닙니다. 전선 전체에 이미 전자가 가득 들어 있어서, 스위치를 닫는 순간 <b>회로 전체의 전자가 한꺼번에</b> 움직이기 시작합니다.</p><p>물이 가득 찬 수도관에서 꼭지를 열면 끝에서 물이 바로 나오는 것과 같습니다.</p></div>
+        </details>
+        <details>
+          <summary>Q5. 전지는 전기 회로에서 어떤 역할을 하나요? (스스로 확인하기 2) <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>펌프가 물을 높은 곳으로 끌어올려 <b>높이 차이</b>를 유지하면 물이 계속 흐릅니다. 전지도 전기 회로에 <b>전압</b>을 걸어 주어 전자가 계속 이동하게, 즉 <b>전류가 계속 흐르게</b> 합니다.</p><p>전압은 전류를 흐르게 하는 능력이고, 단위는 V(볼트)를 씁니다.</p></div>
+        </details>
+        <details>
+          <summary>Q6. 물의 흐름 비유와 전기 회로가 다른 점은 없을까요? <span class="peek">(먼저 생각해 보고 열기)</span></summary>
+          <div class="ans"><p>수도관이 끊어지면 물이 쏟아져 나오지만, 전선이 끊어져도 전자가 밖으로 쏟아져 나오지는 않습니다. 회로가 끊기면 전자가 한 방향으로 나아가지 못할 뿐입니다.</p><p>비유는 이해를 돕는 도구일 뿐, 모든 점이 똑같지는 않다는 것을 기억해 두세요.</p></div>
+        </details>
+      </div>
+
+      <div class="miscon">
+        <h3>헷갈리기 쉬운 생각 바로잡기</h3>
+        <ul>
+          <li><span class="no">✗</span>스위치를 열면 전자가 멈춘다 →<span class="yes">○</span>불규칙하게 계속 움직이지만 한쪽으로 흐르지 않는다.</li>
+          <li><span class="no">✗</span>전류의 방향 = 전자의 이동 방향 →<span class="yes">○</span>서로 반대다. 전류는 (+)극 → (−)극, 전자는 (−)극 → (+)극 쪽.</li>
+          <li><span class="no">✗</span>전자는 전지에서 새로 나온다 →<span class="yes">○</span>전선 속에 원래 있던 자유 전자가 움직인다.</li>
+          <li><span class="no">✗</span>전구를 지나면 전류가 줄어든다 →<span class="yes">○</span>전자는 사라지지 않고 회로를 따라 돈다.</li>
+          <li><span class="no">✗</span>전지에서 출발한 전자가 전구에 도착해야 불이 켜진다 →<span class="yes">○</span>회로 전체의 전자가 한꺼번에 움직이기 시작한다.</li>
+          <li><span class="no">✗</span>(+)전하도 함께 이동한다 →<span class="yes">○</span>금속에서는 원자는 제자리에 있고 자유 전자만 이동한다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <ul class="volts" aria-label="생활 속 전압">
+      <li><b>1.5 V</b><span>건전지 한 개</span></li>
+      <li><b>약 5 V</b><span>휴대 전화 충전기</span></li>
+      <li><b>220 V</b><span>가정용 콘센트 — 실험에 절대 쓰지 않아요</span></li>
+    </ul>
+
+    <table class="terms wide">
+      <tr><th>전류</th><td>전하의 흐름. 전기 회로에서는 전선 속 전자들이 일정한 방향으로 움직이며 생긴다. 단위는 A(암페어)이며, 작은 전류는 mA로도 나타낸다(1 A = 1000 mA).</td></tr>
+      <tr><th>전류의 방향</th><td>전지의 (+)극 → 전기 기구 → (−)극 쪽. 전자가 발견되기 전에 정한 약속이다.</td></tr>
+      <tr><th>전자의 이동 방향</th><td>전지의 (−)극 → 전기 기구 → (+)극 쪽. 전류의 방향과 반대이다.</td></tr>
+      <tr><th>전압</th><td>전류를 흐르게 하는 능력. 펌프가 만든 물의 높이 차이처럼 전지가 만들어 준다. 단위는 V(볼트)이다.</td></tr>
+      <tr><th>단위의 유래</th><td>A는 전류를 연구한 앙페르, V는 최초의 전지를 만든 볼타의 이름에서 따왔다.</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 인쇄 활동지 ================= -->
+  <div class="printonly sheet">
+    <div class="namebar"><b>전기 회로에서 전류가 흐르는 과정 살펴보기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
+    <h2>1. 전선 속 전자의 움직임을 화살표로 그려 봅시다</h2>
+    <div class="two">
+      <figure><svg viewBox="0 0 300 170" id="ps1"></svg><figcaption>스위치를 닫기 전</figcaption></figure>
+      <figure><svg viewBox="0 0 300 170" id="ps2"></svg><figcaption>스위치를 닫은 후</figcaption></figure>
+    </div>
+    <h2>2. 회로에 전류의 방향과 전자의 이동 방향을 서로 다른 색 화살표로 그려 봅시다</h2>
+    <figure style="max-width:330px"><svg viewBox="0 0 300 200" id="ps3"></svg></figure>
+    <h2>3. 물의 흐름과 전기 회로 비교하기</h2>
+    <table>
+      <tr><th>물의 흐름</th><th>전기 회로</th><th>물의 흐름</th><th>전기 회로</th></tr>
+      <tr><td>펌프</td><td></td><td>수도관</td><td></td></tr>
+      <tr><td>물의 높이 차이</td><td></td><td>수도꼭지</td><td></td></tr>
+      <tr><td>물의 흐름</td><td></td><td>물레방아</td><td></td></tr>
+    </table>
+    <h2>4. 스스로 확인하기</h2>
+    <ol>
+      <li>스위치를 닫기 전과 닫은 후 전선 속 전자의 움직임을 비교하여 설명해 봅시다.
+        <div class="lines"></div><div class="lines"></div></li>
+      <li>전기 회로에서 전류를 흐르게 하는 능력을 (　　　　　)(이)라고 한다.</li>
+      <li>전기 회로에서 전류가 흐르는 과정을 물의 흐름에 비유하여 설명해 봅시다.
+        <div class="lines"></div><div class="lines"></div><div class="lines"></div></li>
+    </ol>
+  </div>
+
+  <footer class="tb-foot">모든 그림은 직접 그린 것입니다. 전자의 움직임은 눈으로 보이도록 속도를 크게 키운 모형입니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과14-02] 관련</footer>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   공통 도우미
+   ========================================================= */
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+var REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var FONT = "Pretendard, -apple-system, 'Malgun Gothic', sans-serif";
+var C = {
+  ink: "#24211D", graphite: "#5C564E", hair: "#D9D1BF", sheet: "#FFFDF7", cat: "#1D4ED8",
+  plus: "#C81E1E", plusDeep: "#991B1B", minus: "#1D4ED8", minusDeep: "#1E3A8A", hl: "#F59E0B",
+  current: "#C2410C", wire: "#3F4A57", wireIn: "#B87333", metalA: "#EEF2F6", metalB: "#AAB6C3",
+  water: "#3B82C4", waterLt: "#BFDBF5", wood: "#9A6B43", woodDk: "#5C3D22", glass: "#6F98B2"
+};
+var LW = 640;
+
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+function lerp(a, b, t){ return a + (b - a) * t; }
+function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function stamp(){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+/* 캔버스: 640 × LH 논리 좌표를 화면 폭에 맞춰 늘이고 줄임 */
+function fitStage(st){
+  var w = st.cv.parentNode.clientWidth || LW;
+  st.scale = w / LW;
+  st.h = Math.round(st.LH * st.scale);
+  st.cv.width = Math.round(w * DPR);
+  st.cv.height = Math.round(st.h * DPR);
+  st.cv.style.height = st.h + "px";
+  st.ctx = st.cv.getContext("2d");
+  st.ctx.setTransform(DPR * st.scale, 0, 0, DPR * st.scale, 0, 0);
+  st.tb = Math.max(1, 0.62 / st.scale);
+}
+function pointer(st, ev){ var b = st.cv.getBoundingClientRect(); return {x: (ev.clientX - b.left) / st.scale, y: (ev.clientY - b.top) / st.scale}; }
+
+/* 배경이 있는 글자 */
+function tag(ctx, st, text, x, y, opt){
+  opt = opt || {};
+  var size = (opt.size || 12) * st.tb, pad = 4 * st.tb, h = size + 8 * st.tb;
+  ctx.save();
+  ctx.font = (opt.bold === false ? "" : "bold ") + size + "px " + FONT;
+  var w = ctx.measureText(text).width;
+  var bx = opt.align === "right" ? x - w - pad*2 : (opt.align === "center" ? x - w/2 - pad : x);
+  bx = clamp(bx, 2, LW - w - pad*2 - 2);
+  ctx.fillStyle = opt.bg || "rgba(255,253,247,.95)";
+  ctx.strokeStyle = opt.border || "#cfc6b4"; ctx.lineWidth = 1;
+  rrect(ctx, bx, y - h/2, w + pad*2, h, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = opt.color || C.ink; ctx.textBaseline = "middle";
+  ctx.fillText(text, bx + pad, y + 1);
+  ctx.restore();
+}
+function arrow(ctx, x1, y1, x2, y2, color, width, head){
+  head = head || 10; width = width || 3.5;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
+  var a = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a)*head*0.6, y2 - Math.sin(a)*head*0.6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - head*Math.cos(a - 0.45), y2 - head*Math.sin(a - 0.45));
+  ctx.lineTo(x2 - head*Math.cos(a + 0.45), y2 - head*Math.sin(a + 0.45));
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function drawIon(ctx, x, y, r){
+  ctx.save();
+  ctx.fillStyle = C.plus; ctx.strokeStyle = C.plusDeep; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = Math.max(1.6, r*0.24); ctx.lineCap = "round";
+  var k = r*0.52;
+  ctx.beginPath(); ctx.moveTo(x - k, y); ctx.lineTo(x + k, y); ctx.moveTo(x, y - k); ctx.lineTo(x, y + k); ctx.stroke();
+  ctx.restore();
+}
+function drawElectron(ctx, x, y, r, hl){
+  ctx.save();
+  if (hl){ ctx.strokeStyle = C.hl; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r + 4, 0, Math.PI*2); ctx.stroke(); }
+  ctx.fillStyle = C.minus; ctx.strokeStyle = C.minusDeep; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = Math.max(1.5, r*0.3); ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x - r*0.5, y); ctx.lineTo(x + r*0.5, y); ctx.stroke();
+  ctx.restore();
+}
+/* 건전지 (세로, 위가 (+)극) */
+function drawBattery(ctx, st, cx, top, bot, present){
+  var w = 34;
+  ctx.save();
+  if (!present){
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = C.graphite; ctx.lineWidth = 1.5;
+    rrect(ctx, cx - w/2, top, w, bot - top, 5); ctx.stroke(); ctx.restore();
+    tag(ctx, st, "전지 없음", cx, (top + bot)/2, {size: 11, align: "center", bold: false, color: C.graphite});
+    return;
+  }
+  var g = ctx.createLinearGradient(cx - w/2, 0, cx + w/2, 0);
+  g.addColorStop(0, "#55606C"); g.addColorStop(.45, "#B9C3CC"); g.addColorStop(1, "#4B5560");
+  rrect(ctx, cx - w/2, top, w, bot - top, 5); ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.fillStyle = "#2F4A8A"; ctx.fillRect(cx - w/2 + 1, top + (bot - top)*0.55, w - 2, (bot - top)*0.45 - 1);
+  ctx.fillStyle = "#7B8794"; rrect(ctx, cx - 7, top - 7, 14, 8, 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  tag(ctx, st, "(+)", cx + 24, top + 8, {size: 11, color: C.plusDeep});
+  tag(ctx, st, "(−)", cx + 24, bot - 8, {size: 11, color: C.minusDeep});
+}
+/* 전구 */
+function drawBulb(ctx, cx, cy, glow){
+  ctx.save();
+  if (glow > 0.02){
+    var g = ctx.createRadialGradient(cx, cy, 4, cx, cy, 70);
+    g.addColorStop(0, "rgba(255,214,90," + (0.85*glow) + ")"); g.addColorStop(1, "rgba(255,214,90,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 70, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle = glow > 0.02 ? "rgba(255,240,180," + (0.35 + 0.6*glow) + ")" : "rgba(220,234,242,.55)";
+  ctx.strokeStyle = C.glass; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = glow > 0.02 ? "#E08A00" : "#7A6A55"; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(cx - 7, cy + 10); ctx.lineTo(cx - 5, cy - 3);
+  for (var k = 0; k < 4; k++) ctx.lineTo(cx - 3 + k*2.5, cy + (k % 2 ? -1 : -6));
+  ctx.lineTo(cx + 5, cy - 3); ctx.lineTo(cx + 7, cy + 10); ctx.stroke();
+  ctx.fillStyle = "#9AA4AE"; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2;
+  rrect(ctx, cx - 10, cy + 17, 20, 12, 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+/* 스위치: (x1,y)가 받침점, (x2,y)가 접점 */
+function drawSwitch(ctx, x1, x2, y, open, hot){
+  ctx.save();
+  if (hot){ ctx.fillStyle = "rgba(245,158,11,.18)"; rrect(ctx, x1 - 12, y - 34, x2 - x1 + 24, 46, 8); ctx.fill(); }
+  ctx.fillStyle = "#EDE3CF"; ctx.strokeStyle = "#8A7A5E"; ctx.lineWidth = 1.2;
+  rrect(ctx, x1 - 8, y + 4, x2 - x1 + 16, 10, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = C.wire;
+  ctx.beginPath(); ctx.arc(x1, y, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x2, y, 4.5, 0, Math.PI*2); ctx.fill();
+  var a = open ? -0.55 : 0, L = x2 - x1;
+  ctx.strokeStyle = "#5B6470"; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1 + Math.cos(a)*L, y + Math.sin(a)*L); ctx.stroke();
+  ctx.fillStyle = "#1E3A8A";
+  ctx.beginPath(); ctx.arc(x1 + Math.cos(a)*(L + 4), y + Math.sin(a)*(L + 4), 5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function wirePath(ctx, pts, w){
+  ctx.save(); ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.strokeStyle = C.wire; ctx.lineWidth = w || 5; ctx.stroke();
+  ctx.strokeStyle = "#8C96A1"; ctx.lineWidth = (w || 5) - 3; ctx.stroke();
+  ctx.restore();
+}
+/* 꺾은선 위 거리 s의 점 */
+function makePath(pts){
+  var segs = [], L = 0;
+  for (var i = 0; i < pts.length - 1; i++){
+    var a = pts[i], b = pts[i+1], l = Math.hypot(b.x - a.x, b.y - a.y);
+    segs.push({a: a, b: b, s0: L, l: l}); L += l;
+  }
+  return {segs: segs, L: L, at: function(s){
+    s = ((s % L) + L) % L;
+    for (var k = 0; k < segs.length; k++){ var g = segs[k]; if (s <= g.s0 + g.l) { var t = (s - g.s0) / g.l; return {x: lerp(g.a.x, g.b.x, t), y: lerp(g.a.y, g.b.y, t), dx: (g.b.x - g.a.x)/g.l, dy: (g.b.y - g.a.y)/g.l}; } }
+    var z = segs[segs.length - 1]; return {x: z.b.x, y: z.b.y, dx: 0, dy: 0};
+  }};
+}
+/* 회로를 따라 화살표 몇 개 */
+function pathArrows(ctx, path, dir, color, n, off){
+  for (var i = 0; i < n; i++){
+    var s = (i + 0.5) / n * path.L + (off || 0), p = path.at(s), d = dir;
+    arrow(ctx, p.x - p.dx*d*11, p.y - p.dy*d*11, p.x + p.dx*d*11, p.y + p.dy*d*11, color, 3, 9);
+  }
+}
+function saveCanvas(src, title){
+  var out = document.createElement("canvas"), band = 46 * DPR;
+  out.width = src.width; out.height = src.height + band;
+  var c = out.getContext("2d");
+  c.fillStyle = "#fffdf9"; c.fillRect(0, 0, out.width, out.height);
+  c.drawImage(src, 0, band);
+  c.fillStyle = C.cat; c.fillRect(0, 0, out.width, 4*DPR);
+  c.fillStyle = C.ink; c.font = "bold " + (17*DPR) + "px " + FONT; c.fillText(title, 14*DPR, 30*DPR);
+  c.font = (12*DPR) + "px " + FONT; c.fillStyle = "#8d8577";
+  var s = "전류와 전압 가상실험 · " + stamp(), sw = c.measureText(s).width;
+  if (sw + c.measureText(title).width + 40*DPR < out.width) c.fillText(s, out.width - sw - 14*DPR, 30*DPR);
+  var a = document.createElement("a");
+  a.download = "전류와전압_" + stamp() + ".png"; a.href = out.toDataURL("image/png");
+  document.body.appendChild(a); a.click(); a.remove();
+}
+var liveT = {};
+function announce(id, msg){ var el = document.getElementById(id); clearTimeout(liveT[id]); el.textContent = ""; liveT[id] = setTimeout(function(){ el.textContent = msg; }, 60); }
+function setText(id, v){ var el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; }
+
+/* =========================================================
+   탭① 전자의 이동
+   - 회로: 전지(왼쪽, 위가 (+)극) → 위 전선 → 전구(오른쪽) → 아래 전선(스위치) → 전지 (−)극
+   - 전자는 (−)극에서 나와 아래 전선 → 전구 → 위 전선 → (+)극 쪽으로 이동
+   - 위 전선 한 곳을 오른쪽에 확대: 위 전선에서 전자는 왼쪽(←)으로 나아감
+   ========================================================= */
+var S1 = {cv: document.getElementById("cv1"), LH: 400};
+var G1 = {bx: 70, top: 110, bot: 330, rx: 280, batT: 178, batB: 262, bulbY: 214, swA: 145, swB: 205, magX: 178};
+var ZB = {x: 330, y: 62, w: 292, h: 276};
+var LOOP1 = makePath([{x: G1.bx, y: G1.batB}, {x: G1.bx, y: G1.bot}, {x: G1.rx, y: G1.bot}, {x: G1.rx, y: G1.top}, {x: G1.bx, y: G1.top}, {x: G1.bx, y: G1.batT}]);
+var E1 = {closed: false, drift: 0, glow: 0, off: 0, els: [], ions: [], trail: [], tNow: 0, swHot: false, closedOnce: false, wasClosed: false};
+(function(){
+  var c, r;
+  for (r = 0; r < 5; r++) for (c = 0; c < 7; c++) E1.ions.push({x: ZB.x + 30 + c*39 + (r % 2 ? 18 : 0), y: ZB.y + 40 + r*49});
+})();
+function seedElectrons(){
+  E1.els = [];
+  for (var i = 0; i < 30; i++){
+    var a = Math.random()*Math.PI*2;
+    E1.els.push({x: ZB.x + 14 + Math.random()*(ZB.w - 28), y: ZB.y + 16 + Math.random()*(ZB.h - 32), a: a, t: Math.random()*0.5, wrap: false});
+  }
+  E1.trail = [];
+}
+seedElectrons();
+var LOOPN = 34, jit = [];
+for (var jj = 0; jj < LOOPN; jj++) jit.push({p: Math.random()*6.28, q: Math.random()*6.28});
+
+function update1(dt){
+  E1.tNow += dt;
+  var tgt = E1.closed ? 1 : 0;
+  E1.drift += (tgt - E1.drift) * Math.min(1, dt * 6);
+  E1.glow += (tgt - E1.glow) * Math.min(1, dt * 14);           // 스위치를 닫는 순간 거의 바로 켜짐
+  if (Math.abs(E1.drift - tgt) < 0.002) E1.drift = tgt;
+  var VTH = 62, VD = 40 * E1.drift, x0 = ZB.x + 10, x1 = ZB.x + ZB.w - 10, y0 = ZB.y + 13, y1 = ZB.y + ZB.h - 13;
+  E1.els.forEach(function(e){
+    e.t -= dt;
+    if (e.t <= 0){ e.a = Math.random()*Math.PI*2; e.t = -Math.log(1 - Math.random()) * 0.32 + 0.05; }   // 원자와 부딪혀 방향이 바뀜
+    e.x += (Math.cos(e.a)*VTH - VD) * dt;
+    e.y += Math.sin(e.a)*VTH * dt;
+    e.wrap = false;
+    if (e.y < y0){ e.y = 2*y0 - e.y; e.a = -e.a; }
+    if (e.y > y1){ e.y = 2*y1 - e.y; e.a = -e.a; }
+    if (e.x < x0){ e.x += x1 - x0; e.wrap = true; }
+    if (e.x > x1){ e.x -= x1 - x0; e.wrap = true; }
+  });
+  var f = E1.els[0];
+  if (document.getElementById("c1-follow").checked){
+    if (f.wrap) E1.trail.push(null);
+    E1.trail.push({x: f.x, y: f.y});
+    if (E1.trail.length > 240) E1.trail.shift();
+  } else E1.trail = [];
+  E1.off += 30 * E1.drift * dt;                // 회로 전체의 전자: (−)극 → (+)극 쪽으로 함께
+  if (E1.closed !== E1.wasClosed){ E1.wasClosed = E1.closed; explain1(); readout1(); }
+}
+
+function draw1(){
+  var st = S1, ctx = st.ctx;
+  if (!ctx) return;
+  ctx.clearRect(0, 0, LW, st.LH);
+  ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, st.LH);
+  var g = G1, showE = document.getElementById("c1-e").checked, showI = document.getElementById("c1-i").checked;
+
+  // 전선
+  wirePath(ctx, [{x: g.bx, y: g.batT}, {x: g.bx, y: g.top}, {x: g.rx, y: g.top}, {x: g.rx, y: g.bulbY - 20}]);
+  wirePath(ctx, [{x: g.rx, y: g.bulbY + 29}, {x: g.rx, y: g.bot}, {x: g.swB, y: g.bot}]);
+  wirePath(ctx, [{x: g.swA, y: g.bot}, {x: g.bx, y: g.bot}, {x: g.bx, y: g.batB}]);
+  drawBattery(ctx, st, g.bx, g.batT, g.batB, true);
+  drawBulb(ctx, g.rx, g.bulbY, E1.glow);
+  drawSwitch(ctx, g.swA, g.swB, g.bot, !E1.closed, E1.swHot);
+  tag(ctx, st, "전지", g.bx - 22, (g.batT + g.batB)/2, {size: 12, align: "right"});
+  tag(ctx, st, "전구", g.rx - 30, g.bulbY - 2, {size: 12, align: "right"});
+  tag(ctx, st, "스위치 " + (E1.closed ? "(닫힘)" : "(열림)"), (g.swA + g.swB)/2, g.bot + 30, {size: 12, align: "center"});
+
+  // 회로 전체의 전자 점
+  if (document.getElementById("c1-loop").checked){
+    for (var i = 0; i < LOOPN; i++){
+      var s = i / LOOPN * LOOP1.L + E1.off, p = LOOP1.at(s);
+      var jx = Math.sin(E1.tNow*7 + jit[i].p) * 1.6, jy = Math.cos(E1.tNow*6 + jit[i].q) * 1.6;
+      if (!E1.closed && p.y === g.bot && p.x > g.swA + 2 && p.x < g.swB - 2) continue;   // 열린 스위치 자리
+      if (Math.abs(p.x - g.rx) < 1 && p.y > g.bulbY - 22 && p.y < g.bulbY + 30) continue; // 전구 속은 생략
+      drawElectron(ctx, p.x + jx, p.y + jy, 3.6, false);
+    }
+  }
+  // 회로의 방향 화살표 (바깥쪽에 조금 띄워서)
+  if (E1.closed && (showE || showI)){
+    var OUT = makePath([{x: g.bx - 24, y: g.batB}, {x: g.bx - 24, y: g.bot + 22}, {x: g.rx + 24, y: g.bot + 22}, {x: g.rx + 24, y: g.top - 22}, {x: g.bx - 24, y: g.top - 22}, {x: g.bx - 24, y: g.batT}]);
+    var IN = makePath([{x: g.bx + 22, y: g.batB}, {x: g.bx + 22, y: g.bot - 20}, {x: g.rx - 22, y: g.bot - 20}, {x: g.rx - 22, y: g.top + 20}, {x: g.bx + 22, y: g.top + 20}, {x: g.bx + 22, y: g.batT}]);
+    if (showE) pathArrows(ctx, OUT, 1, C.minus, 5, 0);
+    if (showI) pathArrows(ctx, IN, -1, C.current, 5, 30);
+  }
+
+  // 확대 표시: 돋보기 원 + 이어지는 선
+  var mx = g.magX, my = g.top;
+  ctx.save();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(mx + 13, my - 9); ctx.lineTo(ZB.x, ZB.y); ctx.moveTo(mx + 13, my + 9); ctx.lineTo(ZB.x, ZB.y + ZB.h); ctx.stroke();
+  ctx.setLineDash([]); ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(mx, my, 15, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+
+  // 확대 그림 — 전선 속
+  ctx.save();
+  rrect(ctx, ZB.x, ZB.y, ZB.w, ZB.h, 12);
+  var zg = ctx.createLinearGradient(0, ZB.y, 0, ZB.y + ZB.h);
+  zg.addColorStop(0, "#F3E6D8"); zg.addColorStop(.5, "#FBF3EA"); zg.addColorStop(1, "#F0E1D1");
+  ctx.fillStyle = zg; ctx.fill(); ctx.strokeStyle = C.wireIn; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.clip();
+  E1.ions.forEach(function(o){ drawIon(ctx, o.x, o.y, 10); });
+  if (E1.trail.length > 1){
+    ctx.strokeStyle = "rgba(245,158,11,.75)"; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+    ctx.beginPath(); var pen = false;
+    E1.trail.forEach(function(q){ if (!q){ pen = false; return; } if (!pen){ ctx.moveTo(q.x, q.y); pen = true; } else ctx.lineTo(q.x, q.y); });
+    ctx.stroke();
+  }
+  var follow = document.getElementById("c1-follow").checked;
+  E1.els.forEach(function(e, k){ drawElectron(ctx, e.x, e.y, 6.5, follow && k === 0); });
+  ctx.restore();
+  tag(ctx, st, "확대한 전선 속", ZB.x + ZB.w/2, ZB.y - 16, {size: 12.5, align: "center"});
+
+  // 확대 그림의 방향 화살표 (위 전선: 전자 ←, 전류 →)
+  var ay = ZB.y + ZB.h + 22;
+  if (E1.closed && showE){
+    arrow(ctx, ZB.x + 200, ay, ZB.x + 92, ay, C.minus, 4, 12);
+    tag(ctx, st, "전자의 이동 방향", ZB.x + 88, ay, {size: 11.5, align: "right", color: C.minusDeep});
+  }
+  if (E1.closed && showI){
+    var by = showE ? ay + 26 : ay;
+    arrow(ctx, ZB.x + 92, by, ZB.x + 200, by, C.current, 4, 12);
+    tag(ctx, st, "전류의 방향", ZB.x + 206, by, {size: 11.5, color: C.current});
+  }
+  if (!E1.closed) tag(ctx, st, "스위치가 열려 있어 전자가 이리저리 불규칙하게 움직여요", ZB.x + ZB.w/2, ay, {size: 11, align: "center", bold: false, color: C.graphite});
+}
+
+function explain1(){
+  var h = [];
+  if (!E1.closed){
+    h.push("스위치가 <b>열려</b> 있어요. 전선 속 자유 전자는 멈춰 있지 않고 원자 사이를 <b>이리저리 불규칙하게</b> 움직여요.");
+    h.push("이쪽저쪽으로 움직이는 전자가 고루 섞여 있어서 전체적으로는 한쪽으로 흐르지 않아요. 그래서 <b>전류가 흐르지 않고</b> 전구도 꺼져 있어요.");
+  } else {
+    h.push("스위치를 <b>닫자</b> 전자들이 불규칙하게 움직이면서도 <b>전지의 (−)극에서 (+)극 쪽으로</b> 함께 나아가요. 이렇게 전하가 흐르는 것이 <b>전류</b>예요.");
+    h.push("<b>전류의 방향</b>은 (+)극 → 전구 → (−)극 쪽으로 정해져 있어서, 전자의 이동 방향과 <b>반대</b>예요.");
+    if (document.getElementById("c1-loop").checked) h.push("회로 전체의 전자가 <b>한꺼번에</b> 움직이기 시작해서 전구가 바로 켜져요. 전구를 지난 전자도 사라지지 않고 계속 돌아요.");
+  }
+  document.getElementById("ex1").innerHTML = '<span class="h">지금 일어나는 일</span><p>' + h.join("</p><p>") + "</p>";
+}
+function readout1(){
+  setText("r1-sw", E1.closed ? "닫힘" : "열림");
+  setText("r1-bulb", E1.closed ? "켜짐" : "꺼짐");
+  setText("r1-e", E1.closed ? "(−)극 → (+)극 쪽" : "불규칙");
+  setText("r1-i", E1.closed ? "(+)극 → (−)극 쪽" : "흐르지 않음");
+}
+var PRED_FB = [
+  "<span class='fb-bad'>예상과 달라요.</span> 전자는 스위치를 닫기 전에도, 닫은 후에도 멈추지 않아요. 닫은 후에는 한 방향으로 함께 나아가요.",
+  "<span class='fb-bad'>예상과 달라요.</span> 닫은 후에도 불규칙한 움직임은 그대로지만, 그와 함께 <b>전체가 한 방향으로</b> 나아가요. 확대 그림에서 전자들이 어느 쪽으로 흘러가는지 보세요.",
+  "<span class='fb-ok'>예상이 맞았어요!</span> 전자는 불규칙하게 움직이면서도 전지의 (−)극에서 (+)극 쪽으로 함께 나아가요.",
+  "<span class='fb-bad'>예상과 달라요.</span> 전선 속에는 원래 자유 전자가 가득 있어요. 전지는 새 전자를 만들어 내지 않고 <b>있던 전자를 움직이게</b> 해요."
+];
+function predCheck(){
+  var el = document.querySelector('input[name="p1"]:checked'), fb = document.getElementById("pred1-fb");
+  if (!E1.closedOnce){ fb.innerHTML = el ? "좋아요. 이제 스위치를 닫아 확인해 보세요." : "하나를 고른 뒤 스위치를 닫아 확인해 보세요."; return; }
+  fb.innerHTML = el ? PRED_FB[+el.value] : "확대 그림 속 전자의 움직임을 보고 알맞은 것을 골라 보세요.";
+}
+function setSwitch1(on){
+  E1.closed = on;
+  var b = document.getElementById("b1-sw");
+  b.textContent = on ? "스위치 열기" : "스위치 닫기";
+  b.setAttribute("aria-pressed", on ? "true" : "false");
+  if (on && !E1.closedOnce){ E1.closedOnce = true; setTimeout(predCheck, 1400); }
+  announce("live1", on ? "스위치를 닫았어요. 전자가 (−)극에서 (+)극 쪽으로 함께 움직이고 전구가 켜졌어요." : "스위치를 열었어요. 전자가 불규칙하게만 움직이고 전구가 꺼졌어요.");
+}
+document.getElementById("b1-sw").addEventListener("click", function(){ setSwitch1(!E1.closed); });
+[].forEach.call(document.querySelectorAll('input[name="p1"]'), function(el){ el.addEventListener("change", predCheck); });
+["c1-e", "c1-i", "c1-loop"].forEach(function(id){ document.getElementById(id).addEventListener("change", explain1); });
+document.getElementById("c1-follow").addEventListener("change", function(){ E1.trail = []; });
+document.getElementById("b1-reset").addEventListener("click", function(){
+  setSwitch1(false); E1.drift = 0; E1.glow = 0; E1.off = 0; seedElectrons();
+  E1.closedOnce = false; [].forEach.call(document.querySelectorAll('input[name="p1"]'), function(el){ el.checked = false; }); predCheck();
+});
+document.getElementById("b1-shot").addEventListener("click", function(){ saveCanvas(S1.cv, "전선 속 전자의 움직임 · 스위치 " + (E1.closed ? "닫힘" : "열림")); });
+function onSwitch1(p){ return p.x > G1.swA - 14 && p.x < G1.swB + 14 && p.y > G1.bot - 40 && p.y < G1.bot + 16; }
+S1.cv.addEventListener("pointerdown", function(ev){ if (onSwitch1(pointer(S1, ev))){ setSwitch1(!E1.closed); ev.preventDefault(); } });
+S1.cv.addEventListener("pointermove", function(ev){ var h = onSwitch1(pointer(S1, ev)); E1.swHot = h; S1.cv.style.cursor = h ? "pointer" : "default"; });
+S1.cv.addEventListener("pointerleave", function(){ E1.swHot = false; });
+S1.cv.addEventListener("keydown", function(ev){ if (ev.key === " " || ev.key === "Enter"){ ev.preventDefault(); setSwitch1(!E1.closed); } });
+
+/* =========================================================
+   탭② 물의 흐름과 전압 — 펌프 ↔ 전지, 수도꼭지 ↔ 스위치, 물레방아 ↔ 전구
+   ========================================================= */
+var S2 = {cv: document.getElementById("cv2"), LH: 400};
+var W2 = {pump: true, valve: true, level: 1, q: 1, wheelA: 0, flowOff: 0, pumpOff: 0, hl: null, hot: null, i: 1, eoff: 0};
+var TANK = {x: 40, y: 78, w: 74, h: 92};          // 위 물통
+var BASIN = {x: 18, y: 336, w: 296, h: 46, lvl: 348};
+var WHEEL = {x: 258, y: 268, r: 38};
+var VALVE = {x: 176, y: 162};
+var PIPE_OUT = makePath([{x: TANK.x + TANK.w, y: 162}, {x: 258, y: 162}, {x: 258, y: 222}]);      // 물통 → 수도꼭지 → 물레방아
+var PIPE_UP = makePath([{x: 66, y: 330}, {x: 22, y: 330}, {x: 22, y: 62}, {x: 60, y: 62}, {x: 60, y: 84}]); // 수조 → 펌프 → 물통
+var G2 = {bx: 372, top: 96, bot: 332, rx: 600, batT: 176, batB: 256, bulbY: 212, swA: 452, swB: 512};
+var LOOP2 = makePath([{x: G2.bx, y: G2.batB}, {x: G2.bx, y: G2.bot}, {x: G2.rx, y: G2.bot}, {x: G2.rx, y: G2.top}, {x: G2.bx, y: G2.top}, {x: G2.bx, y: G2.batT}]);
+var PAIRS = [
+  {k: "pump",  w: "펌프", e: "전지", why: "펌프는 물을 높은 곳으로 끌어올려 높이 차이를 계속 만들어요. 전지도 전압을 만들어 전류가 계속 흐르게 해요."},
+  {k: "height", w: "물의 높이 차이", e: "전압", why: "물은 높은 곳에서 낮은 곳으로 흘러요. 높이 차이가 물을 흐르게 하듯, 전압이 전류를 흐르게 해요."},
+  {k: "flow",  w: "물의 흐름", e: "전류", why: "관 속을 흐르는 물처럼, 전선 속을 흐르는 전하(전자)의 흐름이 전류예요."},
+  {k: "pipe",  w: "수도관", e: "전선", why: "물이 지나가는 길이 수도관이고, 전류가 지나가는 길이 전선이에요."},
+  {k: "valve", w: "수도꼭지", e: "스위치", why: "수도꼭지를 잠그면 물이 멈추고, 스위치를 열면 전류가 멈춰요."},
+  {k: "wheel", w: "물레방아", e: "전구", why: "흐르는 물이 물레방아를 돌리듯, 전류가 흘러 전구에 불이 켜져요."}
+];
+function pairOf(k){ for (var i = 0; i < PAIRS.length; i++) if (PAIRS[i].k === k) return PAIRS[i]; return null; }
+
+function update2(dt){
+  // 물통의 물: 펌프가 채우고, 수도꼭지가 열려 있으면 빠져나감
+  var out = W2.valve ? 0.55 * Math.sqrt(Math.max(0, W2.level)) : 0;
+  var inn = W2.pump ? (W2.level < 1 ? 0.55 + 0.6*(1 - W2.level) : out) : 0;
+  W2.level = clamp(W2.level + (inn - out) * dt, 0, 1);
+  var qT = W2.valve ? Math.sqrt(Math.max(0, W2.level)) : 0;
+  W2.q += (qT - W2.q) * Math.min(1, dt * 5);
+  if (qT === 0 && W2.q < 0.01) W2.q = 0;
+  W2.wheelA += W2.q * 2.4 * dt;
+  W2.flowOff += W2.q * 70 * dt;
+  W2.pumpOff += (W2.pump ? 70 : 0) * dt;
+  var iT = (W2.pump && W2.valve) ? 1 : 0;
+  W2.i += (iT - W2.i) * Math.min(1, dt * 14);
+  W2.eoff += 30 * W2.i * dt;
+  readout2();
+}
+function hiRect(ctx, x, y, w, h){
+  ctx.save(); ctx.strokeStyle = C.hl; ctx.lineWidth = 4; ctx.setLineDash([]);
+  ctx.shadowColor = "rgba(245,158,11,.6)"; ctx.shadowBlur = 12;
+  rrect(ctx, x, y, w, h, 10); ctx.stroke(); ctx.restore();
+}
+function hiPath(ctx, path, w){
+  ctx.save(); ctx.strokeStyle = "rgba(245,158,11,.55)"; ctx.lineWidth = w || 14; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); path.segs.forEach(function(g, i){ if (!i) ctx.moveTo(g.a.x, g.a.y); ctx.lineTo(g.b.x, g.b.y); }); ctx.stroke(); ctx.restore();
+}
+function draw2(){
+  var st = S2, ctx = st.ctx, hl = W2.hl || W2.hot;
+  if (!ctx) return;
+  ctx.clearRect(0, 0, LW, st.LH);
+  ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, st.LH);
+  ctx.save(); ctx.strokeStyle = C.hair; ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.moveTo(326, 30); ctx.lineTo(326, 390); ctx.stroke(); ctx.restore();
+  tag(ctx, st, "물의 흐름", 166, 22, {size: 13, align: "center"});
+  tag(ctx, st, "전기 회로", 486, 22, {size: 13, align: "center"});
+
+  /* ---- 물 쪽 ---- */
+  // 짝 강조 (아래에 깔기)
+  if (hl === "pipe"){ hiPath(ctx, PIPE_OUT, 16); hiPath(ctx, PIPE_UP, 16); }
+  // 수조
+  ctx.save();
+  rrect(ctx, BASIN.x, BASIN.y, BASIN.w, BASIN.h, 8); ctx.fillStyle = "#EAF2F8"; ctx.fill();
+  ctx.fillStyle = C.waterLt; ctx.fillRect(BASIN.x + 2, BASIN.lvl, BASIN.w - 4, BASIN.y + BASIN.h - BASIN.lvl - 2);
+  rrect(ctx, BASIN.x, BASIN.y, BASIN.w, BASIN.h, 8); ctx.strokeStyle = "#4F7A93"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  // 관
+  function pipe(path){
+    ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); path.segs.forEach(function(g, i){ if (!i) ctx.moveTo(g.a.x, g.a.y); ctx.lineTo(g.b.x, g.b.y); });
+    ctx.strokeStyle = "#5F7C8E"; ctx.lineWidth = 12; ctx.stroke(); ctx.strokeStyle = "#E4EEF4"; ctx.lineWidth = 8; ctx.stroke(); ctx.restore();
+  }
+  pipe(PIPE_UP); pipe(PIPE_OUT);
+  // 관 속 물 알갱이
+  function drops(path, off, on, spacing){
+    if (!on) return;
+    for (var s = (off % spacing); s < path.L; s += spacing){ var p = path.at(s); ctx.fillStyle = C.water; ctx.beginPath(); ctx.arc(p.x, p.y, 2.8, 0, Math.PI*2); ctx.fill(); }
+  }
+  drops(PIPE_OUT, W2.flowOff, W2.q > 0.02, 16);
+  drops(PIPE_UP, W2.pumpOff, W2.pump && (W2.level < 0.999 || W2.q > 0.02), 16);
+  // 물줄기 → 물레방아
+  if (W2.q > 0.02){
+    ctx.save(); ctx.strokeStyle = "rgba(59,130,196," + (0.35 + 0.5*W2.q) + ")"; ctx.lineWidth = 3 + 4*W2.q; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(258, 224); ctx.quadraticCurveTo(262, 250, 246, WHEEL.y - WHEEL.r + 6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(WHEEL.x - 20, WHEEL.y + WHEEL.r - 4); ctx.lineTo(WHEEL.x - 26, BASIN.lvl); ctx.stroke();
+    ctx.restore();
+  }
+  // 물통
+  ctx.save();
+  var lv = TANK.y + TANK.h - (TANK.h - 10) * W2.level;
+  rrect(ctx, TANK.x, TANK.y, TANK.w, TANK.h, 6); ctx.fillStyle = "#F2F7FB"; ctx.fill();
+  ctx.fillStyle = C.waterLt; ctx.fillRect(TANK.x + 2, lv, TANK.w - 4, TANK.y + TANK.h - lv - 2);
+  ctx.strokeStyle = C.water; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(TANK.x + 3, lv); ctx.lineTo(TANK.x + TANK.w - 3, lv); ctx.stroke();
+  rrect(ctx, TANK.x, TANK.y, TANK.w, TANK.h, 6); ctx.strokeStyle = "#4F7A93"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  tag(ctx, st, "물통", TANK.x + TANK.w/2, TANK.y - 12, {size: 11, align: "center", bold: false});
+  // 높이 차이 표시
+  var hx = 142, hTop = lv, hBot = BASIN.lvl;
+  if (hl === "height") hiRect(ctx, hx - 16, hTop - 6, 32, hBot - hTop + 12);
+  ctx.save(); ctx.strokeStyle = C.graphite; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(TANK.x + TANK.w, hTop); ctx.lineTo(hx + 8, hTop); ctx.moveTo(BASIN.x + BASIN.w*0.45, hBot); ctx.lineTo(hx + 8, hBot); ctx.stroke(); ctx.restore();
+  if (W2.level > 0.04){
+    arrow(ctx, hx, (hTop + hBot)/2, hx, hTop + 2, C.ink, 2, 8); arrow(ctx, hx, (hTop + hBot)/2, hx, hBot - 2, C.ink, 2, 8);
+    tag(ctx, st, "높이 차이", hx + 12, (hTop + hBot)/2 + 30, {size: 11});
+  } else tag(ctx, st, "높은 곳의 물이 없어 높이 차이 없음", 118, 205, {size: 11, align: "center", color: "#9A3412"});
+  // 펌프
+  ctx.save();
+  rrect(ctx, 56, 312, 46, 34, 6); ctx.fillStyle = W2.pump ? "#E3B53E" : "#CFC6B4"; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(79, 329, 9, 0, Math.PI*2); ctx.strokeStyle = C.ink; ctx.stroke();
+  var pa = W2.pumpOff / 9; ctx.beginPath(); ctx.moveTo(79, 329); ctx.lineTo(79 + 8*Math.cos(pa), 329 + 8*Math.sin(pa)); ctx.stroke();
+  ctx.restore();
+  tag(ctx, st, W2.pump ? "펌프 (작동)" : "펌프 (멈춤)", 79, 300, {size: 11, align: "center"});
+  // 수도꼭지
+  ctx.save();
+  ctx.fillStyle = "#8A97A3"; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4;
+  rrect(ctx, VALVE.x - 10, VALVE.y - 9, 20, 18, 3); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(VALVE.x, VALVE.y - 9); ctx.lineTo(VALVE.x, VALVE.y - 20); ctx.stroke();
+  ctx.save(); ctx.translate(VALVE.x, VALVE.y - 21); ctx.rotate(W2.valve ? 0 : Math.PI/2);
+  ctx.fillStyle = "#C81E1E"; rrect(ctx, -12, -3.5, 24, 7, 3); ctx.fill(); ctx.stroke(); ctx.restore();
+  ctx.restore();
+  tag(ctx, st, W2.valve ? "수도꼭지 (열림)" : "수도꼭지 (잠김)", VALVE.x, VALVE.y - 40, {size: 11, align: "center"});
+  // 물레방아
+  ctx.save(); ctx.translate(WHEEL.x, WHEEL.y); ctx.rotate(-W2.wheelA);
+  ctx.strokeStyle = C.woodDk; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, WHEEL.r, 0, Math.PI*2); ctx.stroke();
+  for (var k = 0; k < 8; k++){
+    var a = k * Math.PI / 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a)*WHEEL.r, Math.sin(a)*WHEEL.r); ctx.lineWidth = 2; ctx.stroke();
+    ctx.save(); ctx.rotate(a); ctx.fillStyle = C.wood; ctx.fillRect(WHEEL.r - 4, -6, 12, 12); ctx.restore();
+  }
+  ctx.fillStyle = C.woodDk; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  tag(ctx, st, "물레방아", WHEEL.x + WHEEL.r + 4, WHEEL.y - WHEEL.r - 4, {size: 11, align: "right", bold: false});
+  tag(ctx, st, "수조", BASIN.x + 30, BASIN.y + BASIN.h - 12, {size: 11, bold: false});
+
+  /* ---- 전기 쪽 ---- */
+  var g = G2;
+  if (hl === "pipe") hiPath(ctx, LOOP2, 16);
+  wirePath(ctx, [{x: g.bx, y: g.batT}, {x: g.bx, y: g.top}, {x: g.rx, y: g.top}, {x: g.rx, y: g.bulbY - 20}]);
+  wirePath(ctx, [{x: g.rx, y: g.bulbY + 29}, {x: g.rx, y: g.bot}, {x: g.swB, y: g.bot}]);
+  wirePath(ctx, [{x: g.swA, y: g.bot}, {x: g.bx, y: g.bot}, {x: g.bx, y: g.batB}]);
+  drawBattery(ctx, st, g.bx, g.batT, g.batB, W2.pump);
+  drawBulb(ctx, g.rx, g.bulbY, W2.i);
+  drawSwitch(ctx, g.swA, g.swB, g.bot, !W2.valve, false);
+  tag(ctx, st, "스위치 " + (W2.valve ? "(닫힘)" : "(열림)"), (g.swA + g.swB)/2, g.bot + 30, {size: 11, align: "center"});
+  tag(ctx, st, "전구", g.rx - 30, g.bulbY - 2, {size: 11, align: "right", bold: false});
+  tag(ctx, st, W2.pump ? "전압 1.5 V" : "전압 0 V", g.bx + 26, (g.batT + g.batB)/2, {size: 11.5, color: C.cat});
+  // 전류 점 (전자)
+  for (var i = 0; i < 30; i++){
+    var p = LOOP2.at(i / 30 * LOOP2.L + W2.eoff);
+    if (!W2.valve && p.y === g.bot && p.x > g.swA + 2 && p.x < g.swB - 2) continue;
+    if (Math.abs(p.x - g.rx) < 1 && p.y > g.bulbY - 22 && p.y < g.bulbY + 30) continue;
+    drawElectron(ctx, p.x, p.y, 3.4, false);
+  }
+  if (W2.i > 0.5){
+    var IN = makePath([{x: g.bx + 22, y: g.batT}, {x: g.bx + 22, y: g.top + 20}, {x: g.rx - 22, y: g.top + 20}, {x: g.rx - 22, y: g.bot - 20}, {x: g.bx + 22, y: g.bot - 20}, {x: g.bx + 22, y: g.batB}]);
+    pathArrows(ctx, IN, 1, C.current, 4, 20);
+    tag(ctx, st, "전류의 방향", (g.bx + g.rx)/2, g.top + 42, {size: 11, align: "center", color: C.current});
+  }
+  // 짝 강조
+  if (hl === "pump"){ hiRect(ctx, 50, 306, 58, 46); hiRect(ctx, g.bx - 24, g.batT - 14, 48, g.batB - g.batT + 26); }
+  if (hl === "height"){ hiRect(ctx, g.bx + 22, (g.batT + g.batB)/2 - 14, 76, 28); }
+  if (hl === "valve"){ hiRect(ctx, VALVE.x - 22, VALVE.y - 34, 44, 50); hiRect(ctx, g.swA - 14, g.bot - 40, g.swB - g.swA + 28, 56); }
+  if (hl === "wheel"){ hiRect(ctx, WHEEL.x - WHEEL.r - 10, WHEEL.y - WHEEL.r - 10, 2*WHEEL.r + 20, 2*WHEEL.r + 20); hiRect(ctx, g.rx - 30, g.bulbY - 30, 60, 66); }
+  if (hl === "flow"){ hiPath(ctx, PIPE_OUT, 6); hiPath(ctx, LOOP2, 6); }
+  if (W2.hl){
+    var pr = pairOf(W2.hl);
+    tag(ctx, st, pr.w + "  ↔  " + pr.e, LW/2, 48, {size: 13.5, align: "center", color: C.ink, bg: "#FFF4DC", border: C.hl});
+  }
+}
+/* 누른 곳 → 짝 이름 */
+function hit2(p){
+  var g = G2;
+  if (p.x > 50 && p.x < 110 && p.y > 300 && p.y < 352) return "pump";
+  if (p.x > g.bx - 24 && p.x < g.bx + 22 && p.y > g.batT - 14 && p.y < g.batB + 12) return "pump";
+  if (p.x > g.bx + 22 && p.x < g.bx + 100 && Math.abs(p.y - (g.batT + g.batB)/2) < 16) return "height";
+  if (p.x > TANK.x && p.x < 160 && p.y > TANK.y && p.y < BASIN.lvl && !(p.x < TANK.x + TANK.w && p.y > TANK.y + TANK.h)) return "height";
+  if (Math.abs(p.x - VALVE.x) < 24 && p.y > VALVE.y - 36 && p.y < VALVE.y + 14) return "valve";
+  if (p.x > g.swA - 14 && p.x < g.swB + 14 && p.y > g.bot - 40 && p.y < g.bot + 16) return "valve";
+  if (Math.hypot(p.x - WHEEL.x, p.y - WHEEL.y) < WHEEL.r + 10) return "wheel";
+  if (Math.hypot(p.x - g.rx, p.y - g.bulbY) < 30) return "wheel";
+  function nearPath(path){ for (var s = 0; s < path.L; s += 4){ var q = path.at(s); if (Math.hypot(q.x - p.x, q.y - p.y) < 9) return true; } return false; }
+  if (nearPath(PIPE_OUT) || nearPath(PIPE_UP) || nearPath(LOOP2)) return "pipe";
+  return null;
+}
+function explain2(){
+  var h = [], pr = W2.hl ? pairOf(W2.hl) : null;
+  if (pr) h.push("<b>" + pr.w + " ↔ " + pr.e + "</b> — " + pr.why);
+  if (W2.pump && W2.valve) h.push("펌프가 물을 계속 끌어올려 <b>높이 차이</b>가 유지되니 물이 계속 흘러 물레방아가 돌아요. 전지가 <b>전압</b>을 걸어 주니 전류가 계속 흘러 전구가 켜져 있어요.");
+  else if (!W2.valve) h.push("수도꼭지를 잠그면 물이 흐르지 않고, 스위치를 열면 전류가 흐르지 않아요. 높이 차이(전압)가 있어도 <b>길이 막히면</b> 흐르지 않아요.");
+  else h.push("펌프가 멈추자 물통의 물이 줄어 <b>높이 차이가 사라지면서</b> 물의 흐름이 멈춰요. 전지가 없으면 <b>전압이 없어</b> 전류가 흐르지 않아요.");
+  if (!pr) h.push("그림 속 장치를 누르면 짝이 되는 부분이 함께 표시돼요.");
+  document.getElementById("ex2").innerHTML = '<span class="h">지금 일어나는 일</span><p>' + h.join("</p><p>") + "</p>";
+}
+function readout2(){
+  setText("r2-h", W2.level > 0.6 ? "큼" : (W2.level > 0.08 ? "줄어드는 중" : "없음"));
+  setText("r2-q", W2.q > 0.6 ? "흐름" : (W2.q > 0.03 ? "약해짐" : "멈춤"));
+  setText("r2-v", W2.pump ? "1.5 V" : "0 V");
+  setText("r2-i", W2.i > 0.5 ? "흐름" : "흐르지 않음");
+}
+function btns2(){
+  var bp = document.getElementById("b2-pump"), bv = document.getElementById("b2-valve");
+  bp.textContent = W2.pump ? "펌프 멈추기 · 전지 빼기" : "펌프 켜기 · 전지 끼우기";
+  bp.setAttribute("aria-pressed", W2.pump ? "true" : "false");
+  bv.textContent = W2.valve ? "수도꼭지 잠그기 · 스위치 열기" : "수도꼭지 열기 · 스위치 닫기";
+  bv.setAttribute("aria-pressed", W2.valve ? "true" : "false");
+  explain2();
+}
+document.getElementById("b2-pump").addEventListener("click", function(){ W2.pump = !W2.pump; btns2(); announce("live2", W2.pump ? "펌프가 작동하고 전지를 끼웠어요." : "펌프를 멈추고 전지를 뺐어요."); });
+document.getElementById("b2-valve").addEventListener("click", function(){ W2.valve = !W2.valve; btns2(); announce("live2", W2.valve ? "수도꼭지를 열고 스위치를 닫았어요." : "수도꼭지를 잠그고 스위치를 열었어요."); });
+document.getElementById("b2-reset").addEventListener("click", function(){ W2.pump = true; W2.valve = true; W2.level = 1; W2.hl = null; btns2(); });
+document.getElementById("b2-shot").addEventListener("click", function(){ saveCanvas(S2.cv, "물의 흐름과 전기 회로 비교"); });
+S2.cv.addEventListener("pointerdown", function(ev){
+  var k = hit2(pointer(S2, ev));
+  W2.hl = (k && k !== W2.hl) ? k : null;
+  if (W2.hl){ var pr = pairOf(W2.hl); announce("live2", pr.w + "은(는) 전기 회로의 " + pr.e + "와 같은 역할이에요."); }
+  explain2();
+});
+S2.cv.addEventListener("pointermove", function(ev){ var k = hit2(pointer(S2, ev)); W2.hot = k; S2.cv.style.cursor = k ? "pointer" : "default"; });
+S2.cv.addEventListener("pointerleave", function(){ W2.hot = null; });
+S2.cv.addEventListener("keydown", function(ev){
+  if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+  ev.preventDefault();
+  var i = PAIRS.findIndex(function(p){ return p.k === W2.hl; });
+  i = ev.key === "ArrowRight" ? i + 1 : (i < 0 ? PAIRS.length - 1 : i - 1);
+  W2.hl = (i >= 0 && i < PAIRS.length) ? PAIRS[i].k : null;
+  explain2();
+});
+
+/* 짝 맞추기 */
+var OPTS = ["전지", "전압", "전류", "전선", "스위치", "전구"];
+function buildMatch(){
+  var opts = OPTS.slice().sort(function(){ return Math.random() - 0.5; });
+  document.getElementById("match").innerHTML = PAIRS.map(function(p, i){
+    return '<div class="mrow" data-i="' + i + '"><span class="w">' + p.w + '</span><span class="eq">↔</span>' +
+      '<select aria-label="' + p.w + '과(와) 짝이 되는 것"><option value="">고르기</option>' + opts.map(function(o){ return "<option>" + o + "</option>"; }).join("") + '</select><span class="mk" aria-hidden="true"></span></div>';
+  }).join("");
+  document.getElementById("match-msg").textContent = "";
+}
+buildMatch();
+document.getElementById("b2-check").addEventListener("click", function(){
+  var right = 0, empty = 0;
+  [].forEach.call(document.querySelectorAll("#match .mrow"), function(row){
+    var p = PAIRS[+row.dataset.i], v = row.querySelector("select").value, ok = v === p.e;
+    if (!v) empty++;
+    if (ok) right++;
+    row.classList.toggle("ok", ok); row.classList.toggle("bad", !!v && !ok);
+    row.querySelector(".mk").textContent = ok ? "○" : (v ? "✗" : "");
+    row.title = ok ? p.why : "";
+  });
+  var msg = document.getElementById("match-msg");
+  msg.className = right === PAIRS.length ? "fb-ok" : "fb-bad";
+  msg.textContent = right === PAIRS.length ? "모두 맞았어요!" : (PAIRS.length + "개 중 " + right + "개 맞았어요." + (empty ? " 빈칸이 " + empty + "개 있어요." : " 그림 속 장치를 눌러 짝을 확인해 보세요."));
+});
+document.getElementById("b2-clear").addEventListener("click", buildMatch);
+
+/* =========================================================
+   인쇄 활동지 그림
+   ========================================================= */
+(function(){
+  var ions = "";
+  for (var r = 0; r < 3; r++) for (var c = 0; c < 6; c++){
+    var x = 30 + c*44 + (r % 2 ? 20 : 0), y = 40 + r*45;
+    ions += '<circle cx="' + x + '" cy="' + y + '" r="9" fill="#fff" stroke="#333"/><path d="M' + (x-5) + ' ' + y + 'h10M' + x + ' ' + (y-5) + 'v10" stroke="#333" stroke-width="1.6"/>';
+  }
+  var box = '<rect x="4" y="12" width="292" height="150" rx="8" fill="none" stroke="#555" stroke-width="1.5"/>' + ions;
+  document.getElementById("ps1").innerHTML = box; document.getElementById("ps2").innerHTML = box;
+  document.getElementById("ps3").innerHTML =
+    '<path d="M50 70V25H250V80M250 125V175H175M125 175H50V130" fill="none" stroke="#333" stroke-width="3"/>' +
+    '<rect x="38" y="70" width="24" height="60" rx="3" fill="#ddd" stroke="#333"/><text x="68" y="78" font-size="12">(+)</text><text x="68" y="130" font-size="12">(−)</text>' +
+    '<circle cx="250" cy="100" r="18" fill="#fff" stroke="#333" stroke-width="1.5"/><path d="M243 108l3-12 4 6 4-6 3 12" fill="none" stroke="#333"/>' +
+    '<line x1="125" y1="175" x2="170" y2="168" stroke="#333" stroke-width="3"/><circle cx="125" cy="175" r="3.5"/><circle cx="175" cy="175" r="3.5"/>' +
+    '<text x="12" y="104" font-size="12">전지</text><text x="274" y="104" font-size="12">전구</text><text x="128" y="194" font-size="12">스위치(닫힘)</text>';
+})();
+document.getElementById("b-print").addEventListener("click", function(){ window.print(); });
+
+/* =========================================================
+   탭 · 크기 · 그리기 반복
+   ========================================================= */
+var tabs = [].slice.call(document.querySelectorAll(".tb-tabs [role=tab]"));
+var panels = [1, 2, 3].map(function(n){ return document.getElementById("panel-" + n); });
+var current = 1;
+function selectTab(n, focus){
+  current = n;
+  tabs.forEach(function(t, i){
+    var on = (i + 1) === n;
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+    if (on && focus) t.focus();
+  });
+  panels.forEach(function(p, i){ p.hidden = (i + 1) !== n; });
+  resizeAll();
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){ selectTab(i + 1); });
+  t.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
+      e.preventDefault();
+      var n = i + (e.key === "ArrowRight" ? 1 : -1);
+      if (n < 0) n = tabs.length - 1;
+      if (n >= tabs.length) n = 0;
+      selectTab(n + 1, true);
+    }
+  });
+});
+function resizeAll(){
+  if (current === 1) fitStage(S1);
+  if (current === 2) fitStage(S2);
+}
+var rzT;
+window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(resizeAll, 120); });
+
+var last = 0;
+function frame(now){
+  var dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
+  if (REDUCE) dt = Math.min(dt, 0.016);
+  if (current === 1){ update1(dt); draw1(); }
+  else if (current === 2){ update2(dt); draw2(); }
+  requestAnimationFrame(frame);
+}
+explain1(); readout1(); btns2(); predCheck();
+resizeAll();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
