@@ -654,7 +654,7 @@ table.scope td:first-child { text-align: left; }
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="#1D4ED8" stroke="#1E3A8A"/><path d="M7 10h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>움직이는 자유 전자(−)</span>
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#F59E0B" stroke-width="2.2"/><circle cx="10" cy="10" r="5" fill="#1D4ED8"/></svg>방금 이동한 전자</span>
       </div>
-      <p class="kbd-hint no-print">대전체는 끌어서 옮깁니다. 키보드: 그림을 선택하고 ←·→ 방향키(Shift와 함께 누르면 크게).</p>
+      <p class="kbd-hint no-print">대전체는 끌어서 옮깁니다. 사람의 손도 끌어서 A에 대거나 뗄 수 있어요. 키보드: 그림을 선택하고 ←·→ 방향키(Shift와 함께 누르면 크게).</p>
       <div class="explain" id="ex1"></div>
     </div>
 
@@ -664,8 +664,9 @@ table.scope td:first-child { text-align: left; }
         <div class="seg-opts">
           <label class="chk"><input type="radio" name="rod1" value="-1" checked> (−) 대전체</label>
           <label class="chk"><input type="radio" name="rod1" value="1"> (+) 대전체</label>
+          <label class="chk"><input type="radio" name="rod1" value="0"> 중성 (대전 안 됨)</label>
         </div>
-        <p class="mini">기본은 털가죽으로 문지른 플라스틱 막대 (−), 명주로 문지른 유리 막대 (+)예요. ① 탭에서 직접 만든 막대를 가져올 수도 있어요.</p>
+        <p class="mini">기본은 털가죽으로 문지른 플라스틱 막대 (−), 명주로 문지른 유리 막대 (+), 문지르지 않은 플라스틱 막대(중성)예요. ① 탭에서 직접 만든 막대를 가져올 수도 있어요.</p>
       </fieldset>
       <div class="row">
         <div class="slider">
@@ -757,6 +758,7 @@ table.scope td:first-child { text-align: left; }
         <div class="seg-opts">
           <label class="chk"><input type="radio" name="rod3" value="-1" checked> (−) 대전체</label>
           <label class="chk"><input type="radio" name="rod3" value="1"> (+) 대전체</label>
+          <label class="chk"><input type="radio" name="rod3" value="0"> 중성 (대전 안 됨)</label>
         </div>
       </fieldset>
       <div class="row">
@@ -800,7 +802,7 @@ table.scope td:first-child { text-align: left; }
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="#1D4ED8" stroke="#1E3A8A"/><path d="M7 10h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>움직이는 자유 전자(−)</span>
         <span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#F59E0B" stroke-width="2.2"/><circle cx="10" cy="10" r="5" fill="#1D4ED8"/></svg>방금 이동한 전자</span>
       </div>
-      <p class="kbd-hint no-print">대전체는 끌어서 옮깁니다. 키보드: 그림을 선택하고 ←·→ 방향키.</p>
+      <p class="kbd-hint no-print">대전체는 끌어서 옮깁니다. 사람의 손도 끌어서 금속판에 대거나 뗄 수 있어요. 키보드: 그림을 선택하고 ←·→ 방향키.</p>
       <div class="explain" id="ex2"></div>
     </div>
 
@@ -824,6 +826,7 @@ table.scope td:first-child { text-align: left; }
         <div class="seg-opts">
           <label class="chk"><input type="radio" name="rod2" value="-1" checked> (−) 대전체</label>
           <label class="chk"><input type="radio" name="rod2" value="1"> (+) 대전체</label>
+          <label class="chk"><input type="radio" name="rod2" value="0"> 중성 (대전 안 됨)</label>
         </div>
       </fieldset>
       <div class="row">
@@ -1312,7 +1315,9 @@ Sim.prototype.update = function(dt){
     r.tip = Math.abs(dd) <= sp ? r.target : r.tip + (dd > 0 ? sp : -sp);
     busy = true;
   }
-  if (c.prog !== c.target){
+  if (self.cfg.person && c.mode === "hand"){
+    if (stepPerson(self, dt)) busy = true;
+  } else if (c.prog !== c.target){
     var st = REDUCE ? 1 : dt * 2.2;
     c.prog = c.target > c.prog ? Math.min(c.target, c.prog + st) : Math.max(c.target, c.prog - st);
     busy = true;
@@ -1361,51 +1366,124 @@ Sim.prototype.dragTip = function(x){
   this.busy = true;
 };
 
-/* 사람 — 팔을 뻗어 손가락 끝을 도체에 댐 */
+/* 사람 — 손을 끌거나 버튼을 눌러 손가락 끝을 도체에 댐
+   P.arm = [위팔, 아래팔, 손가락 끝까지] 길이. 손이 닿지 않으면 몸이 앞으로 조금 다가감(P.minDx까지). */
+function armReach(P){ return P.arm[0] + P.arm[1] + P.arm[2] - 1; }
+function restTip(P){ return {x: P.shoulder.x - 7, y: P.shoulder.y + armReach(P) - 5}; }
 function ik(a, b, l1, l2){
-  var dx = b.x - a.x, dy = b.y - a.y, d = Math.min(Math.sqrt(dx*dx + dy*dy), l1 + l2 - 0.01);
-  var ang = Math.atan2(dy, dx);
-  var cs = clamp((l1*l1 + d*d - l2*l2) / (2*l1*d), -1, 1), t = Math.acos(cs);
+  var dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx*dx + dy*dy);
+  d = clamp(d, Math.abs(l1 - l2) + 0.01, l1 + l2 - 0.01);
+  var ang = Math.atan2(dy, dx), t = Math.acos(clamp((l1*l1 + d*d - l2*l2) / (2*l1*d), -1, 1));
   var e1 = {x: a.x + l1*Math.cos(ang + t), y: a.y + l1*Math.sin(ang + t)};
   var e2 = {x: a.x + l1*Math.cos(ang - t), y: a.y + l1*Math.sin(ang - t)};
-  return e1.y > e2.y ? e1 : e2;
+  // 왼쪽을 보는 사람: 팔꿈치가 아래·뒤쪽으로 굽도록 고름 (어깨→손 방향의 오른쪽)
+  return dx*(e1.y - a.y) - dy*(e1.x - a.x) < 0 ? e1 : e2;
 }
-function personPose(P, prog){
-  var tip = lerpPt(P.rest, P.touch, ease(prog));
-  var dx = P.shoulder.x - tip.x, dy = P.shoulder.y - tip.y, L = Math.sqrt(dx*dx + dy*dy) || 1;
-  var hand = {x: tip.x + dx/L*9, y: tip.y + dy/L*9};
-  var elbow = ik(P.shoulder, hand, 74, 66);
-  return {tip: tip, hand: hand, elbow: elbow};
+/* 손가락 끝 목표점 → 실제로 닿을 수 있는 점과 몸이 다가갈 거리 */
+function reachGoal(P, goal){
+  var R = armReach(P), S = P.shoulder;
+  var g = {x: goal.x, y: clamp(goal.y, S.y - R + 4, FLOOR - 6)};
+  var dy = g.y - S.y, sx = Math.sqrt(Math.max(0, R*R - dy*dy));
+  var dx = clamp(g.x - S.x + sx, P.minDx, 0);
+  var bx = S.x + dx;
+  g.x = Math.min(g.x, bx + 26);
+  var vx = g.x - bx, vy = g.y - S.y, L = Math.sqrt(vx*vx + vy*vy);
+  if (L > R){ g.x = bx + vx/L*R; g.y = S.y + vy/L*R; }
+  return {tip: g, dx: dx};
 }
-function bodyPath(P){
-  var p = personPose(P, 1);
-  return [p.hand, p.elbow, P.shoulder, P.chest, P.hip, P.legL[1], P.legL[2], {x: P.legL[2].x, y: FLOOR + 12},
-          {x: P.hip.x - 40 + Math.random()*96, y: FLOOR + 20 + Math.random()*20}];
+function personPose(P, c){
+  var L1 = P.arm[0], L2 = P.arm[1], F = P.arm[2], dx = c.dx || 0;
+  var S = {x: P.shoulder.x + dx, y: P.shoulder.y};
+  var tip = c.hp ? {x: c.hp.x, y: c.hp.y} : restTip(P);
+  var vx = tip.x - S.x, vy = tip.y - S.y, L = Math.sqrt(vx*vx + vy*vy) || 1, ux = vx/L, uy = vy/L;
+  var hand = {x: tip.x - ux*F, y: tip.y - uy*F};
+  if (L - F > L1 + L2 - 0.5){ hand = {x: S.x + ux*(L1 + L2 - 0.5), y: S.y + uy*(L1 + L2 - 0.5)}; tip = {x: hand.x + ux*F, y: hand.y + uy*F}; }
+  return {shoulder: S, elbow: ik(S, hand, L1, L2), hand: hand, tip: tip};
 }
-function drawPerson(ctx, P, prog){
-  var pose = personPose(P, prog);
+function connectNow(sim){
+  var c = sim.contact;
+  c.connected = true; c.prog = 1;
+  sim.ep = {toG: 0, fromG: 0, ab: 0, ba: 0, toR: 0, fromR: 0, used: true};
+  sim.busy = true;
+  if (sim.cfg.onContact) sim.cfg.onContact(sim);
+}
+/* 한 프레임: 끄는 중이면 손을 따라가고, 아니면 목표(도체 또는 쉬는 자세)로 움직임 */
+function stepPerson(sim, dt){
+  var P = sim.cfg.person, c = sim.contact, goal, gdx, rg;
+  if (!c.hp){ c.hp = restTip(P); c.dx = 0; }
+  if (c.drag){
+    rg = reachGoal(P, c.dragPt);
+    var near = Math.sqrt(d2(rg.tip, P.touch)) < 26;
+    if (near) rg = reachGoal(P, P.touch);
+    c.hp = rg.tip; c.dx = rg.dx;
+    if (near && !c.connected){ c.target = 1; connectNow(sim); }
+    else if (!near && (c.connected || c.target === 1)){
+      c.target = 0;
+      if (c.connected){ c.connected = false; sim.fastForward(); }
+      c.prog = 0;
+      if (sim.cfg.onContact) sim.cfg.onContact(sim);
+    }
+    return true;
+  }
+  if (c.target === 1){ rg = reachGoal(P, P.touch); goal = rg.tip; gdx = rg.dx; }
+  else { goal = restTip(P); gdx = 0; }
+  var mx = goal.x - c.hp.x, my = goal.y - c.hp.y, L = Math.sqrt(mx*mx + my*my), sp = REDUCE ? 1e9 : 300 * dt;
+  var moving = L > 0.01 || Math.abs(c.dx - gdx) > 0.01;
+  if (L <= sp){ c.hp = {x: goal.x, y: goal.y}; c.dx = gdx; }
+  else { c.hp.x += mx/L*sp; c.hp.y += my/L*sp; c.dx += (gdx - c.dx) * (sp / L); }
+  if (c.target === 1 && L <= sp && !c.connected) connectNow(sim);
+  if (!c.connected) c.prog = 0;
+  return moving;
+}
+/* 손이 손잡이 근처에 있는가 (끌기 시작 판정) */
+function onHand(P, c, p){
+  var pose = personPose(P, c);
+  if (d2(p, pose.hand) < 24*24 || d2(p, pose.tip) < 20*20) return true;
+  var ax = pose.elbow.x, ay = pose.elbow.y, bx = pose.tip.x - ax, by = pose.tip.y - ay;
+  var t = clamp(((p.x - ax)*bx + (p.y - ay)*by) / (bx*bx + by*by || 1), 0, 1);
+  return d2(p, {x: ax + bx*t, y: ay + by*t}) < 13*13;
+}
+function bodyPath(P, c){
+  var pose = personPose(P, c), dx = c.dx || 0;
+  function sh(q){ return {x: q.x + dx, y: q.y}; }
+  return [pose.hand, pose.elbow, pose.shoulder, sh(P.chest), sh(P.hip), sh(P.legL[1]), sh(P.legL[2]), {x: P.legL[2].x + dx, y: FLOOR + 12},
+          {x: P.hip.x + dx - 40 + Math.random()*96, y: FLOOR + 20 + Math.random()*20}];
+}
+function limb(ctx, pts, wOut, wIn, cOut, cIn){
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.strokeStyle = cOut; ctx.lineWidth = wOut; ctx.stroke();
+  ctx.strokeStyle = cIn; ctx.lineWidth = wIn; ctx.stroke();
+}
+function drawPerson(ctx, P, c, hot){
+  var pose = personPose(P, c), dx = c.dx || 0, L1 = P.arm[0], L2 = P.arm[1];
   ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.save(); ctx.translate(dx, 0);
+  // 뒤쪽 팔 — 몸통 뒤로 자연스럽게 내림
+  var bs = {x: P.shoulder.x + 18, y: P.shoulder.y + 2};
+  limb(ctx, [bs, {x: bs.x + 5, y: bs.y + L1}, {x: bs.x + 2, y: bs.y + L1 + L2}], 12, 9, C.skinEdge, "#DDB894");
   [P.legR, P.legL].forEach(function(L){
-    ctx.beginPath(); ctx.moveTo(L[0].x, L[0].y); ctx.lineTo(L[1].x, L[1].y); ctx.lineTo(L[2].x, L[2].y);
-    ctx.strokeStyle = C.clothEdge; ctx.lineWidth = 15; ctx.stroke();
-    ctx.strokeStyle = C.pants; ctx.lineWidth = 11.5; ctx.stroke();
-    ctx.fillStyle = "#3A3632"; rrect(ctx, L[2].x - 9, L[2].y - 5, 20, 8, 3); ctx.fill();
+    limb(ctx, L, 15, 11.5, C.clothEdge, C.pants);
+    ctx.fillStyle = "#3A3632"; rrect(ctx, L[2].x - 12, L[2].y - 5, 21, 8, 3); ctx.fill();
   });
-  // 다른 팔(뒤쪽) — 옆으로 내린 모습
-  ctx.beginPath(); ctx.moveTo(P.shoulder.x + 26, P.shoulder.y + 2); ctx.lineTo(P.shoulder.x + 32, P.shoulder.y + 52); ctx.lineTo(P.shoulder.x + 30, P.shoulder.y + 92);
-  ctx.strokeStyle = C.skinEdge; ctx.lineWidth = 12; ctx.stroke(); ctx.strokeStyle = C.skin; ctx.lineWidth = 9; ctx.stroke();
   rrect(ctx, P.torso.x, P.torso.y, P.torso.w, P.torso.h, 12);
   ctx.fillStyle = C.cloth; ctx.fill(); ctx.strokeStyle = C.clothEdge; ctx.lineWidth = 1.6; ctx.stroke();
+  // 목·머리
+  ctx.fillStyle = C.skin; ctx.fillRect(P.head.x - 5, P.head.y + 12, 10, P.torso.y - P.head.y - 10);
   ctx.beginPath(); ctx.arc(P.head.x, P.head.y, 16, 0, Math.PI*2);
   ctx.fillStyle = C.skin; ctx.fill(); ctx.strokeStyle = C.skinEdge; ctx.lineWidth = 1.5; ctx.stroke();
   ctx.beginPath(); ctx.arc(P.head.x + 2, P.head.y - 3, 16.5, Math.PI*1.02, Math.PI*1.95);
   ctx.strokeStyle = "#3A3632"; ctx.lineWidth = 6; ctx.stroke();
-  // 뻗는 팔
-  ctx.beginPath(); ctx.moveTo(P.shoulder.x, P.shoulder.y); ctx.lineTo(pose.elbow.x, pose.elbow.y); ctx.lineTo(pose.hand.x, pose.hand.y);
-  ctx.strokeStyle = C.skinEdge; ctx.lineWidth = 13; ctx.stroke(); ctx.strokeStyle = C.skin; ctx.lineWidth = 10; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(pose.hand.x, pose.hand.y); ctx.lineTo(pose.tip.x, pose.tip.y);
-  ctx.strokeStyle = C.skinEdge; ctx.lineWidth = 6.5; ctx.stroke(); ctx.strokeStyle = C.skin; ctx.lineWidth = 4.2; ctx.stroke();
-  ctx.beginPath(); ctx.arc(pose.hand.x, pose.hand.y, 7.5, 0, Math.PI*2);
+  ctx.fillStyle = "#3A3632"; ctx.beginPath(); ctx.arc(P.head.x - 7, P.head.y - 1, 1.8, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  // 앞쪽 팔 — 어깨·팔꿈치·손목 (짧은 소매)
+  var S = pose.shoulder, E = pose.elbow, H = pose.hand, T = pose.tip;
+  limb(ctx, [S, E, H], 12.5, 9.5, C.skinEdge, C.skin);
+  var sl = lerpPt(S, E, 0.5);
+  limb(ctx, [S, sl], 17, 14, C.clothEdge, C.cloth);
+  if (hot){ ctx.beginPath(); ctx.arc(H.x, H.y, 15, 0, Math.PI*2); ctx.fillStyle = "rgba(245,158,11,.22)"; ctx.fill(); }
+  limb(ctx, [H, T], 6.5, 4.2, C.skinEdge, C.skin);
+  ctx.beginPath(); ctx.arc(H.x, H.y, 7.5, 0, Math.PI*2);
   ctx.fillStyle = C.skin; ctx.fill(); ctx.strokeStyle = C.skinEdge; ctx.lineWidth = 1.4; ctx.stroke();
   ctx.restore();
   return pose;
@@ -1414,7 +1492,7 @@ function drawPerson(ctx, P, prog){
 /* 몸을 지나는 전자 길 표시 (전자가 지나는 동안만) */
 function drawFlowTrail(ctx, sim, P){
   if (!sim.contact.connected || sim.flowing === 0) return;
-  var pts = [P.touch].concat(bodyPath(P).slice(0, 8));
+  var pts = [P.touch].concat(bodyPath(P, sim.contact).slice(0, 8));
   ctx.save();
   ctx.strokeStyle = "rgba(29,78,216,.45)"; ctx.lineWidth = 4; ctx.setLineDash([8, 8]); ctx.lineDashOffset = -sim.dash;
   ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
@@ -1475,12 +1553,12 @@ var MAT = [
 ];
 function matOf(k){ for (var i = 0; i < MAT.length; i++) if (MAT[i].k === k) return MAT[i]; return null; }
 function rodLook(rod){
-  var m = rod.mat ? matOf(rod.mat) : matOf(rod.s < 0 ? "plastic" : "glass");
+  var m = rod.mat ? matOf(rod.mat) : matOf(rod.s > 0 ? "glass" : "plastic");
   return m;
 }
 function rodLabel(rod){
   var m = rodLook(rod);
-  return (m.rod || (m.name + " 막대")) + " " + signSym(rod.s);
+  return (m.rod || (m.name + " 막대")) + " " + (rod.s ? signSym(rod.s) : "(중성)");
 }
 /* 대전체 막대 (왼쪽에서 오른쪽으로 뻗음, 문지른 끝부분에만 전하가 있음) */
 var ROD_L = 140;
@@ -1556,7 +1634,7 @@ var P1 = {
   shoulder: {x: 538, y: 226}, chest: {x: 546, y: 256}, hip: {x: 548, y: 300}, head: {x: 549, y: 190},
   torso: {x: 530, y: 212, w: 36, h: 94},
   legL: [{x: 542, y: 302}, {x: 538, y: 338}, {x: 535, y: 368}], legR: [{x: 556, y: 302}, {x: 560, y: 338}, {x: 563, y: 368}],
-  touch: {x: 440, y: 150}, rest: {x: 506, y: 296}
+  touch: {x: 440, y: 150}, arm: [50, 45, 12], minDx: -50
 };
 
 var sim1 = new Sim({
@@ -1577,7 +1655,8 @@ var sim1 = new Sim({
   condOf: function(part){ return part; },
   route: function(from, to){ return (from === to || from === "ground" || to === "ground") ? [] : [{x: 446, y: 188}]; },
   touchPoint: function(){ return P1.touch; },
-  groundPath: function(){ return bodyPath(P1); },
+  person: P1, onContact: function(){ touchLabel1(); },
+  groundPath: function(sim){ return bodyPath(P1, sim.contact); },
   tick: function(sim){
     var c = sim.contact, e = ease(c.prog);
     B1.cx = B1.ox = c.mode === "B" ? lerp(B1.rest, B1.touch, e) : B1.rest;
@@ -1677,7 +1756,7 @@ function draw1(){
 
   // 사람
   if (c.mode === "hand"){
-    drawPerson(ctx, P1, c.prog);
+    drawPerson(ctx, P1, c, S1.handHot);
     drawFlowTrail(ctx, sim, P1);
   }
   drawElectrons(ctx, sim, keep, faint, true);
@@ -1740,7 +1819,7 @@ var P2 = {
   shoulder: {x: 518, y: 214}, chest: {x: 526, y: 250}, hip: {x: 528, y: 300}, head: {x: 529, y: 178},
   torso: {x: 510, y: 200, w: 36, h: 104},
   legL: [{x: 522, y: 302}, {x: 518, y: 338}, {x: 515, y: 368}], legR: [{x: 536, y: 302}, {x: 540, y: 338}, {x: 543, y: 368}],
-  touch: {x: 412, y: 114}, rest: {x: 486, y: 292}
+  touch: {x: 412, y: 114}, arm: [56, 51, 13], minDx: -56
 };
 function isLeaf(p){ return p === "leafL" || p === "leafR"; }
 
@@ -1760,7 +1839,8 @@ var sim2 = new Sim({
     return pts;
   },
   touchPoint: function(){ return P2.touch; },
-  groundPath: function(){ return bodyPath(P2); },
+  person: P2, onContact: function(){ touchLabel2(); },
+  groundPath: function(sim){ return bodyPath(P2, sim.contact); },
   tick: function(sim, dt){
     var q = counts2().leaf, tgt = Math.min(42, 10 * Math.abs(q));
     if (REDUCE) S2.theta = tgt;
@@ -1827,7 +1907,7 @@ function draw2(){
   drawIons(ctx, S2, faint);
   drawElectrons(ctx, sim, null, faint, false);
   drawRod(ctx, st, sim.rod, ROD2Y);
-  drawPerson(ctx, P2, c.prog);
+  drawPerson(ctx, P2, c, S2st.handHot);
   drawFlowTrail(ctx, sim, P2);
   drawElectrons(ctx, sim, null, faint, true);
 
@@ -1848,8 +1928,9 @@ function explain1(){
   var rodNear = r.tip > 0 && nn > 0, rodGone = r.away || r.tip < 0, h = [];
   if (r.touch && Math.abs(r.tip - A1.left()) < 1){
     var moved = sim1.ep.fromR + sim1.ep.toR;
-    h.push("대전체가 A에 <b>직접 닿았어요</b>. 닿은 곳에서 전하가 바로 옮겨 가요 — 이것을 <b>접촉에 의한 대전</b>이라고 해요. " + (moved ? (r.s < 0 ? "(−)막대의 남는 전자 " + sim1.ep.fromR + "개가 A로 넘어왔어요." : "A의 전자 " + sim1.ep.toR + "개가 전자가 모자란 (+)막대로 넘어갔어요.") : "막대에 옮겨 줄 전하가 남아 있지 않아요."));
-    h.push("막대는 부도체라서 닿은 곳 근처의 전하만 옮겨 가요. 이제 막대를 떼고 치우면 A는 어떤 전하를 띨까요?");
+    if (!r.s) h.push("<b>중성인 막대</b>가 A에 직접 닿았어요. 막대에 남거나 모자란 전자가 없어서 <b>옮겨 가는 전하가 없어요</b>. A는 그대로예요.");
+    else h.push("대전체가 A에 <b>직접 닿았어요</b>. 닿은 곳에서 전하가 바로 옮겨 가요 — 이것을 <b>접촉에 의한 대전</b>이라고 해요. " + (moved ? (r.s < 0 ? "(−)막대의 남는 전자 " + sim1.ep.fromR + "개가 A로 넘어왔어요." : "A의 전자 " + sim1.ep.toR + "개가 전자가 모자란 (+)막대로 넘어갔어요.") : "막대에 옮겨 줄 전하가 남아 있지 않아요."));
+    if (r.s) h.push("막대는 부도체라서 닿은 곳 근처의 전하만 옮겨 가요. 이제 막대를 떼고 치우면 A는 어떤 전하를 띨까요?");
   } else if (c.connected && c.mode === "ruler"){
     h.push("<b>플라스틱 자는 부도체</b>예요. 플라스틱 속 전자는 원자에 묶여 있어 자유롭게 움직이지 못하므로, A에 닿아도 <b>전하가 이동하지 않아요</b>. A의 전하 배치도 그대로예요.");
     h.push("금속구 B로 바꿔 대어 보고 무엇이 다른지 비교해 보세요.");
@@ -1879,6 +1960,10 @@ function explain1(){
       else if ((n.A > 0) === (r.s > 0)) h.push("대전체와 <b>같은</b> 종류의 전하예요 — 대전체가 직접 닿아 전하가 옮겨 왔기 때문이에요(접촉에 의한 대전). 손으로 대전시키면(정전기 유도) 대전체와 <b>반대</b> 종류가 되는 것과 비교해 보세요.");
       else h.push("대전체와 <b>반대</b> 종류의 전하예요 — 대전체가 닿지 않고 정전기 유도로 대전시켰기 때문이에요. 다시 손을 대면 어떻게 될까요?");
     }
+  } else if (!r.s && !rodGone){
+    h.push("막대가 전기를 띠지 않은 <b>중성</b>이에요. 막대와 A의 전자 사이에 <b>전기력이 작용하지 않아서</b> 자유 전자가 움직이지 않아요. 아무리 가까이 가져가도 A의 양쪽 끝은 중성 그대로예요.");
+    h.push("털가죽으로 문지른 (−) 대전체로 바꾸어 비교해 보세요. 실제 실험에서도 문지르지 않은 막대에는 캔이 끌려오지 않아요.");
+    if (n.A !== 0) h.push("A는 " + charged(n.A) + "되어 있어요.");
   } else if (!rodNear){
     h.push("대전체가 아직 멀어서 전기력이 약해요. A 쪽으로 더 가까이 가져가 보세요.");
     if (n.A !== 0) h.push("A는 " + charged(n.A) + "되어 있어요.");
@@ -1904,6 +1989,9 @@ function explain2(){
     } else {
       h.push("손가락이 닿아 있으면 검전기의 남거나 모자란 전하가 몸을 통해 땅과 오가서 검전기는 <b>중성</b>이 돼요. 금속박이 오므라들어요.");
     }
+  } else if (!r.s && r.tip > 0 && !r.away){
+    h.push("<b>중성인 막대</b>를 금속판에 가까이 가져가도 전자를 밀거나 끌어당기는 전기력이 없어서 검전기 안의 전자가 움직이지 않아요. 금속박에 변화가 없어요.");
+    h.push(n.total === 0 ? "그래서 검전기로 <b>물체가 대전되었는지</b> 알 수 있어요. 대전체를 가까이 하면 금속박이 벌어지고, 대전되지 않은 물체는 변화가 없어요." : "검전기는 " + charged(n.total) + "되어 있어서 금속박이 벌어진 채로 있어요. 중성 막대로는 금속박이 더 벌어지거나 오므라들지 않아요.");
   } else if (rodNear){
     if (n.total === 0){
       if (r.s < 0) h.push("(−)대전체가 금속판의 전자를 밀어내 전자가 금속 막대를 따라 <b>금속박까지 내려갔어요</b>. 금속판은 (+), 금속박 두 장은 모두 (−)를 띠어 <b>서로 밀어내므로 벌어져요</b>.");
@@ -2002,11 +2090,11 @@ sD1.addEventListener("input", function(){
   sim1.rod.target = tipFromPos(sim1, +sD1.value); sim1.busy = true;
   setText("s1-d-v", posWord(+sD1.value));
 });
-sQ1.addEventListener("input", function(){ sim1.rod.q = +sQ1.value; sim1.rod.cnt = 2*sim1.rod.q; setText("s1-q-v", QWORD[sim1.rod.q]); sim1.busy = true; rechargeRow(); });
+sQ1.addEventListener("input", function(){ sim1.rod.q = +sQ1.value; sim1.rod.cnt = sim1.rod.s ? 2*sim1.rod.q : 0; setText("s1-q-v", QWORD[sim1.rod.q]); sim1.busy = true; rechargeRow(); });
 [].forEach.call(document.querySelectorAll('input[name="rod1"]'), function(el){
   el.addEventListener("change", function(){
-    var r = sim1.rod; r.s = +el.value; r.cnt = 2*r.q; r.name = null; r.mat = null;
-    sim1.busy = true; rechargeRow(); explain1();
+    var r = sim1.rod; r.s = +el.value; r.cnt = r.s ? 2*r.q : 0; r.name = null; r.mat = null;
+    sQ1.disabled = !r.s; sim1.key = ""; sim1.busy = true; rechargeRow(); explain1();
   });
 });
 var bRodTouch1 = document.getElementById("b1-rodtouch");
@@ -2026,7 +2114,7 @@ function setRodTouch1(on){
   sim1.busy = true; rodTouchLabel1();
 }
 bRodTouch1.addEventListener("click", function(){ setRodTouch1(!sim1.rod.touch); });
-function rechargeRow(){ document.getElementById("row1-recharge").hidden = sim1.rod.cnt >= 2*sim1.rod.q; }
+function rechargeRow(){ document.getElementById("row1-recharge").hidden = !sim1.rod.s || sim1.rod.cnt >= 2*sim1.rod.q; }
 document.getElementById("b1-recharge").addEventListener("click", function(){
   sim1.rod.cnt = 2*sim1.rod.q; sim1.key = ""; sim1.busy = true; rechargeRow(); explain1();
 });
@@ -2064,10 +2152,10 @@ bTouch1.addEventListener("click", function(){
 document.getElementById("c1-net").addEventListener("change", function(){});
 document.getElementById("c1-force").addEventListener("change", function(){});
 document.getElementById("b1-reset").addEventListener("click", function(){
-  sim1.contact.target = 0; sim1.contact.prog = 0; sim1.contact.connected = false;
+  sim1.contact.target = 0; sim1.contact.prog = 0; sim1.contact.connected = false; sim1.contact.hp = null; sim1.contact.dx = 0; sim1.contact.drag = false;
   sim1.reset();
   var r = sim1.rod;
-  r.away = false; r.touch = false; r.gave = false; r.cnt = 2*r.q; r.tip = r.target = sim1.cfg.tipMin;
+  r.away = false; r.touch = false; r.gave = false; r.cnt = r.s ? 2*r.q : 0; r.tip = r.target = sim1.cfg.tipMin;
   sD1.value = 0; sD1.disabled = false; setText("s1-d-v", posWord(0));
   bRod1.textContent = "대전체 치우기"; bRod1.setAttribute("aria-pressed", "false");
   aUsedHand = false; sim1.rodTouched = false;
@@ -2087,9 +2175,9 @@ sD2.addEventListener("input", function(){
   sim2.rod.target = tipFromPos(sim2, +sD2.value); sim2.busy = true;
   setText("s2-d-v", posWord(+sD2.value));
 });
-sQ2.addEventListener("input", function(){ sim2.rod.q = +sQ2.value; sim2.rod.cnt = 2*sim2.rod.q; setText("s2-q-v", QWORD[sim2.rod.q]); sim2.busy = true; });
+sQ2.addEventListener("input", function(){ sim2.rod.q = +sQ2.value; sim2.rod.cnt = sim2.rod.s ? 2*sim2.rod.q : 0; setText("s2-q-v", QWORD[sim2.rod.q]); sim2.busy = true; });
 [].forEach.call(document.querySelectorAll('input[name="rod2"]'), function(el){
-  el.addEventListener("change", function(){ var r = sim2.rod; r.s = +el.value; r.cnt = 2*r.q; r.name = null; r.mat = null; sim2.busy = true; renderPOE(); explain2(); });
+  el.addEventListener("change", function(){ var r = sim2.rod; r.s = +el.value; r.cnt = r.s ? 2*r.q : 0; r.name = null; r.mat = null; sQ2.disabled = !r.s; sim2.key = ""; sim2.busy = true; renderPOE(); explain2(); });
 });
 var bRod2 = document.getElementById("b2-rod");
 bRod2.addEventListener("click", function(){ rodToggle(sim2, bRod2, sD2, "s2-d-v"); });
@@ -2102,7 +2190,7 @@ function touchLabel2(){
 function setTouch2(on){ sim2.setContact(on); touchLabel2(); }
 bTouch2.addEventListener("click", function(){ setTouch2(sim2.contact.target !== 1); });
 function resetScope(){
-  sim2.contact.target = 0; sim2.contact.prog = 0; sim2.contact.connected = false;
+  sim2.contact.target = 0; sim2.contact.prog = 0; sim2.contact.connected = false; sim2.contact.hp = null; sim2.contact.dx = 0; sim2.contact.drag = false;
   sim2.reset(); S2.theta = 0;
   touchLabel2();
 }
@@ -2122,18 +2210,26 @@ document.getElementById("b2-shot").addEventListener("click", function(){
 var POE = {i: 0, pred: null, pending: null, hits: 0, done: false};
 var OBS = ["금속박이 <b>벌어졌어요</b>", "금속박이 <b>오므라들었어요</b>", "금속박에 <b>변화가 없어요</b>"];
 var CANON = [0, 1, 2, 0, 1];
+function canon(i){ return sim2.rod.s ? CANON[i] : 2; }
 function poeQ(i){
-  var sw = signSym(sim2.rod.s);
+  var sw = sim2.rod.s ? signSym(sim2.rod.s) + "대전체" : "중성인 막대";
   return [
-    sw + "대전체를 검전기의 금속판에 가까이 가져가면 금속박은?",
+    josa(sw, "을") + " 검전기의 금속판에 가까이 가져가면 금속박은?",
     "대전체를 가까이 둔 채로 금속판에 손가락을 대면 금속박은?",
     "대전체는 그대로 두고, 손가락을 먼저 떼면 금속박은?",
     "이제 대전체를 멀리 치우면 금속박은?",
-    "같은 " + sw + "대전체를 다시 금속판에 가까이 가져가면 금속박은?"
+    "같은 " + josa(sw, "을") + " 다시 금속판에 가까이 가져가면 금속박은?"
   ][i];
 }
 function poeWhy(i){
   var neg = sim2.rod.s < 0;
+  if (!sim2.rod.s) return [
+    "중성인 막대는 전자를 밀거나 끌어당기지 않아요. 검전기 안의 전자가 움직이지 않아 금속박에 변화가 없어요.",
+    "검전기가 중성이고 막대의 영향도 없어서, 손가락을 대도 땅과 전자가 오가지 않아요.",
+    "처음부터 전자가 오가지 않았으니 손가락을 떼도 그대로예요.",
+    "검전기는 계속 중성이에요. 중성 막대로는 검전기를 대전시킬 수 없어요.",
+    "다시 가까이 가져가도 변화가 없어요. 이렇게 <b>금속박이 움직이지 않으면 그 물체는 대전되지 않은 것</b>이에요."
+  ][i];
   return [
     neg ? "(−)대전체가 금속판의 전자를 밀어내 전자가 금속박으로 내려갔어요. 두 금속박이 모두 (−)를 띠어 서로 밀어내요."
         : "(+)대전체가 전자를 금속판 쪽으로 끌어올렸어요. 두 금속박이 모두 전자가 모자라 (+)를 띠고 서로 밀어내요.",
@@ -2183,7 +2279,7 @@ function poeEvaluate(){
   var p = POE.pending; POE.pending = null;
   var dth = S2.theta - p.before, obs = dth > 4 ? 0 : (dth < -4 ? 1 : 2), hit = obs === POE.pred;
   if (hit) POE.hits++;
-  var why = obs === CANON[p.i] ? poeWhy(p.i) : "직접 조작으로 상태가 바뀌어서 교과서 순서와 결과가 다를 수 있어요. 그림 속 전자의 움직임을 살펴보고, '처음부터'로 다시 해 보세요.";
+  var why = obs === canon(p.i) ? poeWhy(p.i) : "직접 조작으로 상태가 바뀌어서 교과서 순서와 결과가 다를 수 있어요. 그림 속 전자의 움직임을 살펴보고, '처음부터'로 다시 해 보세요.";
   poeFb.hidden = false;
   poeFb.className = "fbk " + (hit ? "hit" : "miss");
   poeFb.innerHTML = "<p><b>관찰:</b> " + OBS[obs] + ". " + (hit ? '<span class="hitmark">✓ 예상과 같아요</span>' : '<span class="missmark">✗ 예상(' + predBtns[POE.pred].textContent + ")과 달라요</span>") + "</p><p>" + why + "</p>";
@@ -2193,8 +2289,9 @@ function poeEvaluate(){
 }
 poeNext.addEventListener("click", function(){
   if (POE.done){
-    var other = document.querySelector('input[name="rod2"][value="' + (-sim2.rod.s) + '"]');
-    other.checked = true; sim2.rod.s = -sim2.rod.s; sim2.rod.name = null; sim2.rod.mat = null;
+    var ns = sim2.rod.s ? -sim2.rod.s : -1;
+    var other = document.querySelector('input[name="rod2"][value="' + ns + '"]');
+    other.checked = true; sim2.rod.s = ns; sim2.rod.cnt = 2*sim2.rod.q; sim2.rod.name = null; sim2.rod.mat = null; sQ2.disabled = false;
     restartPOE(); predBtns[0].focus();
     return;
   }
@@ -2208,8 +2305,13 @@ poeNext.addEventListener("click", function(){
     poeQel.textContent = "예상이 맞은 단계: " + POE.hits + " / 5";
     poePred.hidden = true; poeRun.hidden = true;
     poeFb.className = "fbk hit";
-    poeFb.innerHTML = "<p>검전기는 지금 <b>" + charged(n.total) + "</b>되어 있어요. 처음에 쓴 " + sw + "대전체와 <b>반대 종류</b>예요.</p><p>정전기 유도를 이용하면 대전체를 검전기에 <b>닿게 하지 않고도</b> 검전기를 대전시킬 수 있어요. 대전체를 바꿔서 다시 해 보세요.</p>";
-    poeNext.textContent = "다른 대전체로 다시 하기";
+    if (!sim2.rod.s){
+      poeFb.innerHTML = "<p>다섯 단계 내내 금속박에 변화가 없었고, 검전기는 <b>중성</b> 그대로예요.</p><p>대전되지 않은 물체로는 정전기 유도가 일어나지 않아요. 그래서 검전기로 <b>물체가 대전되었는지</b> 알아볼 수 있어요. 이번에는 (−) 대전체로 해 보세요.</p>";
+      poeNext.textContent = "(−) 대전체로 다시 하기";
+    } else {
+      poeFb.innerHTML = "<p>검전기는 지금 <b>" + charged(n.total) + "</b>되어 있어요. 처음에 쓴 " + sw + "대전체와 <b>반대 종류</b>예요.</p><p>정전기 유도를 이용하면 대전체를 검전기에 <b>닿게 하지 않고도</b> 검전기를 대전시킬 수 있어요. 대전체를 바꿔서 다시 해 보세요.</p>";
+      poeNext.textContent = "다른 대전체로 다시 하기";
+    }
   }
 });
 function restartPOE(){
@@ -2228,10 +2330,17 @@ document.getElementById("poe-restart").addEventListener("click", restartPOE);
    대전체 끌기 (마우스·터치) + 방향키
    ========================================================= */
 function bindDrag(st, sim, slider, label, rodY){
-  var cv = st.cv, grab = 0;
+  var cv = st.cv, grab = 0, P = sim.cfg.person;
   function pt(ev){ var b = cv.getBoundingClientRect(); return {x: (ev.clientX - b.left) / st.scale, y: (ev.clientY - b.top) / st.scale + VY}; }
+  function handOK(){ return P && sim.contact.mode === "hand"; }
   cv.addEventListener("pointerdown", function(ev){
-    var p = pt(ev), r = sim.rod;
+    var p = pt(ev), r = sim.rod, c = sim.contact;
+    // 사람의 손 끌기 — 금속에 가져가면 달라붙고, 멀리 떼면 떨어짐
+    if (handOK() && onHand(P, c, p)){
+      c.drag = true; c.dragPt = p; sim.busy = true;
+      cv.setPointerCapture(ev.pointerId); cv.style.cursor = "grabbing";
+      ev.preventDefault(); return;
+    }
     if (r.away || r.touch || r.tip < 0) return;
     if (p.x > r.tip - ROD_L - 6 && p.x < r.tip + 10 && Math.abs(p.y - rodY) < 26){
       r.drag = true; grab = p.x - r.tip;
@@ -2240,13 +2349,25 @@ function bindDrag(st, sim, slider, label, rodY){
     }
   });
   cv.addEventListener("pointermove", function(ev){
-    var p = pt(ev), r = sim.rod;
-    if (r.drag){ sim.dragTip(p.x - grab); syncPos(sim, slider, label); }
-    else cv.style.cursor = (!r.away && r.tip > 0 && p.x > r.tip - ROD_L && p.x < r.tip + 8 && Math.abs(p.y - rodY) < 22) ? "grab" : "default";
+    var p = pt(ev), r = sim.rod, c = sim.contact;
+    if (c.drag){ c.dragPt = p; sim.busy = true; return; }
+    if (r.drag){ sim.dragTip(p.x - grab); syncPos(sim, slider, label); return; }
+    var hot = handOK() && onHand(P, c, p);
+    if (hot !== !!st.handHot){ st.handHot = hot; sim.busy = true; }
+    cv.style.cursor = hot || (!r.away && r.tip > 0 && p.x > r.tip - ROD_L && p.x < r.tip + 8 && Math.abs(p.y - rodY) < 22) ? "grab" : "default";
   });
-  function end(){ if (sim.rod.drag){ sim.rod.drag = false; cv.style.cursor = "grab"; } }
+  function end(){
+    var c = sim.contact;
+    if (c.drag){
+      c.drag = false; cv.style.cursor = "grab"; sim.busy = true;
+      if (!c.connected) c.target = 0;
+      if (sim.cfg.onContact) sim.cfg.onContact(sim);
+    }
+    if (sim.rod.drag){ sim.rod.drag = false; cv.style.cursor = "grab"; }
+  }
   cv.addEventListener("pointerup", end);
   cv.addEventListener("pointercancel", end);
+  cv.addEventListener("pointerleave", function(){ if (st.handHot){ st.handHot = false; sim.busy = true; } });
   cv.addEventListener("keydown", function(ev){
     if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
     var r = sim.rod; if (r.away || r.touch) return;
@@ -2420,7 +2541,9 @@ function readoutI(){
 }
 function explainI(){
   var r = IN.rod, S = inStrength(), h = [], sw = signSym(r.s);
-  if (IN.mode === "paper"){
+  if (!r.s && !r.away){
+    h.push("<b>중성인 막대</b>는 전기를 띠지 않아서 " + (IN.mode === "paper" ? "종이 조각" : "물줄기") + "에 전기력이 작용하지 않아요. 원자·분자 속 전하도 치우치지 않으므로 가까이 가져가도 " + (IN.mode === "paper" ? "끌려오지 않아요" : "휘지 않아요") + ".");
+  } else if (IN.mode === "paper"){
     var k = IN.bits.filter(function(b){ return b.on; }).length;
     if (r.away || S < 0.08){
       h.push("종이는 <b>부도체</b>라서 금속처럼 자유롭게 돌아다니는 전자가 없어요. 대전체가 멀면 종이 조각은 그대로 있어요." + (r.away ? "" : " 대전체를 종이 조각 위로 천천히 내려 보세요."));
@@ -2446,9 +2569,9 @@ function announceI(){
 }
 var sDI = document.getElementById("si-d");
 sDI.addEventListener("input", function(){ IN.pos = +sDI.value; setText("si-d-v", posWord(IN.pos)); });
-document.getElementById("si-q").addEventListener("input", function(){ IN.rod.q = +this.value; IN.rod.cnt = 2*IN.rod.q; setText("si-q-v", QWORD[IN.rod.q]); IN.dirty = true; });
+document.getElementById("si-q").addEventListener("input", function(){ IN.rod.q = +this.value; IN.rod.cnt = IN.rod.s ? 2*IN.rod.q : 0; setText("si-q-v", QWORD[IN.rod.q]); IN.dirty = true; });
 [].forEach.call(document.querySelectorAll('input[name="rod3"]'), function(el){
-  el.addEventListener("change", function(){ var r = IN.rod; r.s = +el.value; r.cnt = 2*r.q; r.name = null; r.mat = null; IN.dirty = true; explainI(); });
+  el.addEventListener("change", function(){ var r = IN.rod; r.s = +el.value; r.cnt = r.s ? 2*r.q : 0; r.name = null; r.mat = null; document.getElementById("si-q").disabled = !r.s; IN.dirty = true; explainI(); });
 });
 [].forEach.call(document.querySelectorAll('input[name="io"]'), function(el){
   el.addEventListener("change", function(){ IN.mode = el.value; IN.bits.forEach(function(b){ b.on = false; b.lift = 0; }); IN.key = ""; explainI(); readoutI(); });
@@ -2736,6 +2859,7 @@ document.getElementById("bf-use").addEventListener("click", function(){
 
 /* ① 탭에서 만든 막대를 ②·③·④ 탭의 대전체로 */
 function applyRod(s, q, name, mat){
+  sQ1.disabled = sQ2.disabled = document.getElementById("si-q").disabled = false;
   [sim1.rod, sim2.rod, IN.rod].forEach(function(r){ r.s = s; r.q = q; r.cnt = 2*q; r.name = name; r.mat = mat; r.touch = false; r.gave = false; });
   ["rod1", "rod2", "rod3"].forEach(function(nm){ var el = document.querySelector('input[name="' + nm + '"][value="' + s + '"]'); if (el) el.checked = true; });
   [["s1-q", "s1-q-v"], ["s2-q", "s2-q-v"], ["si-q", "si-q-v"]].forEach(function(p){ document.getElementById(p[0]).value = q; setText(p[1], QWORD[q]); });
