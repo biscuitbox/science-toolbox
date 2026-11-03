@@ -342,6 +342,11 @@ body {
 .anatomy > summary .hint { font-family: var(--font-body); font-weight: 500; font-size: .88rem; color: var(--graphite); }
 .anat-body { display: grid; gap: 1rem; padding: 0 1rem 1rem; }
 @media (min-width: 760px) { .anat-body { grid-template-columns: minmax(0, 23rem) minmax(0, 1fr); align-items: center; } }
+.anat-def { grid-column: 1 / -1; margin: 0; padding: .8rem 1rem; background: #FFF8E6; border: 1.5px solid #E3B53E; border-radius: var(--radius); font-size: 1rem; word-break: keep-all; }
+.anat-def .term { font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; margin-right: .35rem; }
+.anat-def b { color: #92400E; }
+.anat-def ul { margin: .45rem 0 0; padding-left: 1.2rem; font-size: .95rem; }
+.anat-def li { margin-bottom: .15rem; }
 .anat-fig { margin: 0; }
 .anat-fig svg { display: block; width: 100%; max-width: 23rem; height: auto; margin: 0 auto; }
 .anat-fig .part { cursor: pointer; }
@@ -831,8 +836,16 @@ table.scope td:first-child { text-align: left; }
   <!-- ================= 탭 ④ : 검전기 ================= -->
   <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
     <details class="anatomy no-print" id="anatomy" open>
-      <summary>검전기의 구조 <span class="hint">그림이나 이름을 누르면 하는 일을 볼 수 있어요</span></summary>
+      <summary>검전기의 뜻과 구조 <span class="hint">그림이나 이름을 누르면 하는 일을 볼 수 있어요</span></summary>
       <div class="anat-body">
+        <div class="anat-def">
+          <span class="term">검전기</span><b>정전기 유도</b>를 이용하여 <b>물체가 전기를 띠고 있는지(대전되었는지)</b> 알아보는 기구예요.
+          <ul>
+            <li><b>대전 여부</b> — 물체를 금속판에 가까이 했을 때 금속박이 벌어지면 그 물체는 대전되어 있어요.</li>
+            <li><b>대전된 정도</b> — 많이 대전된 물체일수록 금속박이 더 많이 벌어져요.</li>
+            <li><b>전하의 종류</b> — 이미 대전된 검전기를 쓰면 물체가 띤 전기의 종류도 알 수 있어요(⑤ 정리 탭 Q5).</li>
+          </ul>
+        </div>
         <figure class="anat-fig" id="anat-fig">
         <svg viewBox="0 0 460 560" id="anat-svg" role="img" aria-labelledby="anat-title">
           <title id="anat-title">검전기의 구조. 맨 위에 둥근 금속판이 있고, 금속판에서 금속 막대가 아래로 내려가 유리병 안에 들어 있습니다. 금속 막대는 병 입구의 마개(절연체)를 지나며, 막대 아래 끝에 얇은 금속박 두 장이 매달려 있습니다.</title>
@@ -1081,7 +1094,7 @@ table.scope td:first-child { text-align: left; }
       <figure><svg viewBox="0 0 220 120"><rect x="92" y="40" width="122" height="40" rx="8" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="153" y="105" font-size="11" text-anchor="middle">A</text></svg><figcaption>③ 손을 떼고 대전체를 치운 뒤</figcaption></figure>
     </div>
     <h2>3. 검전기 — 예상하고 관찰하기</h2>
-    <div class="p-anat"><div id="p-anat"></div><div>검전기 각 부분의 이름을 ( ) 안에 써 봅시다. 그중 전자가 이동할 수 있는 부분(도체)에 ○표를 해 봅시다.<div class="lines"></div><div class="lines"></div></div></div>
+    <div class="p-anat"><div id="p-anat"></div><div><p style="margin:0 0 8px">검전기는 (　　　　　　　)을/를 이용하여 물체가 (　　　　　)되었는지 알아보는 기구이다.</p>검전기 각 부분의 이름을 ( ) 안에 써 봅시다. 그중 전자가 이동할 수 있는 부분(도체)에 ○표를 해 봅시다.<div class="lines"></div><div class="lines"></div></div></div>
     <table>
       <tr><th style="width:38%">단계</th><th>예상</th><th>관찰</th><th style="width:30%">까닭 (전자의 이동으로)</th></tr>
       <tr><td>① 대전체를 금속판에 가까이</td><td></td><td></td><td></td></tr>
@@ -3118,7 +3131,7 @@ window.__ES = {sim1: sim1, sim2: sim2, counts1: counts1, counts2: counts2, S2: S
     cork:  ["마개 (절연체)", "고무나 플라스틱처럼 <b>전기가 통하지 않는 물질</b>이에요. 금속 막대를 받쳐 주면서, 검전기에 모인 전하가 병 쪽으로 <b>빠져나가지 않게</b> 해요."],
     jar:   ["유리병", "바람이나 손이 닿아 <b>금속박이 흔들리지 않게 보호</b>해요. 유리도 전기가 통하지 않아서, 병 안의 금속 부분이 바깥과 <b>전기적으로 떨어져</b> 있어요."],
     cond:  ["전자가 다니는 길", "파랗게 표시한 <b>금속판 · 금속 막대 · 금속박</b>은 모두 이어진 <b>하나의 도체</b>예요. 대전체를 가까이 하면 자유 전자가 이 안에서만 위아래로 옮겨 가요. 마개와 유리병은 절연체라서 전자가 지나가지 못해요."],
-    none:  ["", "검전기는 <b>물체가 전기를 띠는지</b> 알아보는 기구예요. 그림 속 부분이나 위 이름을 눌러 각 부분이 하는 일을 알아보세요."]
+    none:  ["", "그림 속 부분이나 위 이름을 눌러 각 부분이 하는 일을 알아보세요. 검전기는 이 부분들이 함께 작동해서 물체가 대전되었는지 알려 줘요."]
   };
   var parts = [].slice.call(fig.querySelectorAll(".part")), labs = [].slice.call(fig.querySelectorAll(".lab"));
   var chips = [].slice.call(document.querySelectorAll(".anat-chips button"));
