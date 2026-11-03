@@ -333,6 +333,41 @@ body {
 }
 /* ===== 공통 틀 끝 ===== */
 [hidden] { display: none !important; }
+/* 검전기의 구조 (탭 ④) */
+.anatomy { margin: 0; background: var(--sheet); border: 1.5px solid var(--ink); border-radius: var(--radius); box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent); }
+.anatomy > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .8rem; padding: .7rem 1rem; cursor: pointer; list-style: none; font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; }
+.anatomy > summary::-webkit-details-marker { display: none; }
+.anatomy > summary::before { content: ""; align-self: center; width: .5rem; height: .5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .3s var(--ease); }
+.anatomy[open] > summary::before { transform: rotate(45deg); }
+.anatomy > summary .hint { font-family: var(--font-body); font-weight: 500; font-size: .88rem; color: var(--graphite); }
+.anat-body { display: grid; gap: 1rem; padding: 0 1rem 1rem; }
+@media (min-width: 760px) { .anat-body { grid-template-columns: minmax(0, 23rem) minmax(0, 1fr); align-items: center; } }
+.anat-fig { margin: 0; }
+.anat-fig svg { display: block; width: 100%; max-width: 23rem; height: auto; margin: 0 auto; }
+.anat-fig .part { cursor: pointer; }
+.anat-fig .part:focus { outline: none; }
+.anat-fig .hi { fill: none; stroke: #F59E0B; stroke-width: 7; stroke-linejoin: round; opacity: 0; transition: opacity .25s var(--ease); pointer-events: none; }
+.anat-fig .part.on .hi, .anat-fig.cond .part.metal .hi { opacity: .85; }
+.anat-fig.cond .part.metal .hi { stroke: #1D4ED8; }
+.anat-fig .part:focus-visible .hi { opacity: .85; stroke: var(--focus); }
+.anat-fig .lab { font: 700 17px var(--font-body); fill: var(--ink); }
+.anat-fig .lab.on { fill: #B45309; }
+.anat-fig .lead { stroke: var(--graphite); stroke-width: 1.4; }
+.anat-side { display: grid; gap: .6rem; align-content: start; }
+.anat-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.anat-chips button { font: inherit; font-size: .93rem; font-weight: 700; min-height: 38px; padding: .3rem .85rem; border: 1.5px solid var(--hairline); border-radius: 999px; background: var(--sheet); color: var(--ink); cursor: pointer; }
+.anat-chips button[aria-pressed="true"] { border-color: #B45309; background: #FFF4DC; }
+.anat-chips button.cond[aria-pressed="true"] { border-color: var(--cat); background: var(--cat-soft); }
+.anat-desc { margin: 0; padding: .7rem .9rem; min-height: 6.2rem; background: var(--cat-soft); border-left: 5px solid var(--cat); border-radius: 0 var(--radius) var(--radius) 0; font-size: .97rem; word-break: keep-all; }
+.anat-desc b { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+.anat-desc .what { display: block; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: .2rem; color: var(--ink); }
+@media (min-width: 980px) {
+  #panel-2 > .anatomy { grid-column: 1 / -1; grid-row: 1; }
+  #panel-2 > .stagewrap { grid-row: 2 / span 2; }
+}
+.p-anat { display: grid; grid-template-columns: 270px 1fr; gap: 12px; align-items: center; margin-bottom: 8px; }
+.p-anat svg { width: 270px; height: auto; }
+
 
 /* 넓은 화면: 왼쪽은 실험 무대, 오른쪽은 조작판 */
 .card { display: grid; gap: 1rem; }
@@ -530,7 +565,7 @@ table.scope td:first-child { text-align: left; }
   .tb-stage, .comic { border: 1px solid #999; box-shadow: none; page-break-inside: avoid; }
   .explain { border: 1px solid #999; border-left: 3px solid #666; }
   canvas { height: auto !important; }
-  .card > .tb-note, .card > .safe { display: none; }
+  .card > .tb-note, .card > .safe, .anatomy { display: none; }
   .printonly { display: block; page-break-before: always; }
   .tb-head { grid-template-columns: 1fr; border-bottom-width: 1px; }
   .tb-emblem, .tb-meta { display: none; }
@@ -795,6 +830,76 @@ table.scope td:first-child { text-align: left; }
 
   <!-- ================= 탭 ④ : 검전기 ================= -->
   <section class="card" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+    <details class="anatomy no-print" id="anatomy" open>
+      <summary>검전기의 구조 <span class="hint">그림이나 이름을 누르면 하는 일을 볼 수 있어요</span></summary>
+      <div class="anat-body">
+        <figure class="anat-fig" id="anat-fig">
+        <svg viewBox="0 0 460 560" id="anat-svg" role="img" aria-labelledby="anat-title">
+          <title id="anat-title">검전기의 구조. 맨 위에 둥근 금속판이 있고, 금속판에서 금속 막대가 아래로 내려가 유리병 안에 들어 있습니다. 금속 막대는 병 입구의 마개(절연체)를 지나며, 막대 아래 끝에 얇은 금속박 두 장이 매달려 있습니다.</title>
+          <defs>
+            <linearGradient id="ag-glass" x1="0" x2="1"><stop offset="0" stop-color="#DCEAF2" stop-opacity=".75"/><stop offset=".35" stop-color="#F7FBFD" stop-opacity=".35"/><stop offset="1" stop-color="#C9DCE7" stop-opacity=".7"/></linearGradient>
+            <linearGradient id="ag-metal" x1="0" x2="1"><stop offset="0" stop-color="#8E99A5"/><stop offset=".45" stop-color="#E9EEF3"/><stop offset="1" stop-color="#7D8894"/></linearGradient>
+            <linearGradient id="ag-plate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA5B1"/><stop offset="1" stop-color="#4E5864"/></linearGradient>
+            <linearGradient id="ag-cork" x1="0" x2="1"><stop offset="0" stop-color="#2F6B70"/><stop offset=".45" stop-color="#5FA3A8"/><stop offset="1" stop-color="#2A5E63"/></linearGradient>
+            <linearGradient id="ag-foil" x1="0" x2="1"><stop offset="0" stop-color="#C99A2E"/><stop offset=".5" stop-color="#F3D27A"/><stop offset="1" stop-color="#B9871F"/></linearGradient>
+          </defs>
+          <!-- 유리병 -->
+          <g class="part" data-part="jar" tabindex="0" role="button" aria-label="유리병">
+            <path d="M150 178 C150 214 60 236 54 300 L54 520 C54 538 66 546 84 546 L336 546 C354 546 366 538 366 520 L366 300 C360 236 270 214 270 178 Z" fill="url(#ag-glass)" stroke="#6F98B2" stroke-width="2.5"/>
+            <path d="M74 300 C78 262 120 238 150 224" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+            <path d="M76 330 L76 500" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+            <ellipse cx="210" cy="512" rx="150" ry="20" fill="none" stroke="#9FBFD1" stroke-width="2"/>
+            <path class="hi" d="M150 178 C150 214 60 236 54 300 L54 520 C54 538 66 546 84 546 L336 546 C354 546 366 538 366 520 L366 300 C360 236 270 214 270 178 Z"/>
+          </g>
+          <!-- 금속박 -->
+          <g class="part metal" data-part="foil" tabindex="0" role="button" aria-label="금속박">
+            <rect x="166" y="400" width="88" height="90" fill="#fff" opacity=".001"/>
+            <path d="M206 404 C200 430 186 456 172 478 L182 484 C196 460 208 434 212 406 Z" fill="url(#ag-foil)" stroke="#8A6A12" stroke-width="1.5"/>
+            <path d="M214 404 C220 430 234 456 248 478 L238 484 C224 460 212 434 208 406 Z" fill="url(#ag-foil)" stroke="#8A6A12" stroke-width="1.5"/>
+            <path class="hi" d="M206 404 C200 430 186 456 172 478 L182 484 C196 460 208 434 212 406 Z M214 404 C220 430 234 456 248 478 L238 484 C224 460 212 434 208 406 Z"/>
+          </g>
+          <!-- 금속 막대 -->
+          <g class="part metal" data-part="rod" tabindex="0" role="button" aria-label="금속 막대">
+            <rect x="203" y="86" width="14" height="322" rx="3" fill="url(#ag-metal)" stroke="#3F4A57" stroke-width="1.5"/>
+            <rect class="hi" x="203" y="86" width="14" height="322" rx="3"/>
+          </g>
+          <!-- 마개 -->
+          <g class="part" data-part="cork" tabindex="0" role="button" aria-label="마개(절연체)">
+            <rect x="174" y="92" width="72" height="34" rx="6" fill="url(#ag-cork)" stroke="#1F4A4E" stroke-width="2"/>
+            <path d="M142 126 L278 126 L278 176 C278 184 270 188 262 188 L158 188 C150 188 142 184 142 176 Z" fill="url(#ag-cork)" stroke="#1F4A4E" stroke-width="2"/>
+            <rect x="203" y="92" width="14" height="96" fill="url(#ag-metal)" opacity=".001"/>
+            <path class="hi" d="M174 92 L246 92 L246 126 L278 126 L278 176 C278 184 270 188 262 188 L158 188 C150 188 142 184 142 176 L142 126 L174 126 Z"/>
+          </g>
+          <!-- 금속판 -->
+          <g class="part metal" data-part="plate" tabindex="0" role="button" aria-label="금속판">
+            <path d="M100 52 L100 64 C100 76 155 86 210 86 C265 86 320 76 320 64 L320 52 Z" fill="url(#ag-plate)" stroke="#2F3740" stroke-width="2"/>
+            <ellipse cx="210" cy="52" rx="110" ry="20" fill="#7C8794" stroke="#2F3740" stroke-width="2"/>
+            <ellipse cx="190" cy="47" rx="60" ry="7" fill="#fff" opacity=".25"/>
+            <path class="hi" d="M100 52 C100 40 155 32 210 32 C265 32 320 40 320 52 L320 64 C320 76 265 86 210 86 C155 86 100 76 100 64 Z"/>
+          </g>
+          <!-- 이름표 -->
+          <g aria-hidden="true">
+            <line class="lead" x1="322" y1="58" x2="352" y2="58"/><text class="lab" data-lab="plate" x="358" y="64">금속판</text>
+            <line class="lead" x1="280" y1="150" x2="352" y2="150"/><text class="lab" data-lab="cork" x="358" y="146">마개</text><text class="lab" data-lab="cork" x="358" y="166" style="font-size:14px;font-weight:500">(절연체)</text>
+            <line class="lead" x1="219" y1="300" x2="352" y2="300"/><text class="lab" data-lab="rod" x="358" y="306">금속 막대</text>
+            <line class="lead" x1="363" y1="380" x2="380" y2="380"/><text class="lab" data-lab="jar" x="386" y="386">유리병</text>
+            <line class="lead" x1="244" y1="462" x2="352" y2="462"/><text class="lab" data-lab="foil" x="358" y="468">금속박</text>
+          </g>
+        </svg>
+        </figure>
+        <div class="anat-side">
+          <div class="anat-chips" role="group" aria-label="부분 고르기">
+            <button data-part="plate" aria-pressed="false">금속판</button>
+            <button data-part="rod" aria-pressed="false">금속 막대</button>
+            <button data-part="foil" aria-pressed="false">금속박</button>
+            <button data-part="cork" aria-pressed="false">마개(절연체)</button>
+            <button data-part="jar" aria-pressed="false">유리병</button>
+            <button class="cond" data-part="cond" aria-pressed="false">전자가 다니는 길 보기</button>
+          </div>
+          <p class="anat-desc" id="anat-desc" aria-live="polite"></p>
+        </div>
+      </div>
+    </details>
     <div class="stagewrap">
       <div class="tb-stage"><canvas id="cv2" tabindex="0" aria-label="검전기 실험 장치. 유리병 위쪽에 금속판이 있고, 금속 막대를 따라 아래로 내려가면 병 속에 금속박 두 장이 매달려 있습니다. 왼쪽에서 대전체를 금속판에 가까이 가져갈 수 있고, 오른쪽 사람이 손가락을 금속판에 댈 수 있습니다."></canvas></div>
       <div class="legend no-print" aria-hidden="true">
@@ -976,6 +1081,7 @@ table.scope td:first-child { text-align: left; }
       <figure><svg viewBox="0 0 220 120"><rect x="92" y="40" width="122" height="40" rx="8" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="153" y="105" font-size="11" text-anchor="middle">A</text></svg><figcaption>③ 손을 떼고 대전체를 치운 뒤</figcaption></figure>
     </div>
     <h2>3. 검전기 — 예상하고 관찰하기</h2>
+    <div class="p-anat"><div id="p-anat"></div><div>검전기 각 부분의 이름을 ( ) 안에 써 봅시다. 그중 전자가 이동할 수 있는 부분(도체)에 ○표를 해 봅시다.<div class="lines"></div><div class="lines"></div></div></div>
     <table>
       <tr><th style="width:38%">단계</th><th>예상</th><th>관찰</th><th style="width:30%">까닭 (전자의 이동으로)</th></tr>
       <tr><td>① 대전체를 금속판에 가까이</td><td></td><td></td><td></td></tr>
@@ -2999,5 +3105,56 @@ window.__ES = {sim1: sim1, sim2: sim2, counts1: counts1, counts2: counts2, S2: S
 
 })();
 </script>
+<script>
+/* 검전기의 구조 — 부분을 누르면 하는 일 */
+(function(){
+  "use strict";
+  var fig = document.getElementById("anat-fig"), desc = document.getElementById("anat-desc");
+  if (!fig || !desc) return;
+  var INFO = {
+    plate: ["금속판", "대전체를 <b>가까이 가져가거나 손가락을 대는 곳</b>이에요. 금속이라 자유 전자가 드나들 수 있어요. 대전체가 가까이 오면 이곳의 전자가 밀려나거나 끌려와요."],
+    rod:   ["금속 막대", "금속판과 금속박을 <b>잇는 금속</b>이에요. 자유 전자가 이 막대를 따라 <b>위아래로 이동</b>해요."],
+    foil:  ["금속박", "아주 <b>얇고 가벼운 금속</b> 두 장이에요. 두 장이 <b>같은 종류의 전하</b>를 띠면 서로 밀어내 <b>벌어지고</b>, 전하가 없으면 오므라들어요. 가벼워서 작은 전기력에도 잘 움직여요."],
+    cork:  ["마개 (절연체)", "고무나 플라스틱처럼 <b>전기가 통하지 않는 물질</b>이에요. 금속 막대를 받쳐 주면서, 검전기에 모인 전하가 병 쪽으로 <b>빠져나가지 않게</b> 해요."],
+    jar:   ["유리병", "바람이나 손이 닿아 <b>금속박이 흔들리지 않게 보호</b>해요. 유리도 전기가 통하지 않아서, 병 안의 금속 부분이 바깥과 <b>전기적으로 떨어져</b> 있어요."],
+    cond:  ["전자가 다니는 길", "파랗게 표시한 <b>금속판 · 금속 막대 · 금속박</b>은 모두 이어진 <b>하나의 도체</b>예요. 대전체를 가까이 하면 자유 전자가 이 안에서만 위아래로 옮겨 가요. 마개와 유리병은 절연체라서 전자가 지나가지 못해요."],
+    none:  ["", "검전기는 <b>물체가 전기를 띠는지</b> 알아보는 기구예요. 그림 속 부분이나 위 이름을 눌러 각 부분이 하는 일을 알아보세요."]
+  };
+  var parts = [].slice.call(fig.querySelectorAll(".part")), labs = [].slice.call(fig.querySelectorAll(".lab"));
+  var chips = [].slice.call(document.querySelectorAll(".anat-chips button"));
+  var cur = "none";
+  function show(k){
+    cur = (k === cur) ? "none" : k;
+    parts.forEach(function(p){ p.classList.toggle("on", p.dataset.part === cur); });
+    labs.forEach(function(l){ l.classList.toggle("on", l.dataset.lab === cur || (cur === "cond" && /plate|rod|foil/.test(l.dataset.lab))); });
+    fig.classList.toggle("cond", cur === "cond");
+    chips.forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.part === cur ? "true" : "false"); });
+    var i = INFO[cur];
+    desc.innerHTML = (i[0] ? '<span class="what">' + i[0] + "</span>" : "") + i[1];
+  }
+  parts.forEach(function(p){
+    p.addEventListener("click", function(){ show(p.dataset.part); });
+    p.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); show(p.dataset.part); } });
+  });
+  chips.forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.part); }); });
+  show("none");
+  // 인쇄 활동지: 이름을 지운 그림
+  var holder = document.getElementById("p-anat");
+  if (holder){
+    var c = document.getElementById("anat-svg").cloneNode(true);
+    c.removeAttribute("id"); c.querySelector("title").removeAttribute("id"); c.removeAttribute("aria-labelledby");
+    [].forEach.call(c.querySelectorAll(".hi"), function(h){ h.remove(); });
+    var seen = {};
+    [].forEach.call(c.querySelectorAll(".lab"), function(t){
+      if (seen[t.dataset.lab]){ t.remove(); return; }
+      seen[t.dataset.lab] = 1; t.textContent = "(\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0)"; t.setAttribute("style", "font:500 18px sans-serif");
+    });
+    [].forEach.call(c.querySelectorAll(".lead"), function(l){ l.setAttribute("style", (l.getAttribute("style") || "") + ";stroke:#555;stroke-width:1.2"); });
+    c.setAttribute("viewBox", "0 0 540 560");
+    holder.appendChild(c);
+  }
+})();
+</script>
+
 </body>
 </html>
