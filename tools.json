@@ -31,6 +31,37 @@
     "achievementStandard": ["9과14-02"]
     },
     {
+    "id": "ohms-law-lab",
+    "name": "전류, 전압, 저항 사이의 관계 가상실험",
+    "description": "니크롬선 길이를 바꿔 가며 전압–전류 그래프로 옴의 법칙 찾기",
+    "category": "physics",
+    "path": "physics/ohms-law-lab/",
+    "tags": ["전기와 자기", "전류", "전압", "저항", "옴의 법칙", "니크롬선", "전압 센서", "전류 센서", "그래프", "기울기", "도체", "부도체", "반도체"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1차시",
+    "materials": ["태블릿 또는 노트북", "인쇄한 활동지(선택)"],
+    "achievementStandard": ["9과14-02"]
+    },
+    {
+    "id": "ohms-law-godirect",
+    "name": "전압·전류 센서 실시간 그래프",
+    "description": "무선 전압·전류 센서를 연결해 니크롬선의 전압–전류 그래프를 실시간 기록",
+    "category": "physics",
+    "path": "physics/ohms-law-godirect/",
+    "tags": ["전기와 자기", "전류", "전압", "저항", "옴의 법칙", "니크롬선", "센서", "Go Direct", "Vernier", "블루투스", "디지털 탐구 도구", "그래프"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "실험",
+    "target": "중학교 과학 '전기와 자기' 단원 학생(모둠 실험)",
+    "sessions": "1차시",
+    "materials": ["Go Direct 전압 센서(GDX-VOLT)", "Go Direct 전류 센서(GDX-CUR)", "전원 장치", "길이가 다른 니크롬선 2개", "집게 전선", "크롬·엣지가 있는 노트북·크롬북·안드로이드 태블릿"],
+    "achievementStandard": ["9과14-02"],
+    "source": "센서 연결: Vernier godirect-js (BSD 3-Clause)"
+    },
+    {
     "id": "coil-magnetic-field",
     "name": "코일 주위의 자기장 가상실험",
     "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",
