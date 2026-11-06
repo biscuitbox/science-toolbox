@@ -31,6 +31,21 @@
     "achievementStandard": ["9과14-02"]
     },
     {
+    "id": "circuit-energy",
+    "name": "회로 속 전자의 에너지 여행",
+    "description": "전지에서 에너지를 받고 전구에서 내놓는 전자를 에너지 높이 그래프로 보기",
+    "category": "physics",
+    "path": "physics/circuit-energy/",
+    "tags": ["전기와 자기", "전기 에너지", "전기적 위치 에너지", "에너지 전환", "전압", "전자", "전기 회로", "전지", "전구", "전류의 방향", "모션그래픽", "오개념"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시각화",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1차시(개념 정리용)",
+    "materials": ["교실 TV 또는 프로젝터", "태블릿 또는 노트북(개별 활동 시)"],
+    "achievementStandard": ["9과14-02"]
+    },
+    {
     "id": "ohms-law-lab",
     "name": "전류, 전압, 저항 사이의 관계 가상실험",
     "description": "니크롬선 길이를 바꿔 가며 전압–전류 그래프로 옴의 법칙 찾기",
