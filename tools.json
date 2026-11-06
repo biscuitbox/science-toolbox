@@ -359,15 +359,29 @@
     {
       "id": "random-picker",
       "name": "발표자 뽑기",
-      "description": "이름 목록에서 랜덤으로 발표자·모둠을 선택합니다",
+      "description": "반별 명단을 저장해 두고 골고루 발표자를 뽑는 교실 TV용 뽑기",
       "category": "classroom",
       "subcategory": "",
       "path": "classroom/random-picker/",
-      "tags": ["발표", "무작위"],
+      "tags": [
+       "발표",
+       "발표자",
+       "무작위",
+       "랜덤",
+       "뽑기",
+       "학급운영",
+       "골고루",
+       "번호 뽑기"
+      ],
       "level": "전 학년",
+      "featured": false,
       "activityType": "수업 운영",
-      "target": "교사",
-      "sessions": "수업 중"
+      "target": "담임·교과 교사",
+      "sessions": "수업 중",
+      "materials": [
+       "교실 TV 또는 프로젝터"
+      ],
+      "achievementStandard": []
     },
     {
     "id": "qr-code-maker",

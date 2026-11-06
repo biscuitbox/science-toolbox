@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발표자 뽑기 — 과학 도구상자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<script src="../../toolbox-nav.js"></script>
+<style>
+/* ============================================================
+   과학 도구상자 · 도구 공통 틀 v1.1
+   - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
+   - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
+   - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
+     도구만의 디자인은 "공통 틀 끝" 아래에 따로 적습니다.
+   ============================================================ */
+:root {
+  /* 분야 색: 물리 #1D4ED8 · 화학 #B45309 · 생명 #15803D · 지구 #78350F · 메이커 #BE123C · 공통 #57534E · 학급 #6D28D9 */
+  --cat: #6D28D9;   /* 학급 운영 */
+  --cat-soft: color-mix(in srgb, var(--cat) 9%, var(--sheet));
+
+  --paper:    #F6F2E7;
+  --sheet:    #FFFDF7;
+  --ink:      #24211D;
+  --graphite: #5C564E;
+  --hairline: #D9D1BF;
+  --rule:     rgba(64, 106, 168, 0.11);
+  --focus:    #1D4ED8;
+
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+  --radius: 4px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px));
+  background-size: 100% 2rem;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* 화면 폭: 홈페이지와 같은 1200px. 위쪽 여백은 "← 도구상자" 링크 자리 */
+.tb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.25rem 1.5rem 3rem;
+}
+
+/* ----- 머리말: 분야·학년·활동 → 제목 → 한 줄 설명 ----- */
+.tb-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+.tb-emblem {
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-top: .2rem;
+  border: 1.5px solid var(--ink);
+  border-top: 6px solid var(--cat);
+  border-radius: var(--radius);
+  background: var(--cat-soft);
+  color: var(--cat);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 28%, transparent);
+}
+.tb-emblem svg { width: 2.6rem; height: 2.6rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .9rem;
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.tb-meta .tb-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--cat);
+  font-weight: 700;
+}
+.tb-meta .tb-cat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-title {
+  margin: .15rem 0 .3rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.tb-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--graphite);
+  word-break: keep-all;
+}
+.tb-lead b, .tb-lead strong { color: var(--ink); }
+
+/* ----- 교사용 정보: 학생 화면에서는 접혀 있음 ----- */
+.tb-teacher {
+  margin: 0 0 1.25rem;
+  border: 1.5px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+.tb-teacher > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .8rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  list-style: none;
+}
+.tb-teacher > summary::-webkit-details-marker { display: none; }
+.tb-teacher > summary::before {
+  content: '';
+  width: .55rem; height: .55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .3s var(--ease);
+}
+.tb-teacher[open] > summary::before { transform: rotate(45deg); }
+.tb-teacher > summary .tb-hint { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.tb-teacher-body { max-width: 62rem; padding: 0 1rem 1rem; font-size: .95rem; word-break: keep-all; }
+.tb-teacher-body ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.tb-teacher-body li { margin-bottom: .4rem; }
+.tb-std {
+  display: inline-block;
+  padding: .05rem .5rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: 3px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
+
+/* ----- 도구 전체에 걸리는 조작(교사용 보기, 인쇄 등) 한 줄 ----- */
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+/* 켜고 끄는 스위치 — 홈페이지의 '교사용 정보' 스위치와 같은 모양 */
+.tb-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--graphite);
+  cursor: pointer;
+  user-select: none;
+}
+.tb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.tb-switch .tb-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 1.5px solid var(--graphite);
+  border-radius: 999px;
+  background: var(--sheet);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-switch .tb-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--graphite);
+  transition: transform .3s var(--ease), background-color .3s var(--ease);
+}
+.tb-switch input:checked + .tb-track { background: var(--ink); border-color: var(--ink); }
+.tb-switch input:checked + .tb-track::after { transform: translateX(16px); background: var(--paper); }
+.tb-switch:has(input:checked) { color: var(--ink); }
+.tb-switch input:focus-visible + .tb-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
+.tb-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--sheet);
+}
+.tb-tabs > button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: .98rem;
+  min-height: 44px;
+  padding: .5rem 1.1rem;
+  border: 0;
+  border-left: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease);
+}
+.tb-tabs > button:first-child { border-left: 0; }
+.tb-tabs > button:hover { background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
+.tb-tabs > button[aria-selected="true"],
+.tb-tabs > button.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+.tb-tabs > button:focus-visible { outline-offset: -4px; }
+
+/* ----- 실험 무대(그림·캔버스가 들어가는 틀) ----- */
+.tb-stage {
+  position: relative;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
+
+/* ----- 조작판(버튼·슬라이더가 모인 곳) ----- */
+.tb-panel {
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.tb-panel-title {
+  margin: 0 0 .7rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ----- 버튼 ----- */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sheet);
+  background: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-btn:hover { background: color-mix(in srgb, var(--cat) 82%, var(--ink)); }
+.tb-btn.ghost, .tb-btn--ghost {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.tb-btn.ghost:hover, .tb-btn--ghost:hover { background: var(--cat-soft); }
+.tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ----- 안내 상자 ----- */
+.tb-note {
+  margin: 0;
+  padding: .8rem 1rem;
+  background: var(--cat-soft);
+  border-left: 5px solid var(--cat);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: .97rem;
+  word-break: keep-all;
+}
+.tb-note b, .tb-note strong { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* ----- 출처 ----- */
+.tb-foot {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--graphite);
+}
+
+/* ----- 화면 크기별 ----- */
+@media (max-width: 640px) {
+  .tb-wrap { padding: 3.75rem 1rem 2.5rem; }
+  .tb-head { column-gap: .8rem; }
+  .tb-emblem { width: 3.3rem; height: 3.3rem; border-top-width: 5px; }
+  .tb-emblem svg { width: 2rem; height: 2rem; }
+  /* 휴대폰: 탭을 같은 폭으로 한 줄에 */
+  .tb-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .tb-tabs > button { padding: .4rem .35rem; font-size: .88rem; line-height: 1.3; word-break: keep-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print {
+  body { background: #fff; }
+  .tb-wrap { padding: 0; max-width: none; }
+  .tb-tabs, .tb-teacher, .tb-actions, .toolbox-back-link { display: none !important; }
+  .tb-stage { box-shadow: none; break-inside: avoid; }
+  .tb-emblem { box-shadow: none; }
+}
+/* ===== 공통 틀 끝 ===== */
+
+/* ===== 발표자 뽑기만의 디자인 ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 넓은 화면: 왼쪽 무대 + 오른쪽 설정 */
+.picker-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (min-width: 960px) {
+  .picker-layout { grid-template-columns: minmax(0, 1fr) 22rem; }
+}
+.col { display: grid; gap: 1rem; min-width: 0; }
+
+/* ----- 무대 ----- */
+.stage { padding: 1rem 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.stage-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.round-info { margin: 0; font-weight: 700; color: var(--graphite); font-size: .98rem; }
+.round-info b { color: var(--cat); font-variant-numeric: tabular-nums; }
+.class-label { font-family: var(--font-display); font-weight: 700; color: var(--ink); margin-right: .5rem; }
+
+.reels {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  gap: .8rem;
+  min-height: 11rem;
+  align-content: center;
+  --name-size: clamp(2.6rem, 9vw, 5.6rem);
+}
+.reels[data-count="2"] { --cols: 2; --name-size: clamp(1.9rem, 6vw, 4rem); }
+.reels[data-count="3"] { --cols: 3; --name-size: clamp(1.5rem, 4.6vw, 3.2rem); }
+.reels[data-count="4"] { --cols: 2; --name-size: clamp(1.6rem, 5vw, 3.2rem); }
+.reels[data-count="5"], .reels[data-count="6"] { --cols: 3; --name-size: clamp(1.3rem, 4vw, 2.7rem); }
+
+.reel-box { display: flex; flex-direction: column; align-items: center; gap: .35rem; min-width: 0; }
+.reel {
+  position: relative;
+  width: 100%;
+  height: calc(var(--name-size) * 1.75);
+  overflow: hidden;
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--paper);
+  transition: border-color .3s var(--ease), background-color .3s var(--ease), box-shadow .3s var(--ease);
+}
+/* 위아래가 살짝 흐려지는 창 */
+.reel::before, .reel::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 22%; z-index: 1; pointer-events: none;
+}
+.reel::before { top: 0; background: linear-gradient(var(--paper), transparent); }
+.reel::after  { bottom: 0; background: linear-gradient(transparent, var(--paper)); }
+.strip { will-change: transform; }
+.item {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 .4rem;
+  font-family: var(--font-display);
+  font-size: var(--name-size);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+.reel.idle .item { color: var(--hairline); }
+.reel.landed { border: 2.5px solid var(--cat); background: var(--cat-soft); box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 30%, transparent); }
+.reel.landed::before, .reel.landed::after { opacity: 0; }
+.reel.landed .item { color: color-mix(in srgb, var(--cat) 75%, var(--ink)); }
+.reel-tag {
+  min-height: 1.6rem;
+  font-size: .92rem; font-weight: 700; color: var(--graphite);
+  opacity: 0; transition: opacity .4s var(--ease);
+}
+.reel-box.show-tag .reel-tag { opacity: 1; color: var(--cat); }
+
+.stage-hint { margin: 0; text-align: center; color: var(--graphite); font-size: .95rem; word-break: keep-all; }
+.stage-hint kbd {
+  font: inherit; font-size: .85rem; font-weight: 700;
+  padding: .05rem .4rem; border: 1.5px solid var(--graphite); border-bottom-width: 3px; border-radius: 4px; background: var(--sheet);
+}
+
+.draw-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .8rem 1.2rem; }
+.draw-btn {
+  min-height: 60px; min-width: 13rem;
+  font-size: 1.25rem; padding: .7rem 1.6rem;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.draw-btn:active:not([disabled]) { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+.stepper { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; color: var(--graphite); }
+.stepper .lbl { margin-right: .25rem; }
+.stepper button {
+  width: 40px; height: 40px; font: inherit; font-size: 1.3rem; font-weight: 700;
+  border: 1.5px solid var(--ink); border-radius: var(--radius); background: var(--sheet); color: var(--ink); cursor: pointer;
+}
+.stepper button:hover:not([disabled]) { background: var(--cat-soft); }
+.stepper button[disabled] { opacity: .35; cursor: not-allowed; }
+.stepper output { min-width: 2.6rem; text-align: center; font-size: 1.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* 전체 화면(교실 TV) */
+.stage:fullscreen { background: var(--sheet); justify-content: center; padding: 3vh 4vw; gap: 3vh; }
+.stage:fullscreen .reels { --name-size: clamp(4rem, 13vw, 11rem); }
+.stage:fullscreen .reels[data-count="2"] { --name-size: clamp(3rem, 8vw, 7rem); }
+.stage:fullscreen .reels[data-count="3"] { --name-size: clamp(2.4rem, 6vw, 5.2rem); }
+.stage:fullscreen .reels[data-count="4"] { --name-size: clamp(2.4rem, 6.5vw, 5.2rem); }
+.stage:fullscreen .reels[data-count="5"], .stage:fullscreen .reels[data-count="6"] { --name-size: clamp(2rem, 5vw, 4.4rem); }
+.stage:fullscreen .round-info, .stage:fullscreen .stage-hint { font-size: 1.3rem; }
+
+/* ----- 학생 현황 칩 ----- */
+.legend { display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin: 0 0 .7rem; font-size: .9rem; color: var(--graphite); }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chips .empty { color: var(--graphite); font-size: .95rem; margin: 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  min-height: 40px; padding: .35rem .75rem;
+  font: inherit; font-size: .98rem; font-weight: 600;
+  color: var(--ink); background: var(--sheet);
+  border: 1.5px solid var(--hairline); border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+}
+.chip:hover { border-color: var(--ink); }
+.chip .mark { font-size: .82rem; font-weight: 700; }
+.chip.is-done { background: var(--cat-soft); border-color: color-mix(in srgb, var(--cat) 45%, var(--hairline)); color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+.chip.is-out { color: var(--graphite); background: color-mix(in srgb, var(--ink) 5%, var(--paper)); border-style: dashed; }
+.chip.is-out .nm { text-decoration: line-through; }
+.chip.is-new { border-color: var(--cat); border-width: 2.5px; }
+
+/* ----- 설정 칸 ----- */
+.field-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .7rem; }
+.field-row:last-child { margin-bottom: 0; }
+.tb-panel label.small { font-size: .9rem; font-weight: 600; color: var(--graphite); }
+select, input[type="text"], input[type="number"], textarea {
+  font: inherit; font-size: 1rem; color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--hairline); border-radius: var(--radius);
+  min-height: 42px; padding: .4rem .6rem;
+}
+select:focus, input:focus, textarea:focus { border-color: var(--ink); }
+select { flex: 1 1 8rem; min-width: 0; }
+#class-name { flex: 1 1 8rem; min-width: 0; }
+#fill-n { width: 5.2rem; }
+textarea { width: 100%; height: 10.5rem; line-height: 1.6; resize: vertical; }
+.hint { margin: .45rem 0 .7rem; font-size: .88rem; color: var(--graphite); word-break: keep-all; }
+.hint.warn { color: #9A3412; font-weight: 700; }
+.tb-btn.sm { min-height: 38px; padding: .35rem .75rem; font-size: .9rem; }
+.opt-list { display: grid; gap: .25rem; }
+.opt-desc { margin: -.25rem 0 .35rem 3.1rem; font-size: .85rem; color: var(--graphite); word-break: keep-all; }
+
+/* ----- 기록 ----- */
+.history { margin: 0 0 .8rem; padding: 0; list-style: none; max-height: 16rem; overflow: auto; border-top: 1px solid var(--hairline); }
+.history li { display: flex; align-items: baseline; gap: .6rem; padding: .4rem .2rem; border-bottom: 1px solid var(--hairline); font-size: .98rem; }
+.history .no { min-width: 2rem; color: var(--graphite); font-variant-numeric: tabular-nums; font-size: .88rem; }
+.history .nm { font-weight: 700; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.history .tm { color: var(--graphite); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.history .round-sep { display: block; padding: .35rem .2rem; font-size: .82rem; font-weight: 700; color: var(--cat); background: var(--cat-soft); border-bottom: 1px solid var(--hairline); }
+.history-empty { margin: 0 0 .8rem; color: var(--graphite); font-size: .95rem; }
+
+/* 알림 */
+.toast {
+  position: fixed; left: 50%; bottom: 1.5rem; z-index: 1000;
+  transform: translate(-50%, 40px); opacity: 0; pointer-events: none;
+  max-width: calc(100% - 2rem);
+  padding: .65rem 1.1rem; border-radius: var(--radius);
+  background: var(--ink); color: var(--paper); font-weight: 600; font-size: .95rem; text-align: center;
+  transition: transform .35s var(--ease), opacity .35s var(--ease);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+@media (max-width: 640px) {
+  .stage { padding: .8rem .75rem 1rem; }
+  .reels { min-height: 8rem; gap: .5rem; }
+  .reels[data-count="3"], .reels[data-count="5"], .reels[data-count="6"] { --cols: 2; --name-size: clamp(1.3rem, 6.5vw, 2.2rem); }
+  .draw-btn { width: 100%; min-width: 0; }
+}
+
+@media print {
+  .stage, .side-tools, .chips-panel .legend, .history-actions, .toast { display: none !important; }
+  .picker-layout { display: block; }
+  .tb-panel { border: 0; padding: 0; margin-top: 1rem; }
+  .history { max-height: none; overflow: visible; }
+  .chip { min-height: 0; border: 1px solid #999 !important; }
+}
+/* ===== 발표자 뽑기 디자인 끝 ===== */
+</style>
+</head>
+<body>
+<div class="tb-wrap">
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true">
+      <svg viewBox="0 0 48 48"><rect x="18" y="5" width="12" height="22" rx="6"/><path d="M12 21a12 12 0 0 0 24 0"/><path d="M24 33v8"/><path d="M17 42h14"/><path d="M38 8l2-3M41 13h3M8 8 6 5M7 13H4"/></svg>
+    </div>
+    <p class="tb-meta">
+      <span class="tb-cat"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.6 14.2A5 5 0 0 1 21 19"/></svg>학급 운영</span>
+      <span>전 학년</span><span>수업 운영</span>
+    </p>
+    <h1 class="tb-title">발표자 뽑기</h1>
+    <p class="tb-lead">명단을 한 번 넣어 두면 반별로 저장됩니다. <b>한 바퀴를 다 돌 때까지 같은 학생은 다시 뽑히지 않아</b> 골고루 발표할 수 있어요.</p>
+  </header>
+
+  <details class="tb-teacher">
+    <summary>교사용 안내 <span class="tb-hint">저장 방식 · 단축키 · 활용 팁</span></summary>
+    <div class="tb-teacher-body">
+      <ul>
+        <li><b>명단 저장 위치:</b> 학생 이름은 <b>이 컴퓨터의 이 브라우저 안에만</b> 저장되고 인터넷으로 보내지지 않습니다. 다른 컴퓨터에서는 명단을 다시 넣어야 합니다. 공용 PC라면 수업 뒤 [반 삭제]로 지워 주세요.</li>
+        <li><b>이름 대신 번호:</b> 이름을 쓰기 곤란하면 [번호로 채우기]로 "1번~28번" 명단을 바로 만들 수 있습니다.</li>
+        <li><b>결석·제외:</b> 아래 '학생 현황'에서 이름을 누르면 제외/포함이 바뀝니다. 제외된 학생은 뽑히지 않습니다.</li>
+        <li><b>단축키:</b> <kbd>Space</kbd> 또는 <kbd>Enter</kbd> 뽑기 · <kbd>F</kbd> 전체 화면 · <kbd>Z</kbd> 마지막 뽑기 취소 (글자 입력 칸 밖에서)</li>
+        <li><b>공정성:</b> 브라우저의 암호용 난수(crypto)로 뽑기 때문에 순서에 규칙이 생기지 않습니다. 연출은 결과가 정해진 뒤 보여 주기만 합니다.</li>
+        <li>교과 외 학급 운영 도구로, 연결된 성취기준은 없습니다.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="picker-layout">
+    <!-- 왼쪽: 무대 + 학생 현황 -->
+    <div class="col">
+      <section class="tb-stage stage" id="stage" aria-label="뽑기 화면">
+        <div class="stage-top">
+          <p class="round-info" id="round-info"><span class="class-label" id="stage-class">우리 반</span></p>
+          <button class="tb-btn ghost sm" id="fs-btn" type="button" aria-pressed="false">⛶ 전체 화면</button>
+        </div>
+        <div class="reels" id="reels" data-count="1"></div>
+        <p class="stage-hint" id="stage-hint"><kbd>Space</kbd> 또는 아래 버튼을 눌러 뽑으세요</p>
+        <div class="draw-row">
+          <div class="stepper" role="group" aria-label="한 번에 뽑을 인원">
+            <span class="lbl">뽑을 인원</span>
+            <button type="button" id="cnt-dec" aria-label="뽑을 인원 줄이기">−</button>
+            <output id="cnt-val" aria-live="polite">1명</output>
+            <button type="button" id="cnt-inc" aria-label="뽑을 인원 늘리기">+</button>
+          </div>
+          <button class="tb-btn draw-btn" id="draw-btn" type="button">🎤 발표자 뽑기</button>
+        </div>
+      </section>
+
+      <section class="tb-panel chips-panel" aria-labelledby="chips-title">
+        <h2 class="tb-panel-title" id="chips-title">학생 현황</h2>
+        <p class="legend"><span>✓ 이번 바퀴에 발표함</span><span>⊘ 제외(결석 등)</span><span>이름을 누르면 제외 ↔ 포함</span></p>
+        <div class="chips" id="chips"></div>
+      </section>
+    </div>
+
+    <!-- 오른쪽: 설정 -->
+    <div class="col side-tools">
+      <section class="tb-panel" aria-labelledby="roster-title">
+        <h2 class="tb-panel-title" id="roster-title">① 반과 명단</h2>
+        <div class="field-row">
+          <label class="sr-only" for="class-select">반 선택</label>
+          <select id="class-select"></select>
+          <button class="tb-btn ghost sm" id="class-add" type="button">+ 새 반</button>
+        </div>
+        <div class="field-row">
+          <label class="small" for="class-name">반 이름</label>
+          <input type="text" id="class-name" maxlength="20" autocomplete="off">
+          <button class="tb-btn ghost sm" id="class-del" type="button">반 삭제</button>
+        </div>
+        <label class="sr-only" for="roster">학생 명단</label>
+        <textarea id="roster" placeholder="한 줄에 한 명씩 입력하거나 붙여넣으세요.
+예)
+1 김민준
+2 이서연
+3 박도윤"></textarea>
+        <p class="hint" id="roster-hint">쉼표(,)로 구분해도 됩니다.</p>
+        <div class="field-row">
+          <button class="tb-btn sm" id="roster-apply" type="button">명단 적용</button>
+          <span aria-hidden="true" style="color:var(--hairline)">|</span>
+          <label class="sr-only" for="fill-n">학생 수</label>
+          <input type="number" id="fill-n" min="1" max="60" value="28" inputmode="numeric">
+          <button class="tb-btn ghost sm" id="fill-btn" type="button">번호로 채우기</button>
+        </div>
+      </section>
+
+      <section class="tb-panel" aria-labelledby="opt-title">
+        <h2 class="tb-panel-title" id="opt-title">② 뽑기 방식</h2>
+        <div class="opt-list">
+          <label class="tb-switch"><input type="checkbox" id="opt-norepeat"><span class="tb-track"></span>골고루 뽑기</label>
+          <p class="opt-desc">한 번 뽑힌 학생은 모두가 한 번씩 뽑힐 때까지 다시 나오지 않아요.</p>
+          <label class="tb-switch"><input type="checkbox" id="opt-anim"><span class="tb-track"></span>두근두근 연출</label>
+          <p class="opt-desc">끄면 결과가 바로 나타나요.</p>
+          <label class="tb-switch"><input type="checkbox" id="opt-sound"><span class="tb-track"></span>효과음</label>
+        </div>
+      </section>
+
+      <section class="tb-panel" aria-labelledby="hist-title">
+        <h2 class="tb-panel-title" id="hist-title">③ 발표 기록</h2>
+        <div id="history-wrap"></div>
+        <div class="field-row history-actions">
+          <button class="tb-btn ghost sm" id="undo-btn" type="button">↶ 마지막 뽑기 취소</button>
+          <button class="tb-btn ghost sm" id="copy-btn" type="button">기록 복사</button>
+          <button class="tb-btn ghost sm" id="newround-btn" type="button">새 바퀴 시작</button>
+          <button class="tb-btn ghost sm" id="clear-btn" type="button">기록 지우기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <p class="tb-foot">학급 운영용 도구 · 교과 외 활동(성취기준 없음) · 명단은 이 브라우저에만 저장됩니다.</p>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="sr-only" id="announcer" aria-live="assertive"></div>
+
+<script>
+/* ============================================================
+   발표자 뽑기
+   - 저장: localStorage 한 칸(randomPicker_v1)에 반별 명단·기록을 모아 둡니다.
+   - 뽑기: crypto 난수로 결과를 먼저 정하고, 연출은 그 결과를 보여 주기만 합니다.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  const STORE_KEY = 'randomPicker_v1';
+  const MAX_COUNT = 6;
+  const $ = (id) => document.getElementById(id);
+
+  // ── 저장소 ─────────────────────────────────────────
+  function newClass(name) {
+    return { name, roster: [], excluded: [], picked: [], round: 1, history: [], undo: null };
+  }
+  function defaultStore() {
+    return { current: 'c1', classes: { c1: newClass('우리 반') },
+             opts: { noRepeat: true, anim: true, sound: false, count: 1 } };
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return defaultStore();
+      const s = JSON.parse(raw);
+      if (!s || !s.classes || !s.classes[s.current]) return defaultStore();
+      s.opts = Object.assign(defaultStore().opts, s.opts || {});
+      return s;
+    } catch (e) { return defaultStore(); }
+  }
+  let store = load();
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {} }
+  const cls = () => store.classes[store.current];
+
+  // ── 난수: 암호용 난수로 0 ≤ n < max 정수 ──────────────
+  function randInt(max) {
+    if (window.crypto && crypto.getRandomValues) {
+      const limit = Math.floor(0x100000000 / max) * max;   // 치우침 방지
+      const buf = new Uint32Array(1);
+      do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+      return buf[0] % max;
+    }
+    return Math.floor(Math.random() * max);
+  }
+
+  // ── 명단 계산 ──────────────────────────────────────
+  const active = () => cls().roster.filter(n => !cls().excluded.includes(n));
+  const remaining = () => active().filter(n => !cls().picked.includes(n));
+
+  function parseRoster(text) {
+    const seen = {};
+    return text.split(/[\n,\t]+/).map(s => s.trim()).filter(Boolean).map(n => {
+      seen[n] = (seen[n] || 0) + 1;
+      return seen[n] > 1 ? `${n} (${seen[n]})` : n;   // 같은 이름은 (2)를 붙여 구분
+    });
+  }
+
+  // ── 화면 요소 ──────────────────────────────────────
+  const reelsEl = $('reels'), drawBtn = $('draw-btn'), stageEl = $('stage');
+  const rosterEl = $('roster'), rosterHint = $('roster-hint');
+  let drawing = false;
+  let lastWinners = [];
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function announce(msg) { const a = $('announcer'); a.textContent = ''; setTimeout(() => { a.textContent = msg; }, 50); }
+
+  // ── 그리기 ─────────────────────────────────────────
+  function renderClassSelect() {
+    const sel = $('class-select');
+    sel.innerHTML = '';
+    Object.keys(store.classes).forEach(id => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = store.classes[id].name;
+      if (id === store.current) o.selected = true;
+      sel.appendChild(o);
+    });
+    $('class-name').value = cls().name;
+    $('class-del').disabled = Object.keys(store.classes).length <= 1 && cls().roster.length === 0;
+  }
+
+  function renderRoundInfo() {
+    const c = cls(), act = active().length, rem = remaining().length;
+    const info = $('round-info');
+    const label = `<span class="class-label">${esc(c.name)}</span>`;
+    if (!c.roster.length) { info.innerHTML = label + '명단을 먼저 넣어 주세요'; return; }
+    if (store.opts.noRepeat) {
+      info.innerHTML = label + `<b>${c.round}</b>바퀴째 · 남은 학생 <b>${rem}</b> / ${act}명`;
+    } else {
+      info.innerHTML = label + `뽑을 수 있는 학생 <b>${act}</b>명`;
+    }
+  }
+
+  function renderChips() {
+    const box = $('chips'), c = cls();
+    box.innerHTML = '';
+    if (!c.roster.length) { box.innerHTML = '<p class="empty">오른쪽 ① 칸에 명단을 넣으면 여기에 학생이 나타납니다.</p>'; return; }
+    c.roster.forEach(n => {
+      const out = c.excluded.includes(n), done = c.picked.includes(n);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (out ? ' is-out' : done ? ' is-done' : '') + (lastWinners.includes(n) ? ' is-new' : '');
+      b.setAttribute('aria-pressed', out ? 'true' : 'false');
+      b.title = out ? '눌러서 다시 포함' : '눌러서 제외(결석 등)';
+      const mark = out ? '⊘' : done ? '✓' : '';
+      const sr = out ? ' (제외됨)' : done ? ' (발표함)' : '';
+      b.innerHTML = (mark ? `<span class="mark" aria-hidden="true">${mark}</span>` : '') +
+                    `<span class="nm">${esc(n)}</span><span class="sr-only">${sr}</span>`;
+      b.addEventListener('click', () => {
+        if (drawing) return;
+        if (out) c.excluded = c.excluded.filter(x => x !== n); else c.excluded.push(n);
+        save(); renderAll(false);
+        toast(out ? `${n} 학생을 다시 포함했어요.` : `${n} 학생을 제외했어요.`);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function fmtTime(ts) {
+    const d = new Date(ts);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function renderHistory() {
+    const wrap = $('history-wrap'), h = cls().history;
+    if (!h.length) { wrap.innerHTML = '<p class="history-empty">아직 뽑은 기록이 없어요.</p>'; return; }
+    const ol = document.createElement('ol');
+    ol.className = 'history';
+    let prevRound = null;
+    // 최근 것이 위로
+    for (let i = h.length - 1; i >= 0; i--) {
+      const e = h[i];
+      if (store.opts.noRepeat && e.round !== prevRound) {
+        const sep = document.createElement('li');
+        sep.className = 'round-sep'; sep.textContent = `${e.round}바퀴째`;
+        ol.appendChild(sep); prevRound = e.round;
+      }
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="no">${i + 1}.</span><span class="nm">${esc(e.name)}</span><span class="tm">${fmtTime(e.t)}</span>`;
+      ol.appendChild(li);
+    }
+    wrap.innerHTML = '';
+    wrap.appendChild(ol);
+  }
+
+  function renderCount() {
+    const max = Math.max(1, Math.min(MAX_COUNT, active().length || 1));
+    if (store.opts.count > max) store.opts.count = max;
+    $('cnt-val').textContent = store.opts.count + '명';
+    $('cnt-dec').disabled = store.opts.count <= 1;
+    $('cnt-inc').disabled = store.opts.count >= max;
+  }
+
+  function renderIdleReels() {
+    const k = lastWinners.length || 1;
+    reelsEl.dataset.count = k;
+    reelsEl.innerHTML = '';
+    if (lastWinners.length) {
+      lastWinners.forEach((w, i) => reelsEl.appendChild(makeReel([w], i, k, true)));
+    } else {
+      reelsEl.appendChild(makeReel(['?'], 0, 1, false, true));
+    }
+  }
+
+  function renderButtons() {
+    const c = cls();
+    drawBtn.disabled = drawing || active().length === 0;
+    $('undo-btn').disabled = drawing || !c.undo;
+    $('copy-btn').disabled = !c.history.length;
+    $('clear-btn').disabled = drawing || !c.history.length;
+    $('newround-btn').disabled = drawing || !store.opts.noRepeat || !c.picked.length;
+    $('newround-btn').hidden = !store.opts.noRepeat;
+  }
+
+  function renderRosterHint() {
+    const changed = rosterEl.value.trim() !== cls().roster.join('\n');
+    if (changed) {
+      rosterHint.textContent = `입력한 ${parseRoster(rosterEl.value).length}명 — [명단 적용]을 눌러야 반영됩니다.`;
+      rosterHint.classList.add('warn');
+    } else {
+      rosterHint.textContent = cls().roster.length ? `저장된 명단 ${cls().roster.length}명` : '쉼표(,)로 구분해도 됩니다.';
+      rosterHint.classList.remove('warn');
+    }
+  }
+
+  function renderAll(withReels = true) {
+    renderClassSelect();
+    renderRoundInfo();
+    renderChips();
+    renderHistory();
+    renderCount();
+    renderButtons();
+    renderRosterHint();
+    if (withReels) renderIdleReels();
+    $('opt-norepeat').checked = store.opts.noRepeat;
+    $('opt-anim').checked = store.opts.anim;
+    $('opt-sound').checked = store.opts.sound;
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+
+  // ── 릴(이름이 굴러가는 창) ───────────────────────────
+  function makeReel(names, i, k, landed, idle) {
+    const box = document.createElement('div');
+    box.className = 'reel-box' + (landed ? ' show-tag' : '');
+    const reel = document.createElement('div');
+    reel.className = 'reel' + (landed ? ' landed' : '') + (idle ? ' idle' : '');
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    names.forEach(n => {
+      const it = document.createElement('div');
+      it.className = 'item'; it.textContent = n;
+      strip.appendChild(it);
+    });
+    reel.appendChild(strip);
+    const tag = document.createElement('div');
+    tag.className = 'reel-tag';
+    tag.textContent = k > 1 ? `★ ${i + 1}번째 발표` : '★ 발표자';
+    box.appendChild(reel); box.appendChild(tag);
+    return box;
+  }
+
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function animateReels(winners, pool) {
+    const k = winners.length;
+    reelsEl.dataset.count = k;
+    reelsEl.innerHTML = '';
+    const doAnim = store.opts.anim && !reduceMotion() && pool.length > 1;
+
+    const jobs = winners.map((w, i) => {
+      let names = [w];
+      if (doAnim) {
+        // 굴러갈 이름 줄: 무작위 이름들 … 마지막이 당첨자
+        const len = 26 + i * 7;
+        names = [];
+        let prev = null;
+        for (let j = 0; j < len - 1; j++) {
+          let n;
+          do { n = pool[randInt(pool.length)]; } while (pool.length > 2 && (n === prev || (j === len - 2 && n === w)));
+          names.push(n); prev = n;
+        }
+        names.push(w);
+      }
+      const box = makeReel(names, i, k, !doAnim);
+      reelsEl.appendChild(box);
+      if (!doAnim) return Promise.resolve();
+
+      const reel = box.querySelector('.reel'), strip = box.querySelector('.strip');
+      const h = reel.clientHeight;
+      strip.querySelectorAll('.item').forEach(it => { it.style.height = h + 'px'; });
+      const dur = 2600 + i * 650;
+
+      return new Promise(resolve => {
+        let finished = false;
+        const done = () => {
+          if (finished) return; finished = true;
+          reel.classList.add('landed'); box.classList.add('show-tag');
+          playDing(i);
+          resolve();
+        };
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          strip.style.transition = `transform ${dur}ms cubic-bezier(.12,.72,.16,1)`;
+          strip.style.transform = `translateY(-${(names.length - 1) * h}px)`;
+          if (i === 0) tickWhileMoving(strip, h, dur);
+        }));
+        strip.addEventListener('transitionend', done, { once: true });
+        setTimeout(done, dur + 300);   // 탭이 숨겨져 transitionend가 안 올 때 대비
+      });
+    });
+    return Promise.all(jobs);
+  }
+
+  // ── 효과음(Web Audio, 파일 없이 합성) ────────────────
+  let actx = null;
+  function audio() {
+    if (!store.opts.sound) return null;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      return actx;
+    } catch (e) { return null; }
+  }
+  function beep(freq, len, vol, type) {
+    const a = audio(); if (!a) return;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + len);
+    o.connect(g); g.connect(a.destination);
+    o.start(); o.stop(a.currentTime + len + 0.02);
+  }
+  function tickWhileMoving(strip, h, dur) {
+    if (!store.opts.sound) return;
+    const start = performance.now();
+    let last = 0;
+    (function loop(now) {
+      const m = new DOMMatrixReadOnly(getComputedStyle(strip).transform);
+      const idx = Math.floor(-m.m42 / h);
+      if (idx !== last) { last = idx; beep(1100, 0.03, 0.04); }
+      if (now - start < dur) requestAnimationFrame(loop);
+    })(start);
+  }
+  function playDing(i) {
+    if (!store.opts.sound) return;
+    beep(880 + i * 60, 0.25, 0.08, 'triangle');
+    setTimeout(() => beep(1320 + i * 60, 0.35, 0.06, 'triangle'), 110);
+  }
+
+  // ── 뽑기 ──────────────────────────────────────────
+  async function draw() {
+    if (drawing) return;
+    const c = cls();
+    const act = active();
+    if (!act.length) { toast(c.roster.length ? '모두 제외되어 뽑을 학생이 없어요.' : '먼저 명단을 넣어 주세요.'); rosterEl.focus(); return; }
+
+    const k = Math.min(store.opts.count, act.length);
+    const winners = [];
+    let newRoundAt = -1;
+    let pool = store.opts.noRepeat ? act.filter(n => !c.picked.includes(n)) : act.slice();
+
+    while (winners.length < k) {
+      if (!pool.length) {
+        if (!store.opts.noRepeat || newRoundAt >= 0) break;
+        newRoundAt = winners.length;                       // 이 자리부터 새 바퀴
+        pool = act.filter(n => !winners.includes(n));
+        if (!pool.length) break;
+      }
+      winners.push(pool.splice(randInt(pool.length), 1)[0]);
+    }
+
+    // 되돌리기용 저장
+    c.undo = { picked: c.picked.slice(), round: c.round, historyLen: c.history.length };
+
+    drawing = true;
+    lastWinners = [];
+    renderButtons();
+    $('stage-hint').textContent = '두근두근…';
+    audio();   // 사용자 동작 안에서 소리 장치를 깨워 둠
+
+    await animateReels(winners, act);
+
+    // 결과 기록
+    const now = Date.now();
+    if (store.opts.noRepeat) {
+      if (newRoundAt >= 0) {
+        winners.slice(0, newRoundAt).forEach(n => c.history.push({ name: n, t: now, round: c.round }));
+        c.round += 1;
+        c.picked = winners.slice(newRoundAt);
+        c.picked.forEach(n => c.history.push({ name: n, t: now, round: c.round }));
+      } else {
+        c.picked.push(...winners);
+        winners.forEach(n => c.history.push({ name: n, t: now, round: c.round }));
+      }
+    } else {
+      winners.forEach(n => c.history.push({ name: n, t: now, round: c.round }));
+    }
+    if (c.history.length > 500) c.history = c.history.slice(-500);
+
+    lastWinners = winners.slice();
+    drawing = false;
+    save();
+    renderAll(false);
+
+    const msg = `발표자: ${winners.join(', ')}`;
+    announce(msg);
+    let hint = winners.length > 1 ? `${winners.length}명을 뽑았어요` : `${winners[0]} 학생, 발표해 주세요!`;
+    if (newRoundAt >= 0) toast(`모두 한 번씩 뽑혀서 ${c.round}바퀴째를 시작했어요.`);
+    else if (store.opts.noRepeat && remaining().length === 0) {
+      hint += ' · 모든 학생이 한 번씩 뽑혔어요';
+      toast('모든 학생이 한 번씩 뽑혔어요. 다음 뽑기부터 새 바퀴입니다.');
+    }
+    $('stage-hint').textContent = hint;
+    drawBtn.focus({ preventScroll: true });
+  }
+
+  // ── 이벤트 연결 ────────────────────────────────────
+  drawBtn.addEventListener('click', draw);
+
+  $('cnt-dec').addEventListener('click', () => { store.opts.count = Math.max(1, store.opts.count - 1); save(); renderCount(); });
+  $('cnt-inc').addEventListener('click', () => { store.opts.count = Math.min(MAX_COUNT, store.opts.count + 1); save(); renderCount(); });
+
+  $('roster-apply').addEventListener('click', () => {
+    const c = cls();
+    const list = parseRoster(rosterEl.value);
+    c.roster = list;
+    c.excluded = c.excluded.filter(n => list.includes(n));
+    c.picked = c.picked.filter(n => list.includes(n));
+    c.undo = null;
+    lastWinners = lastWinners.filter(n => list.includes(n));
+    rosterEl.value = list.join('\n');
+    save(); renderAll();
+    toast(list.length ? `명단 ${list.length}명을 저장했어요.` : '명단을 비웠어요.');
+  });
+  rosterEl.addEventListener('input', renderRosterHint);
+
+  $('fill-btn').addEventListener('click', () => {
+    const n = Math.max(1, Math.min(60, parseInt($('fill-n').value, 10) || 0));
+    if (cls().roster.length && !confirm(`지금 명단을 1번~${n}번으로 바꿀까요?`)) return;
+    rosterEl.value = Array.from({ length: n }, (_, i) => `${i + 1}번`).join('\n');
+    $('roster-apply').click();
+  });
+
+  $('class-select').addEventListener('change', e => {
+    store.current = e.target.value; lastWinners = [];
+    rosterEl.value = cls().roster.join('\n');
+    save(); renderAll();
+    $('stage-hint').innerHTML = '<kbd>Space</kbd> 또는 아래 버튼을 눌러 뽑으세요';
+  });
+  $('class-add').addEventListener('click', () => {
+    const id = 'c' + Date.now();
+    store.classes[id] = newClass(`새 반 ${Object.keys(store.classes).length + 1}`);
+    store.current = id; lastWinners = [];
+    rosterEl.value = '';
+    save(); renderAll();
+    $('class-name').focus(); $('class-name').select();
+    toast('새 반을 만들었어요. 반 이름과 명단을 넣어 주세요.');
+  });
+  $('class-name').addEventListener('change', e => {
+    const v = e.target.value.trim();
+    if (!v) { e.target.value = cls().name; return; }
+    cls().name = v; save(); renderClassSelect(); renderRoundInfo();
+  });
+  $('class-del').addEventListener('click', () => {
+    if (!confirm(`'${cls().name}'의 명단과 기록을 모두 지울까요?`)) return;
+    delete store.classes[store.current];
+    const ids = Object.keys(store.classes);
+    if (!ids.length) { store.classes.c1 = newClass('우리 반'); store.current = 'c1'; }
+    else store.current = ids[0];
+    lastWinners = [];
+    rosterEl.value = cls().roster.join('\n');
+    save(); renderAll();
+    toast('반을 삭제했어요.');
+  });
+
+  $('opt-norepeat').addEventListener('change', e => { store.opts.noRepeat = e.target.checked; save(); renderAll(false); });
+  $('opt-anim').addEventListener('change', e => { store.opts.anim = e.target.checked; save(); });
+  $('opt-sound').addEventListener('change', e => { store.opts.sound = e.target.checked; save(); if (e.target.checked) beep(1100, 0.05, 0.05); });
+
+  $('undo-btn').addEventListener('click', undo);
+  function undo() {
+    const c = cls();
+    if (!c.undo || drawing) return;
+    const removed = c.history.slice(c.undo.historyLen).map(e => e.name);
+    c.picked = c.undo.picked; c.round = c.undo.round;
+    c.history = c.history.slice(0, c.undo.historyLen);
+    c.undo = null; lastWinners = [];
+    save(); renderAll();
+    $('stage-hint').innerHTML = '<kbd>Space</kbd> 또는 아래 버튼을 눌러 뽑으세요';
+    toast(removed.length ? `${removed.join(', ')} 뽑기를 취소했어요.` : '취소했어요.');
+  }
+
+  $('copy-btn').addEventListener('click', () => {
+    const c = cls();
+    const d = new Date();
+    const head = `[${c.name}] 발표 기록 (${d.getMonth() + 1}/${d.getDate()})`;
+    const text = head + '\n' + c.history.map((e, i) => `${i + 1}. ${e.name} (${fmtTime(e.t)})`).join('\n');
+    const ok = () => toast('기록을 복사했어요. 붙여넣기 하세요.');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok).catch(() => fallbackCopy(text, ok));
+    } else fallbackCopy(text, ok);
+  });
+  function fallbackCopy(text, ok) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok(); } catch (e) { toast('복사하지 못했어요.'); }
+    ta.remove();
+  }
+  $('newround-btn').addEventListener('click', () => {
+    const c = cls();
+    if (!confirm('아직 안 뽑힌 학생이 있어도 모두 다시 뽑힐 수 있게 할까요?')) return;
+    c.undo = null; c.picked = []; c.round += 1; lastWinners = [];
+    save(); renderAll();
+    toast(`${c.round}바퀴째를 시작했어요.`);
+  });
+  $('clear-btn').addEventListener('click', () => {
+    const c = cls();
+    if (!confirm(`'${c.name}'의 발표 기록을 모두 지울까요? (명단은 그대로)`)) return;
+    c.history = []; c.picked = []; c.round = 1; c.undo = null; lastWinners = [];
+    save(); renderAll();
+    toast('기록을 지웠어요.');
+  });
+
+  // 전체 화면
+  const fsBtn = $('fs-btn');
+  function toggleFs() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (stageEl.requestFullscreen) stageEl.requestFullscreen().catch(() => toast('이 브라우저에서는 전체 화면을 쓸 수 없어요.'));
+  }
+  fsBtn.addEventListener('click', toggleFs);
+  document.addEventListener('fullscreenchange', () => {
+    const on = !!document.fullscreenElement;
+    fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    fsBtn.textContent = on ? '✕ 전체 화면 끄기' : '⛶ 전체 화면';
+    if (!drawing) renderIdleReels();   // 글자 크기에 맞게 다시 그림
+  });
+  if (!stageEl.requestFullscreen) fsBtn.hidden = true;
+
+  // 단축키 (입력 칸·버튼 위에서는 동작하지 않음)
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    const tag = t && t.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    if (tag === 'BUTTON' || tag === 'SUMMARY' || tag === 'A') {
+      // 버튼에 초점이 있을 때 Space/Enter는 그 버튼의 기본 동작
+      if (e.key === ' ' || e.key === 'Enter') return;
+    }
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); draw(); }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'ㄹ') { e.preventDefault(); toggleFs(); }
+    else if (e.key === 'z' || e.key === 'Z' || e.key === 'ㅋ') { e.preventDefault(); undo(); }
+  });
+
+  // 시작
+  rosterEl.value = cls().roster.join('\n');
+  renderAll();
+})();
+</script>
+</body>
+</html>
