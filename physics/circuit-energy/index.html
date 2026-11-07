@@ -399,6 +399,7 @@ canvas { display: block; width: 100%; height: auto; }
     <p style="margin:6px 0"><span class="tb-std">[9과14-02]</span> 관련 — 전기 회로에서 전지가 전자에 에너지를 주고, 전구에서 그 에너지가 빛과 열로 바뀌는 흐름을 <b>전자의 전기적 위치 에너지 높낮이</b>로 보여 주는 개념 정리용 시각 자료입니다. 교실 TV에 띄워 장면을 하나씩 넘기며 쓰도록 만들었습니다.</p>
     <ul>
       <li><b>장면 구성</b> — 1 전선 속 전자(스위치 열림) · 2 스위치를 닫으면 모든 전자가 동시에 움직임 · 3 전지가 전자를 들어 올림 · 4 전선에서는 에너지가 거의 그대로 · 5 전구에서 빛·열로 내놓음 · 6 다시 전지로 · 7 정리(높이 차 = 전압). 장면마다 '생각해 보기' 질문이 있어, 넘기기 전에 예상을 먼저 받을 수 있습니다.</li>
+      <li><b>스위치가 열려 있을 때의 그래프</b> — 전류가 흐르지 않으면 전구 양쪽의 높이는 같고, 전지가 만든 높이 차는 모두 <b>끊어진 스위치 양쪽</b>에 걸립니다. 그래서 (−)극에서 스위치까지는 높음, 스위치에서 전구를 거쳐 (+)극까지는 낮음으로 그렸습니다. 열린 스위치 양 끝에 전압계를 대면 전지 전압이 그대로 나오고, 전구 양 끝에서는 0이 나오는 것과 같은 까닭입니다. 스위치를 닫으면 이 높이 차가 전구로 옮겨 갑니다.</li>
       <li><b>그림에서 지킨 약속</b> — 전자는 회로의 어느 곳에서나 <b>같은 빠르기, 같은 간격</b>으로 움직입니다. 전구를 지나도 전자가 줄거나 느려지지 않고, 줄어드는 것은 위치 에너지(색과 높이)뿐입니다.</li>
       <li><b>자주 나오는 오개념</b> — "전구에서 전자가 쓰여 없어진다"(개수는 그대로, 에너지만 넘겨줌), "전자는 전지에서 출발해 전구까지 달려간다"(전선 속에 원래 있던 전자가 한꺼번에 움직임, 실제 이동은 1초에 1 mm보다 느림), "전구를 지나면 전자가 느려진다 또는 빨라진다"(빠르기는 그대로).</li>
       <li><b>비유를 쓸 때 주의</b> — 미끄럼틀 비유는 내려가며 빨라지는 모습 때문에 "전구를 지나면 전자가 빨라진다"는 생각을 만들 수 있습니다. "리프트로 올라가 짐을 내려놓고 걸어 내려온다"처럼 빠르기가 그대로인 비유가 더 안전합니다.</li>
@@ -478,7 +479,7 @@ var N=56, BASE=0.035;
 var FONT="Pretendard, -apple-system, 'Malgun Gothic', sans-serif";
 var C={ink:"#24211D",graphite:"#5C564E",hair:"#D9D1BF",sheet:"#FFFDF7",cat:"#1D4ED8",
   wire:"#3F4A57",wireIn:"#B87333",current:"#C2410C",hl:"#F59E0B",glass:"#6F98B2",heat:"#DC2626"};
-var COL_LO=[29,78,216], COL_HI=[234,179,8], COL_GRAY=[128,134,144];
+var COL_LO=[29,78,216], COL_HI=[234,179,8];
 var DPR=Math.min(window.devicePixelRatio||1,2);
 var REDUCE=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -516,15 +517,28 @@ function eFull(s){
 }
 function mix(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
 function rgb(c,al){return "rgba("+(c[0]|0)+","+(c[1]|0)+","+(c[2]|0)+","+(al==null?1:al)+")";}
-function tOf(s){return (eFull(s)-LO)/(HI-LO);}
-function colorAt(s,k){return mix(COL_GRAY,mix(COL_LO,COL_HI,tOf(s)),k);}
+/* 스위치가 열려 있을 때: 전류가 없으니 전구 양쪽은 높이가 같고,
+   전지가 만든 높이 차는 모두 끊어진 스위치 양쪽에 걸린다.
+   (−)극 ~ 스위치 왼쪽: 높음 / 스위치 오른쪽 ~ 전구 ~ (+)극: 낮음 */
+var SW0=(140+70+80)/TOTAL, SW1=(140+70+130)/TOTAL;
+function inGap(s){s=frac(s);return s>SW0&&s<SW1;}
+function eOpen(s){
+  s=frac(s);
+  if(s<R[0][1]) return LO+(HI-LO)*(s/R[0][1]);
+  if(s<=SW0) return HI;
+  if(s<SW1) return HI-(HI-LO)*((s-SW0)/(SW1-SW0));
+  return LO;
+}
+function eNow(s){var o=eOpen(s);return o+(eFull(s)-o)*k;}
+function tOf(s){return Math.max(0,Math.min(1,(eNow(s)-LO)/(HI-LO)));}
+function colorAt(s){return mix(COL_LO,COL_HI,tOf(s));}
 
 var SCENES=[
  {tab:"1 전선 속 전자", t:"전선 속에는 처음부터 전자가 가득해요",
-  b:"스위치를 닫기 전에도 전선(금속) 속에는 움직일 수 있는 전자가 이미 꽉 차 있어요. 지금은 한쪽으로 흐르지 않고 제자리에서 흔들리기만 해요.",
+  b:"전선(금속) 속에는 움직일 수 있는 전자가 처음부터 꽉 차 있어요. 전지는 이미 (−)극 쪽 전자를 높은 곳에, (+)극 쪽 전자를 낮은 곳에 두고 있지만, 스위치가 끊겨 있어서 전자는 흐르지 못하고 제자리에서 흔들리기만 해요.",
   q:"전구를 켜는 전자는 전지 안에서 나오는 걸까요?", k:0, sp:0, hl:[], sw:false},
  {tab:"2 스위치 닫기", t:"스위치를 닫으면 모든 전자가 한꺼번에 움직여요",
-  b:"전지에서 나온 전자가 전구까지 달려가는 게 아니에요. 회로 전체의 전자가 동시에 밀리기 시작하므로, 전구는 스위치를 닫자마자 켜져요.",
+  b:"전지에서 나온 전자가 전구까지 달려가는 게 아니에요. 회로 전체의 전자가 동시에 밀리기 시작하고, 스위치에 걸려 있던 높이 차가 전구 쪽으로 옮겨 가요. 그래서 전구는 스위치를 닫자마자 켜져요.",
   q:"전자는 아주 느리게 움직이는데, 전구는 왜 바로 켜질까요?", k:1, sp:1, hl:[], sw:true},
  {tab:"3 전지", t:"전지: 전자를 높은 곳으로 들어 올려요",
   b:"전지는 (+)극으로 들어온 전자를 (−)극 쪽으로 들어 올려 전기적 위치 에너지를 높여 줘요. 이 에너지는 전지 속 화학 에너지에서 나와요.",
@@ -622,12 +636,12 @@ function jitter(i){
   return [Math.sin(clock*7.3+i*2.1)*a, Math.cos(clock*6.1+i*1.7)*a];
 }
 function drawElectron(ctx,x,y,r,s,alpha){
-  var col=colorAt(s,k);
+  var col=colorAt(s);
   ctx.globalAlpha=alpha;
   ctx.fillStyle=rgb(col); ctx.strokeStyle=rgb(mix(col,[20,20,30],0.55)); ctx.lineWidth=1.4;
   ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
   if(r>5){
-    ctx.strokeStyle=(tOf(s)*k>0.55)?C.ink:"#ffffff"; ctx.lineWidth=Math.max(1.5,r*0.28); ctx.lineCap="round";
+    ctx.strokeStyle=(tOf(s)>0.55)?C.ink:"#ffffff"; ctx.lineWidth=Math.max(1.5,r*0.28); ctx.lineCap="round";
     ctx.beginPath();ctx.moveTo(x-r*0.45,y);ctx.lineTo(x+r*0.45,y);ctx.stroke();
   }
   ctx.globalAlpha=1;
@@ -748,7 +762,7 @@ function drawCircuit(){
 var X0=80, X1=575, YT=70, YB=330;
 function xOf(s){return X0+s*(X1-X0);}
 function yOf(e){return YB-e*(YB-YT);}
-function eAt(s){return MID+(eFull(s)-MID)*k;}
+function eAt(s){return eNow(s);}
 function drawProfile(){
   var ctx=c2, s=SCENES[scene];
   ctx.clearRect(0,0,W,H);
@@ -771,13 +785,16 @@ function drawProfile(){
   ctx.save();ctx.translate(18,195);ctx.rotate(-Math.PI/2);font(ctx,14,600);ctx.textAlign="center";ctx.fillText("전자의 전기적 위치 에너지",0,0);ctx.restore();
 
   // 트랙
-  var trackA=0.3+0.7*k;
+  var trackA=1;
   ctx.lineCap="round";ctx.lineWidth=7;
   for(var i=0;i<300;i++){
     var sa=i/300, sb=(i+1)/300;
-    ctx.strokeStyle=rgb(colorAt((sa+sb)/2,k),trackA*0.45);
+    var gap=sw<0.5&&inGap((sa+sb)/2);
+    ctx.setLineDash(gap?[3,5]:[]);ctx.lineWidth=gap?2.5:7;
+    ctx.strokeStyle=gap?"rgba(92,86,78,0.7)":rgb(colorAt((sa+sb)/2),trackA*0.45);
     ctx.beginPath();ctx.moveTo(xOf(sa),yOf(eAt(sa)));ctx.lineTo(xOf(sb),yOf(eAt(sb)));ctx.stroke();
   }
+  ctx.setLineDash([]);ctx.lineWidth=7;
   // 되돌아가는 화살표
   ctx.save();ctx.globalAlpha=0.35+0.65*k;
   ctx.setLineDash([6,6]);ctx.strokeStyle=C.graphite;ctx.lineWidth=2;
@@ -807,17 +824,21 @@ function drawProfile(){
   var tracked=null;
   for(var n=0;n<N;n++){
     var sp=electronPos(n), j=jitter(n);
+    if(sw<0.5&&inGap(sp)) continue;
     var x=xOf(sp)+j[0], y=yOf(eAt(sp))-7+j[1]*0.5;
-    drawElectron(ctx,x,y,4.4,sp,(sp<R[0][1]?0.65:1)*(0.4+0.6*k));
+    drawElectron(ctx,x,y,4.4,sp,sp<R[0][1]?0.65:1);
     if(n===0) tracked={x:x,y:y};
   }
   if(follow&&tracked){ctx.strokeStyle=C.hl;ctx.lineWidth=3;ctx.beginPath();ctx.arc(tracked.x,tracked.y,9.5,0,Math.PI*2);ctx.stroke();}
 
   if(k<0.05){
-    ctx.fillStyle="rgba(255,253,247,0.88)";rr(ctx,120,162,420,66,6);ctx.fill();
+    var gx=xOf((SW0+SW1)/2);
+    label(ctx,"← 높이 차가 끊긴 스위치에 걸려 있어요",gx+14,yOf(MID),C.ink,15,"left");
+    label(ctx,"스위치",gx,yOf(HI)-26,C.graphite,14);
+    ctx.fillStyle="rgba(255,253,247,0.92)";rr(ctx,160,318,340,36,6);ctx.fill();
     ctx.strokeStyle=C.hair;ctx.lineWidth=1.5;ctx.stroke();
-    font(ctx,17,700);ctx.fillStyle=C.ink;ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText("스위치를 닫으면 에너지의 높낮이가 생겨요",330,196);
+    font(ctx,16,700);ctx.fillStyle=C.ink;ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("스위치가 열려 있어 전자가 흐르지 못해요",330,337);
   }
 }
 function draw(){drawCircuit();drawProfile();}
