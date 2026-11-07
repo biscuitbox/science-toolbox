@@ -1018,7 +1018,6 @@ function draw1(){
    ========================================================= */
 var G1 = {cv: $("g1"), LH: 320};
 var G2 = {cv: $("g2"), LH: 380};
-var YSTEPS = [[0.1, 0.02], [0.2, 0.05], [0.4, 0.1], [0.6, 0.1], [0.8, 0.2], [1.0, 0.2]];
 function fitK(arr){   /* 원점을 지나는 직선 I = kV 의 기울기 k (최소제곱) */
   var sxy = 0, sxx = 0;
   arr.forEach(function(p){ if (p.V > 0.05){ sxy += p.V * p.I; sxx += p.V * p.V; } });
@@ -1037,12 +1036,10 @@ function drawGraph(G, opt){
   ctx.clearRect(0, 0, LW, H); ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, H);
   var m = {l: 70, r: 18, t: 16, b: 50};
   var x0 = m.l, y0 = H - m.b, pw = LW - m.l - m.r, ph = H - m.t - m.b;
-  var vmax = 6, imax = 0.2;
-  ORDER.forEach(function(k){ st.data[k].forEach(function(p){ imax = Math.max(imax, p.I * 1.08); }); });
-  if (opt.live) imax = Math.max(imax, st.meas.I * 1.08);
-  var ys = YSTEPS[YSTEPS.length - 1];
-  for (var i = 0; i < YSTEPS.length; i++) if (YSTEPS[i][0] >= imax - 1e-9){ ys = YSTEPS[i]; break; }
-  imax = ys[0];
+  /* 눈금 고정: 실험 도중 그래프 크기가 바뀌면 학생이 헷갈리므로 항상 0~6 V, 0~0.8 A로 그림.
+     가장 큰 전류는 미지의 선 X가 8 Ω일 때 6 V ÷ 8 Ω = 0.75 A라서 0.8 A 안에 모두 들어감 */
+  var vmax = 6, imax = 0.8;
+  var ys = [0.8, 0.1];   /* [세로축 최댓값, 굵은 눈금 간격] */
   function X(v){ return x0 + v / vmax * pw; }
   function Y(a){ return y0 - a / imax * ph; }
   /* 모눈 */
