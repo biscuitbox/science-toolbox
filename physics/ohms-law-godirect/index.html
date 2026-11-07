@@ -1079,7 +1079,6 @@ function explain(){
    ========================================================= */
 var G1 = {cv: $("g1"), LH: 360};
 var G2 = {cv: $("g2"), LH: 380};
-var YSTEPS = [[0.1, 0.02], [0.2, 0.05], [0.4, 0.1], [0.6, 0.1], [0.8, 0.2], [1.0, 0.2], [1.2, 0.2], [1.6, 0.4]];
 function fitK(arr){ var sxy = 0, sxx = 0; arr.forEach(function(p){ if (p.V > 0.05){ sxy += p.V * p.I; sxx += p.V * p.V; } }); return sxx > 0 ? sxy / sxx : null; }
 function marker(ctx, shape, x, y, r, color){
   ctx.beginPath();
@@ -1094,15 +1093,12 @@ function drawGraph(G, opt){
   ctx.clearRect(0, 0, LW, H); ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, H);
   var m = {l: 70, r: 18, t: 16, b: 50};
   var x0 = m.l, y0 = H - m.b, pw = LW - m.l - m.r, ph = H - m.t - m.b;
-  var vmax = 6, imax = 0.2;
+  /* 눈금 고정: 실험 도중 그래프 크기가 바뀌면 학생이 헷갈리므로 항상 0~6 V, 0~1 A로 그림.
+     1 A는 전류 센서(GDX-CUR)가 잴 수 있는 한계. 범위를 넘는 점은 그래프 밖이라 보이지 않음 */
+  var vmax = 6, imax = 1.0;
   var liveV = opt.live && fresh("V") ? avg("V", 3) : null, liveI = opt.live && fresh("I") ? avg("I", 3) : null;
-  ORDER.forEach(function(k){ st.data[k].forEach(function(p){ imax = Math.max(imax, p.I * 1.08); vmax = Math.max(vmax, Math.ceil(p.V)); }); });
-  if (liveV !== null && liveI !== null){ imax = Math.max(imax, liveI * 1.08); vmax = Math.max(vmax, Math.ceil(liveV)); }
-  vmax = Math.min(vmax, 20);
-  var ys = YSTEPS[YSTEPS.length - 1];
-  for (var i = 0; i < YSTEPS.length; i++) if (YSTEPS[i][0] >= imax - 1e-9){ ys = YSTEPS[i]; break; }
-  imax = ys[0];
-  var vstep = vmax <= 6 ? 1 : (vmax <= 12 ? 2 : 5);
+  var ys = [1.0, 0.1];   /* [세로축 최댓값, 굵은 눈금 간격] */
+  var vstep = 1;
   function X(v){ return x0 + v / vmax * pw; }
   function Y(a){ return y0 - a / imax * ph; }
   ctx.lineWidth = 1;
