@@ -245,10 +245,43 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
           <tr><td>왼쪽 모터</td><td>M1 커넥터</td><td class="num">PCA9685 ch6·7 · 엔코더 A=D3 B=D2</td></tr>
           <tr><td>오른쪽 모터</td><td>M2 커넥터</td><td class="num">PCA9685 ch4·5 · 엔코더 A=D6 B=D4</td></tr>
           <tr><td>MPU6050 VCC·GND·SCL·SDA</td><td>IIC 단자</td><td class="num">I2C 0x68</td></tr>
-          <tr><td>HC-05/06</td><td>UART 단자</td><td class="num">D0·D1 · 9600bps</td></tr>
+          <tr><td>HC-05/06 (가운데 4핀)</td><td>UART 단자</td><td class="num">D0·D1 · 9600bps</td></tr>
           <tr><td>배터리 빨간선 / 검은선</td><td>초록 단자대 BATT+ / GND</td><td class="num">VM 단자는 서보 전용</td></tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <section class="ref" id="bluetooth">
+    <div class="ref-head">
+      <div>
+        <h2>HC-06 꽂는 법</h2>
+        <p class="sub">HC-06(ZS-040 보드)은 핀이 6개, 쉴드 UART 단자는 4개예요. 가운데 4핀만 쓰고, 순서가 그대로 맞물리게 꽂아요. 쉴드의 RX·TX는 UNO 기준 이름이라 모듈 TXD가 RX로, RXD가 TX로 엇갈려 들어가는 게 맞아요.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>HC-06 핀</th><th>쉴드 UART 단자</th><th>역할</th></tr></thead>
+          <tbody>
+            <tr><td class="num">EN</td><td>꽂지 않음 (VCC 바깥으로)</td><td>설정 모드용, 안 써요</td></tr>
+            <tr><td class="num">VCC</td><td class="num">VCC</td><td>5V 전원</td></tr>
+            <tr><td class="num">GND</td><td class="num">GND</td><td>접지</td></tr>
+            <tr><td class="num">TXD</td><td class="num">RX</td><td>모듈이 보내는 신호 → UNO가 받음</td></tr>
+            <tr><td class="num">RXD</td><td class="num">TX</td><td>UNO가 보내는 신호 → 모듈이 받음</td></tr>
+            <tr><td class="num">STATE</td><td>꽂지 않음 (TX 바깥으로)</td><td>연결 상태 표시용, 안 써요</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <ol>
+          <li>모듈의 VCC 핀이 단자의 VCC 구멍에 오도록 맞춰요. EN은 VCC 바깥쪽, STATE는 TX 바깥쪽으로 한 칸씩 남아요.</li>
+          <li>남는 EN·STATE 핀이 옆 핀이나 금속에 닿지 않는지 확인해요. 걸리면 절연 테이프를 감거나 살짝 구부려요.</li>
+          <li>꽂기 불편하면 암-암 점퍼선 4개로 표대로 연결해도 똑같아요.</li>
+          <li>전원을 켜면 모듈 LED가 빠르게 깜빡이고, 휴대폰과 연결되면 천천히 깜빡이거나 켜진 채로 있어요.</li>
+          <li><code>?</code>에 응답이 없으면 VCC 위치가 한 칸 밀리지 않았는지 다시 확인해요. 코드를 올릴 때는 모듈을 뽑아 두세요.</li>
+        </ol>
+      </div>
     </div>
   </section>
 
@@ -355,7 +388,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
       warn: "바퀴가 헐겁게 들어가면 tight 버전 어댑터를 출력해서 바꾸세요.",
       cam: [-330, 40, 210], target: [-60, 0, 0] },
     { short: "D1", title: "D1 데크에 전자부품 올리기", lead: "측판을 달기 전에 책상 위에서 올려 두면 편해요. UNO의 USB는 왼쪽, 쉴드의 초록 단자대는 오른쪽을 향해요.",
-      list: ["D1 데크를 탭이 위로 오게 놓아요. 화살표가 새겨진 패드 쪽이 뒤, 화살표가 가리키는 쪽이 앞이에요.", "D1 데크 아래쪽 육각 홈 4곳에 M3 너트를 끼우고, UNO를 보스 위에 올려 위에서 M3×12 볼트로 조여요.", "MOEBIUS 쉴드를 UNO 위에 핀이 휘지 않게 끝까지 꽂아요.", "HC-05/06을 쉴드의 UART 단자에 꽂아요.", "MPU6050을 폼테이프로 패드에 납작하게 붙여요. 보드의 X축 화살표를 패드 화살표와 같은 방향(앞)으로 맞춰요."],
+      list: ["D1 데크를 탭이 위로 오게 놓아요. 화살표가 새겨진 패드 쪽이 뒤, 화살표가 가리키는 쪽이 앞이에요.", "D1 데크 아래쪽 육각 홈 4곳에 M3 너트를 끼우고, UNO를 보스 위에 올려 위에서 M3×12 볼트로 조여요.", "MOEBIUS 쉴드를 UNO 위에 핀이 휘지 않게 끝까지 꽂아요.", "HC-06의 가운데 4핀(VCC·GND·TXD·RXD)을 쉴드 UART 단자(VCC·GND·RX·TX)에 그대로 꽂아요. 양 끝의 EN·STATE 핀은 단자 밖으로 남겨요. 자세한 핀 표는 아래 배선표에 있어요.", "MPU6050을 폼테이프로 패드에 납작하게 붙여요. 보드의 X축 화살표를 패드 화살표와 같은 방향(앞)으로 맞춰요."],
       warn: "HC-05/06은 USB와 같은 시리얼 핀을 써요. 코드를 올릴 때는 꼭 뽑아 두세요.",
       cam: [120, 290, 230], target: [0, 70, 0] },
     { short: "측판", title: "측판과 데크 조립", lead: "측판은 배터리가 걸리는 U자 홈이 위로 오게 세워요. 볼트 구멍은 아래부터 바닥판, D1, D2 순서로 3줄이에요.",
