@@ -518,6 +518,7 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
       <li><b>성취수준과 연결</b> — E: 회로를 꾸미고 전원을 켜 전류가 흐르게 함(①). B: 전압에 따른 전류 변화를 그래프로 나타내고 "전류는 전압에 비례한다"를 말함(① 그래프, ② 질문 1). A: 두 니크롬선의 기울기 차이를 저항 차이로 해석하고 V = IR로 표현, 미지의 선 X의 저항을 구함(② 기울기·V÷I·도전 과제, 질문 2~4). ③의 도체·부도체·반도체는 성취기준 해설 내용입니다.</li>
       <li><b>수준별 활용</b> — 하: 긴 니크롬선 하나로 "전압이 커지면 전류도 커진다"까지. 중: 두 니크롬선을 한 그래프에 겹쳐 그리고 같은 전압에서 전류를 비교. 상: ②에서 기울기와 V÷I를 계산해 저항을 구하고, 미지의 선 X에 적용.</li>
       <li><b>모델 설명</b> — 긴 니크롬선 20 Ω, 짧은 니크롬선(길이 절반) 10 Ω, 미지의 선 X는 8~30 Ω 중 하나(「새 미지의 선」을 누를 때마다 바뀜). 센서 값에는 실제처럼 아주 작은 흔들림을 넣었습니다. 실제 니크롬선은 뜨거워지면 저항이 조금 커지지만, 이 도구는 <b>저항이 일정한 이상적인 경우</b>로 다룹니다(온도는 안전 안내용으로만 표시).</li>
+      <li><b>자동 측정</b> — 「▶ 자동 측정」을 누르면 전압을 0 V에서 6 V까지 0.2 V씩 1초마다 높이며 점 31개를 자동으로 기록합니다(약 30초). 끝나거나 멈추면 손잡이가 0으로 돌아가고, 측정 중에는 손잡이·전원·니크롬선 바꾸기가 잠깁니다. 손잡이를 직접 돌리면 자동 측정이 멈춥니다.</li>
       <li><b>실험 순서 지키기</b> — 교과서 안전 수칙대로 전원 스위치를 켜거나 끌 때, 니크롬선을 바꿀 때 <b>전압 조절 손잡이가 0이 아니면 동작하지 않고 안내 문장</b>이 나옵니다. 실물 실험 전 연습용으로 활용할 수 있습니다.</li>
       <li><b>실물 센서 수업</b> — 같은 사이트의 「전압·전류 센서 실시간 그래프」 도구(physics/ohms-law-godirect/)로 실제 무선 전압·전류 센서 값을 받아 같은 모양의 그래프를 그릴 수 있습니다.</li>
     </ul>
@@ -566,6 +567,10 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
         <div class="row">
           <button class="tb-btn" id="b-power" aria-pressed="false">⏻ 전원 켜기</button>
           <button class="tb-btn ghost" id="b-rec" aria-pressed="false">● 기록 시작</button>
+        </div>
+        <div class="row">
+          <button class="tb-btn ghost" id="b-auto" aria-pressed="false" aria-describedby="auto-desc">▶ 자동 측정 (0 → 6 V)</button>
+          <p id="auto-desc" style="margin:0;flex-basis:100%;font-size:.85rem;color:var(--graphite)">전압을 0.2 V씩 1초마다 높이며 점을 자동으로 찍어요(약 30초).</p>
         </div>
         <div>
           <p class="lab"><label for="vs">전압 조절 손잡이</label> · <span class="vset" id="vset">0.00 V</span></p>
@@ -789,8 +794,10 @@ var st = {
   T: {long: 20, short: 20, x: 20},           /* 니크롬선 온도(°C) — 안전 안내용 */
   meas: {V: 0, I: 0, over: false},
   data: {long: [], short: [], x: []},
-  unit: "A", phase: 0, sampleT: 0, readT: 0, knobHot: 0
+  unit: "A", phase: 0, sampleT: 0, readT: 0, knobHot: 0,
+  auto: false, autoT: 0, autoK: 0, autoMsg: ""             /* 자동 측정: 경과 시간(초), 다음에 찍을 점 번호 */
 };
+var AUTO_STEP = 0.2, AUTO_SEC = 1.0, AUTO_N = Math.round(6 / AUTO_STEP);   /* 0.2 V씩, 1초마다, 0→6 V(30칸) */
 var MAXPTS = 400;
 
 /* 센서 한 번 읽기: 옴의 법칙 + 아주 작은 흔들림 */
@@ -802,7 +809,7 @@ function sample(){
   if (!st.on){ mv = gauss() * 0.002; mi = gauss() * 0.0003; }
   st.meas.over = Math.abs(mi) > 1.0;
   st.meas.V = mv; st.meas.I = clamp(mi, -1.0, 1.0);
-  if (st.rec && st.on){
+  if (st.rec && st.on && !st.auto){   /* 자동 측정 중에는 autoTick이 점을 찍음 */
     var arr = st.data[st.wire], lastP = arr[arr.length - 1];
     if (!lastP || Math.abs(lastP.V - mv) >= 0.04){
       if (arr.length >= MAXPTS) arr.shift();
@@ -1119,6 +1126,8 @@ function setV(v){
   explain();
 }
 function togglePower(){
+  if (st.auto){ warn("자동 측정 중에는 전원을 끄지 않아요. 먼저 「자동 측정 멈춤」을 누르세요."); return; }
+  st.autoMsg = "";
   if (st.setV > 0.001){ warn("전원 스위치를 " + (st.on ? "끄기" : "켜기") + " 전에 전압 조절 손잡이를 0으로 돌려요. 「손잡이 0으로」를 누르세요."); return; }
   st.on = !st.on;
   var b = $("b-power"); b.setAttribute("aria-pressed", st.on ? "true" : "false"); b.textContent = st.on ? "⏻ 전원 끄기" : "⏻ 전원 켜기";
@@ -1131,21 +1140,68 @@ function setWire(w){
     [].forEach.call(document.querySelectorAll("input[name=wire]"), function(r){ r.checked = r.value === st.wire; });
     return;
   }
-  st.wire = w; $("warn").hidden = true;
+  st.wire = w; st.autoMsg = ""; $("warn").hidden = true;
   readout(); explain();
 }
 function toggleRec(){
-  st.rec = !st.rec;
+  st.rec = !st.rec; st.autoMsg = "";
   var b = $("b-rec"); b.setAttribute("aria-pressed", st.rec ? "true" : "false"); b.textContent = st.rec ? "■ 기록 멈춤" : "● 기록 시작";
   explain();
 }
+
+/* 자동 측정: 0 V에서 6 V까지 0.2 V씩, 1초마다 한 칸 올리며 점을 하나씩 찍음(약 30초) */
+function setAutoUI(){
+  var b = $("b-auto");
+  b.setAttribute("aria-pressed", st.auto ? "true" : "false");
+  b.textContent = st.auto ? "■ 자동 측정 멈춤 · " + st.setV.toFixed(1) + " V" : "▶ 자동 측정 (0 → 6 V)";
+  ["vs", "b-vup", "b-vdn", "b-power", "b-rec", "b-clear"].forEach(function(id){ $(id).disabled = st.auto; });
+  [].forEach.call(document.querySelectorAll("input[name=wire]"), function(r){ r.disabled = st.auto; });
+}
+function startAuto(){
+  if (!st.on){
+    if (st.setV > 0.001){ warn("전원을 켜기 전에 전압 조절 손잡이를 0으로 돌려요. 「손잡이 0으로」를 누른 뒤 다시 자동 측정을 눌러요."); return; }
+    togglePower();                         /* 손잡이가 0이면 전원을 대신 켜 줌 */
+  }
+  if (st.rec) toggleRec();                 /* 손으로 하는 기록과 겹치지 않게 */
+  setV(0);
+  st.auto = true; st.autoT = 0; st.autoK = 0; st.autoMsg = "";
+  $("warn").hidden = true;
+  setAutoUI(); explain();
+}
+function stopAuto(done){
+  if (!st.auto) return;
+  st.auto = false;
+  setV(0);                                 /* 끝나거나 멈추면 손잡이를 0으로 되돌림(안전) */
+  st.autoMsg = done
+    ? "자동 측정이 끝났어요. 0 V부터 6 V까지 점 " + (AUTO_N + 1) + "개를 찍고 손잡이를 0으로 되돌렸어요." +
+      (st.wire === "long" && !st.data.short.length ? " 이제 <b>짧은 니크롬선</b>으로 바꿔 한 번 더 해 보세요." : "")
+    : "자동 측정을 멈추고 손잡이를 0으로 되돌렸어요. 그때까지 찍은 점은 그대로 남아 있어요.";
+  setAutoUI(); readout(); explain();
+}
+function autoTick(dt){
+  st.autoT += dt;
+  var k = Math.min(AUTO_N, Math.floor(st.autoT / AUTO_SEC));
+  var v = Math.round(k * AUTO_STEP * 100) / 100;
+  if (Math.abs(st.setV - v) > 0.001){ setV(v); setAutoUI(); }
+  /* 각 칸에서 0.6초 기다려 값이 안정된 뒤 한 점 기록 */
+  while (st.autoK <= AUTO_N && st.autoT >= st.autoK * AUTO_SEC + 0.6){
+    sample();
+    var arr = st.data[st.wire];
+    if (arr.length >= MAXPTS) arr.shift();
+    arr.push({V: Math.max(0, st.meas.V), I: Math.max(0, st.meas.I)});
+    st.autoK++;
+    predCheck();
+  }
+  if (st.autoK > AUTO_N) stopAuto(true);
+}
+$("b-auto").addEventListener("click", function(){ if (st.auto) stopAuto(false); else startAuto(); });
 [].forEach.call(document.querySelectorAll("input[name=wire]"), function(r){ r.addEventListener("change", function(){ setWire(r.value); }); });
 $("b-power").addEventListener("click", togglePower);
 $("b-rec").addEventListener("click", toggleRec);
 $("vs").addEventListener("input", function(){ setV(parseFloat(this.value)); });
 $("b-vup").addEventListener("click", function(){ setV(st.setV + 0.1); });
 $("b-vdn").addEventListener("click", function(){ setV(st.setV - 0.1); });
-$("b-v0").addEventListener("click", function(){ setV(0); $("warn").hidden = true; });
+$("b-v0").addEventListener("click", function(){ stopAuto(false); setV(0); $("warn").hidden = true; });
 $("b-clear").addEventListener("click", function(){ st.data[st.wire] = []; readout(); predCheck(); });
 $("c-flow").addEventListener("change", function(){ st.flow = this.checked; });
 function setUnit(u){ st.unit = u; $("unit1").value = u; $("unit2").value = u; buildTables(); }
@@ -1161,7 +1217,7 @@ function knobFrom(p){
 }
 S1.cv.addEventListener("pointerdown", function(e){
   var p = pointer(S1, e);
-  if (Math.hypot(p.x - KNOB.x, p.y - KNOB.y) < KNOB.r + 12){ drag = true; S1.cv.setPointerCapture(e.pointerId); knobFrom(p); e.preventDefault(); }
+  if (Math.hypot(p.x - KNOB.x, p.y - KNOB.y) < KNOB.r + 12){ stopAuto(false); drag = true; S1.cv.setPointerCapture(e.pointerId); knobFrom(p); e.preventDefault(); }
   else if (Math.hypot(p.x - PWR.x, p.y - PWR.y) < PWR.r + 8){ togglePower(); e.preventDefault(); }
 });
 S1.cv.addEventListener("pointermove", function(e){
@@ -1174,6 +1230,7 @@ S1.cv.addEventListener("pointerup", function(){ drag = false; });
 S1.cv.addEventListener("pointercancel", function(){ drag = false; });
 S1.cv.addEventListener("keydown", function(e){
   var big = e.shiftKey ? 0.5 : 0.1;
+  if (st.auto && /^(Arrow(Up|Down|Left|Right)|Home)$/.test(e.key)) stopAuto(false);   /* 손으로 돌리면 자동 측정 멈춤 */
   if (e.key === "ArrowUp" || e.key === "ArrowRight"){ setV(st.setV + big); e.preventDefault(); }
   else if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ setV(st.setV - big); e.preventDefault(); }
   else if (e.key === "Home"){ setV(0); e.preventDefault(); }
@@ -1190,13 +1247,17 @@ function readout(){
 }
 function explain(){
   var h = "", p = [], d = st.data, T = st.T[st.wire];
-  if (!st.on){
+  if (st.auto){
+    h = "자동 측정 중 — " + WIRE[st.wire].name;
+    p.push("전압을 <b>0.2 V씩 1초마다</b> 높이며 점을 찍고 있어요 (" + st.autoK + " / " + (AUTO_N + 1) + "개). 점이 어떤 모양으로 늘어서나요?");
+    p.push("중간에 멈추려면 「자동 측정 멈춤」을 누르세요.");
+  } else if (!st.on){
     h = "전원이 꺼져 있어요";
     p.push(st.setV > 0.001 ? "전원을 켜기 전에 전압 조절 손잡이를 <b>0</b>으로 돌려 두세요." : "손잡이가 0인 것을 확인했어요. <b>전원 켜기</b>를 눌러 실험을 시작하세요.");
     if (d.long.length > 5 && !d.short.length) p.push("다음 과정: 니크롬선을 <b>짧은 니크롬선</b>으로 바꾸고 같은 방법으로 반복해요.");
   } else if (!st.rec){
     h = "전원이 켜졌어요";
-    p.push("<b>기록 시작</b>을 누른 뒤 손잡이를 조금씩 돌려 전압을 높여 보세요. 전압이 0인 동안 전류는 얼마인가요?");
+    if (st.autoMsg) p.push(st.autoMsg); else p.push("<b>기록 시작</b>을 누른 뒤 손잡이를 조금씩 돌려 전압을 높여 보세요. 전압이 0인 동안 전류는 얼마인가요?");
   } else {
     h = "기록 중 — " + WIRE[st.wire].name;
     p.push("0 V에서 6 V까지 <b>천천히</b> 높여 보세요. 점이 어떤 모양으로 찍히나요?");
@@ -1389,6 +1450,7 @@ function frame(now){
   var I = st.on ? st.setV / WIRE[st.wire].R : 0;
   if (!REDUCE) st.phase += dt * (30 + 160 * I) * (I > 0.002 ? 1 : 0);
   st.knobHot = Math.max(0, st.knobHot - dt * 0.5);
+  if (st.auto) autoTick(dt);
   st.sampleT += dt;
   if (st.sampleT >= 0.1){ st.sampleT = 0; sample(); }
   st.readT += dt;
