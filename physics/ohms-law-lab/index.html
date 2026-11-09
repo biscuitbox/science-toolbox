@@ -1498,7 +1498,7 @@ var rs = {
   auto: false, autoT: 0, autoK: 0, autoMsg: "", sampleT: 0
 };
 var RAUTO_SEC = 0.6, RAUTO_LENS = [];
-for (var li = 100; li >= RW.min; li -= RW.step) RAUTO_LENS.push(li);   /* 100 → 15 cm, 18점 */
+for (var li = RW.min; li <= RW.full; li += RW.step) RAUTO_LENS.push(li);   /* 15 → 100 cm(저항 작은 값 → 큰 값), 18점 */
 function rOf(len){ return Math.round(len / RW.full * RW.R * 100) / 100; }
 
 function sample3(){
@@ -1548,7 +1548,7 @@ function stopRAuto(done){
   if (!rs.auto) return;
   rs.auto = false;
   rs.autoMsg = done
-    ? "자동 측정이 끝났어요. 집게를 100 cm에서 15 cm까지 옮기며 점 " + RAUTO_LENS.length + "개를 찍었어요."
+    ? "자동 측정이 끝났어요. 집게를 15 cm에서 100 cm까지 옮기며(저항 3 Ω → 20 Ω) 점 " + RAUTO_LENS.length + "개를 찍었어요."
     : "자동 측정을 멈췄어요. 그때까지 찍은 점은 그대로 남아 있어요.";
   setRAutoUI(); explain3();
 }
@@ -1565,7 +1565,7 @@ function explain3(){
   var h, p = [], n = rs.data[rs.V].length, R = rOf(rs.len), P = rs.V * rs.V / R;
   if (rs.auto){
     h = "자동 측정 중 — 전압 " + rs.V + " V";
-    p.push("집게를 <b>5 cm씩</b> 옮기며 점을 찍고 있어요 (" + rs.autoK + " / " + RAUTO_LENS.length + "개). 저항이 작아질수록 전류는 어떻게 되나요?");
+    p.push("집게를 <b>5 cm씩</b> 옮기며 점을 찍고 있어요 (" + rs.autoK + " / " + RAUTO_LENS.length + "개). 저항이 커질수록 전류는 어떻게 되나요?");
   } else if (!n){
     h = "전압 " + rs.V + " V로 고정했어요";
     p.push(rs.autoMsg || "검은 집게를 옮겨 저항을 바꾸고 <b>이 점 기록</b>을 눌러 보세요. 여러 길이에서 점을 찍거나 <b>자동 측정</b>을 눌러요.");
