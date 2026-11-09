@@ -391,8 +391,20 @@ table.terms th { width: 8.5em; white-space: nowrap; font-family: var(--font-disp
 .seg label:first-child { border-left: 0; }
 .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .seg .mk { font-size: 1rem; line-height: 1; }
+.seg small { display: block; font-size: .74rem; font-weight: 500; opacity: .8; }
 .seg label:has(input:checked) { background: var(--ink); color: var(--paper); font-weight: 700; }
 .seg label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: -4px; }
+.seg label:has(input:disabled) { cursor: not-allowed; opacity: .6; }
+/* 니크롬선 네 가지: 2 × 2 칸 */
+.seg.seg4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg.seg4 label:nth-child(odd) { border-left: 0; }
+.seg.seg4 label:nth-child(n+3) { border-top: 1px solid var(--hairline); }
+
+/* 탭③ 저항–전류 */
+#cv3 { touch-action: none; }
+#cv3:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.ri-wide { display: grid; gap: 1rem; }
+@media (min-width: 980px) { .ri-wide { grid-template-columns: 24rem minmax(0, 1fr); align-items: start; } }
 
 .vrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
 .vrow input[type=range] { width: 100%; accent-color: var(--cat); min-height: 32px; }
@@ -506,7 +518,7 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
       <span>중2~중3</span><span>시뮬레이션</span>
     </p>
     <h1 class="tb-title">전류, 전압, 저항 사이의 관계 가상실험</h1>
-    <p class="tb-lead">전원 장치의 전압을 조금씩 높이며 <b>전압 센서·전류 센서</b>로 측정하고, 길이가 다른 니크롬선의 <b>전압–전류 그래프</b>를 그려 세 양 사이의 관계를 찾아봅니다.</p>
+    <p class="tb-lead">전원 장치의 전압을 조금씩 높이며 <b>전압 센서·전류 센서</b>로 측정하고, 길이와 굵기가 다른 니크롬선의 <b>전압–전류 그래프</b>, 전압이 같을 때의 <b>저항–전류 그래프</b>를 그려 세 양 사이의 관계를 찾아봅니다.</p>
   </header>
 
   <details class="tb-teacher no-print">
@@ -514,10 +526,10 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
     <div class="tb-teacher-body">
     <p style="margin:6px 0"><span class="tb-std">[9과14-02]</span> 전기 회로에서 전류를 모형으로 설명하고, 실험을 통해 저항, 전류, 전압 사이의 관계를 이끌어낼 수 있다. — 탐구 활동 「저항, 전류, 전압 사이의 관계 탐구하기」. 교육과정 적용 시 고려 사항의 "전기 회로 실험에서 디지털 탐구 도구나 가상 실험을 활용할 수 있다"에 맞춘 도구입니다.</p>
     <ul>
-      <li><b>탭 구성</b> — ① 실험하기(전원 장치·전압 센서·전류 센서·니크롬선 회로, 실시간 그래프) ② 결과 분석(측정값 표, 원점을 지나는 직선과 기울기, 미지의 니크롬선 X의 저항 구하기, 결과 정리 질문) ③ 정리하기(옴의 법칙, 저항에 영향을 주는 요인, 도체·부도체·반도체, 오개념).</li>
-      <li><b>성취수준과 연결</b> — E: 회로를 꾸미고 전원을 켜 전류가 흐르게 함(①). B: 전압에 따른 전류 변화를 그래프로 나타내고 "전류는 전압에 비례한다"를 말함(① 그래프, ② 질문 1). A: 두 니크롬선의 기울기 차이를 저항 차이로 해석하고 V = IR로 표현, 미지의 선 X의 저항을 구함(② 기울기·V÷I·도전 과제, 질문 2~4). ③의 도체·부도체·반도체는 성취기준 해설 내용입니다.</li>
-      <li><b>수준별 활용</b> — 하: 긴 니크롬선 하나로 "전압이 커지면 전류도 커진다"까지. 중: 두 니크롬선을 한 그래프에 겹쳐 그리고 같은 전압에서 전류를 비교. 상: ②에서 기울기와 V÷I를 계산해 저항을 구하고, 미지의 선 X에 적용.</li>
-      <li><b>모델 설명</b> — 긴 니크롬선 20 Ω, 짧은 니크롬선(길이 절반) 10 Ω, 미지의 선 X는 8~30 Ω 중 하나(「새 미지의 선」을 누를 때마다 바뀜). 센서 값에는 실제처럼 아주 작은 흔들림을 넣었습니다. 실제 니크롬선은 뜨거워지면 저항이 조금 커지지만, 이 도구는 <b>저항이 일정한 이상적인 경우</b>로 다룹니다(온도는 안전 안내용으로만 표시).</li>
+      <li><b>탭 구성</b> — ① 실험하기(전원 장치·전압 센서·전류 센서·니크롬선 회로, 실시간 그래프) ② 결과 분석(측정값 표, 원점을 지나는 직선과 기울기, 미지의 니크롬선 X의 저항 구하기, 결과 정리 질문) ③ 저항–전류(전압을 고정하고 집게 위치로 니크롬선 길이를 바꿔 교과서 「저항과 전류의 관계」 그래프를 직접 그림, 저항 × 전류 계산) ④ 정리하기(옴의 법칙, 저항에 영향을 주는 요인, 도체·부도체·반도체, 오개념).</li>
+      <li><b>성취수준과 연결</b> — E: 회로를 꾸미고 전원을 켜 전류가 흐르게 함(①). B: 전압에 따른 전류 변화를 그래프로 나타내고 "전류는 전압에 비례한다"를 말함(① 그래프, ② 질문 1). A: 니크롬선의 기울기 차이를 저항 차이로 해석하고 V = IR로 표현, 미지의 선 X의 저항을 구함(② 기울기·V÷I·도전 과제, 질문 2~5), 전압이 같을 때 전류가 저항에 반비례함을 그래프와 저항 × 전류로 확인함(③). ④의 도체·부도체·반도체는 성취기준 해설 내용입니다.</li>
+      <li><b>수준별 활용</b> — 하: 긴 니크롬선 하나로 "전압이 커지면 전류도 커진다"까지. 중: 긴 선과 짧은 선(길이), 긴 선과 굵은 선(굵기)을 한 그래프에 겹쳐 같은 전압에서 전류를 비교. 상: ②에서 기울기와 V÷I를 계산해 저항을 구하고 미지의 선 X에 적용, ③에서 저항 × 전류가 전압과 같음을 확인.</li>
+      <li><b>모델 설명</b> — 긴 니크롬선 20 Ω, 짧은 니크롬선(길이 절반) 10 Ω, 굵은 니크롬선(길이는 긴 선과 같고 자른 면의 넓이가 2배) 10 Ω, 미지의 선 X는 8~30 Ω 중 하나(「새 미지의 선」을 누를 때마다 바뀜). 짧은 선과 굵은 선은 저항이 같아 그래프가 겹칩니다. "길이를 절반으로 하는 것과 굵기를 2배로 하는 것은 효과가 같다"는 발문으로 쓸 수 있습니다. ③은 긴 니크롬선(100 cm, 20 Ω)에서 집게 사이 길이를 15~100 cm(3~20 Ω)로 바꾸며, 전압은 1·2·3 V 중 하나로 고정합니다. 센서 값에는 실제처럼 아주 작은 흔들림을 넣었습니다. 실제 니크롬선은 뜨거워지면 저항이 조금 커지지만, 이 도구는 <b>저항이 일정한 이상적인 경우</b>로 다룹니다(온도는 안전 안내용으로만 표시).</li>
       <li><b>자동 측정</b> — 「▶ 자동 측정」을 누르면 전압을 0 V에서 6 V까지 0.2 V씩 1초마다 높이며 점 31개를 자동으로 기록합니다(약 30초). 끝나거나 멈추면 손잡이가 0으로 돌아가고, 측정 중에는 손잡이·전원·니크롬선 바꾸기가 잠깁니다. 손잡이를 직접 돌리면 자동 측정이 멈춥니다.</li>
       <li><b>실험 순서 지키기</b> — 교과서 안전 수칙대로 전원 스위치를 켜거나 끌 때, 니크롬선을 바꿀 때 <b>전압 조절 손잡이가 0이 아니면 동작하지 않고 안내 문장</b>이 나옵니다. 실물 실험 전 연습용으로 활용할 수 있습니다.</li>
       <li><b>실물 센서 수업</b> — 같은 사이트의 「전압·전류 센서 실시간 그래프」 도구(physics/ohms-law-godirect/)로 실제 무선 전압·전류 센서 값을 받아 같은 모양의 그래프를 그릴 수 있습니다.</li>
@@ -533,7 +545,8 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
   <div class="tabs tb-tabs" role="tablist" aria-label="화면 선택">
     <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 실험하기</button>
     <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">② 결과 분석</button>
-    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 정리하기</button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 저항–전류</button>
+    <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">④ 정리하기</button>
   </div>
 
   <!-- ================= 탭 1 : 실험하기 ================= -->
@@ -558,9 +571,10 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
       <div class="controls">
         <div>
           <p class="lab" id="lab-wire">니크롬선 고르기</p>
-          <div class="seg" role="radiogroup" aria-labelledby="lab-wire">
+          <div class="seg seg4" role="radiogroup" aria-labelledby="lab-wire">
             <label><input type="radio" name="wire" value="long" checked><span class="mk" aria-hidden="true">●</span>긴 니크롬선</label>
-            <label><input type="radio" name="wire" value="short"><span class="mk" aria-hidden="true">▲</span>짧은 니크롬선</label>
+            <label><input type="radio" name="wire" value="short"><span class="mk" aria-hidden="true">▲</span>짧은 니크롬선<small>길이 절반</small></label>
+            <label><input type="radio" name="wire" value="thick"><span class="mk" aria-hidden="true">■</span>굵은 니크롬선<small>길이 같고 자른 면 넓이 2배</small></label>
             <label><input type="radio" name="wire" value="x"><span class="mk" aria-hidden="true">◆</span>미지의 선 X</label>
           </div>
         </div>
@@ -625,7 +639,7 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
           <label class="chk"><input type="checkbox" id="c-fit"> 원점을 지나는 직선과 기울기 보기</label>
           <label class="chk"><input type="checkbox" id="c-ratio"> 표에 "전압 ÷ 전류" 계산해 보기</label>
         </div>
-        <p class="tb-note" id="ana-note">① 실험하기에서 긴 니크롬선과 짧은 니크롬선을 각각 0 V부터 6 V까지 기록하면 여기에 표와 그래프가 만들어져요.</p>
+        <p class="tb-note" id="ana-note">① 실험하기에서 긴·짧은·굵은 니크롬선을 각각 0 V부터 6 V까지 기록하면 여기에 표와 그래프가 만들어져요.</p>
       </div>
       <div style="display:grid;gap:.9rem;align-content:start">
         <div class="dtables" id="dtables"></div>
@@ -644,8 +658,88 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
     <div class="qa" id="qa"></div>
   </section>
 
-  <!-- ================= 탭 3 : 정리하기 ================= -->
-  <section class="tabpanel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+  <!-- ================= 탭 3 : 저항–전류 ================= -->
+  <section class="card tabpanel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+    <div class="stagewrap">
+      <div>
+        <div class="tb-stage"><canvas id="cv3" tabindex="0" aria-label="전원 장치, 전류 센서, 전압 센서와 긴 니크롬선. 검은 집게를 옮겨 집게 사이 니크롬선의 길이를 바꿀 수 있습니다."></canvas></div>
+        <p class="kbd-hint no-print">그림 속 <b>검은 집게</b>를 끌어 옮겨요. 키보드: 그림을 선택하고 ←·→로 5 cm씩.</p>
+      </div>
+      <div class="tb-stage">
+        <div class="gtitle"><span class="t">📱 센서 프로그램 — 저항–전류 그래프 (전압 일정)</span>
+          <label class="u">전류 단위 <select id="unit3"><option value="A">A</option><option value="mA">mA</option></select></label></div>
+        <canvas id="g3" aria-label="가로축이 저항, 세로축이 전류인 그래프. 기록한 측정값이 점으로 찍힙니다."></canvas>
+      </div>
+    </div>
+
+    <div class="side">
+      <p class="tb-note">전압을 <b>일정하게</b> 맞춰 두고, 집게 사이 니크롬선의 <b>길이</b>를 바꿔 저항을 바꿔요. 저항이 커지면 전류는 어떻게 달라질까요?</p>
+      <div class="controls">
+        <div>
+          <p class="lab" id="lab-rv">전원 장치 전압 (일정하게 유지)</p>
+          <div class="seg" role="radiogroup" aria-labelledby="lab-rv">
+            <label><input type="radio" name="rv" value="1">1 V</label>
+            <label><input type="radio" name="rv" value="2">2 V</label>
+            <label><input type="radio" name="rv" value="3" checked>3 V</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab"><label for="ls">집게 사이 길이</label> · <span class="vset" id="lset">100 cm → 20 Ω</span></p>
+          <div class="vrow">
+            <button class="tb-btn ghost" id="b-ldn" aria-label="길이 5 cm 줄이기">−</button>
+            <input type="range" id="ls" min="15" max="100" step="5" value="100">
+            <button class="tb-btn ghost" id="b-lup" aria-label="길이 5 cm 늘이기">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="tb-btn" id="b-rpt">● 이 점 기록</button>
+          <button class="tb-btn ghost" id="b-rauto" aria-pressed="false">▶ 자동 측정</button>
+        </div>
+        <div class="row">
+          <button class="tb-btn ghost" id="b-rclear">이 전압의 기록 지우기</button>
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="c-curve"> 반비례 곡선 겹쳐 보기</label>
+        </div>
+      </div>
+
+      <div class="readout" aria-live="off">
+        <div class="rd"><span class="k">전압 센서</span><span class="v" id="r3-v">3.00 V</span></div>
+        <div class="rd"><span class="k">전류 센서</span><span class="v" id="r3-i">0.150 A</span><span class="s" id="r3-ma">150 mA</span></div>
+        <div class="rd"><span class="k">집게 사이 저항</span><span class="v" id="r3-r">20 Ω</span><span class="s" id="r3-n">기록 0개</span></div>
+      </div>
+
+      <div class="explain" id="explain3" aria-live="polite"></div>
+
+      <fieldset class="pred" id="pred2">
+        <legend>먼저 예상해 보기</legend>
+        <p style="margin:0 0 .45rem;font-size:.93rem;word-break:keep-all">전압이 같을 때 저항을 <b>2배</b>로 하면 전류는 어떻게 될까요?</p>
+        <div class="opts">
+          <label><input type="radio" name="p2" value="same"> 변하지 않는다</label>
+          <label><input type="radio" name="p2" value="double"> 약 2배가 된다</label>
+          <label><input type="radio" name="p2" value="half"> 약 절반이 된다</label>
+          <label><input type="radio" name="p2" value="quarter"> 약 4분의 1이 된다</label>
+        </div>
+        <p class="fbk" id="pred2-fb">하나를 고른 뒤 실험으로 확인해 보세요.</p>
+      </fieldset>
+    </div>
+
+    <div class="wide ri-wide">
+      <div style="display:grid;gap:.7rem;align-content:start">
+        <div class="dtables" id="rtable"></div>
+        <div class="checks no-print">
+          <label class="chk"><input type="checkbox" id="c-rxi"> 표에 "저항 × 전류" 계산해 보기</label>
+        </div>
+      </div>
+      <div>
+        <h2 class="tb-panel-title" style="margin:0 0 .7rem">결과 정리 — 내 생각을 먼저 적어야 예시 답을 볼 수 있어요</h2>
+        <div class="qa" id="qa-ri"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 탭 4 : 정리하기 ================= -->
+  <section class="tabpanel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
     <div class="sum-grid">
       <div style="display:grid;gap:.9rem;align-content:start">
         <h2 class="tb-panel-title" style="margin:0">전류, 전압, 저항 사이의 관계 (옴의 법칙)</h2>
@@ -655,6 +749,7 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
           <li><b>R = V / I</b><span>저항은 전압을 전류로 나눈 값이다. 단위 Ω(옴)</span></li>
         </ul>
         <p class="tb-note"><b>1 Ω</b>은 1 V의 전압을 걸었을 때 1 A의 전류가 흐르는 도선의 저항입니다. 전압–전류 그래프에서 <b>기울기가 클수록 저항이 작습니다</b>(기울기 = 1 ÷ 저항).</p>
+        <p class="tb-note">전압이 같을 때 <b>저항–전류 그래프</b>는 직선이 아니라 점점 완만해지는 <b>곡선</b>입니다. 저항이 2배가 되면 전류는 절반, 3배가 되면 3분의 1이 됩니다(반비례). 이때 어느 점에서나 <b>저항 × 전류 = 전압</b>으로 일정합니다.</p>
         <figure class="fig">
           <svg viewBox="0 0 420 232" role="img" aria-label="물의 흐름 비유: 좁고 긴 관일수록 물이 덜 흐르듯, 길이가 긴 니크롬선일수록 저항이 커서 전류가 적게 흐른다">
             <defs><pattern id="wv" width="12" height="8" patternUnits="userSpaceOnUse"><path d="M0 4q3-3 6 0t6 0" fill="none" stroke="#3B82C4" stroke-width="1.2"/></pattern></defs>
@@ -677,6 +772,8 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
           <ul>
             <li><span class="no">✗</span>저항은 전압을 크게 하면 커진다. <span class="yes">→ ○</span>니크롬선의 저항은 그 선의 성질(물질·길이·굵기)로 정해지고, 전압을 바꿔도 거의 그대로다. 전압을 2배로 하면 전류가 2배가 될 뿐.</li>
             <li><span class="no">✗</span>그래프의 기울기가 클수록 저항이 크다. <span class="yes">→ ○</span>같은 전압에서 전류가 많이 흐를수록 기울기가 크고, 그것은 <b>저항이 작다</b>는 뜻이다.</li>
+            <li><span class="no">✗</span>저항이 커지면 전류는 일정한 양씩(직선으로) 줄어든다. <span class="yes">→ ○</span>전압이 같으면 전류는 저항에 <b>반비례</b>한다. 5 Ω → 10 Ω에서는 전류가 절반으로 크게 줄지만, 15 Ω → 20 Ω에서는 조금만 준다. 그래서 그래프가 곡선이다.</li>
+            <li><span class="no">✗</span>굵은 니크롬선은 전류가 지나가기 힘들어 저항이 크다. <span class="yes">→ ○</span>같은 물질, 같은 길이라면 <b>굵을수록 전류가 지나갈 길이 넓어 저항이 작다</b>.</li>
             <li><span class="no">✗</span>전류는 니크롬선을 지나며 소모된다. <span class="yes">→ ○</span>전류 센서를 니크롬선 앞에 두든 뒤에 두든 같은 값이 나온다(한 줄로 연결된 회로).</li>
             <li><span class="no">✗</span>전압 센서도 회로에 한 줄로(직렬) 끼운다. <span class="yes">→ ○</span>전류 센서는 직렬, 전압 센서는 니크롬선 양 끝에 나란히(병렬) 연결한다.</li>
           </ul>
@@ -709,8 +806,9 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
       <tr><th style="width:24%">전압 (V)</th><th>0</th><th>1.5</th><th>3.0</th><th>4.5</th><th>6.0</th></tr>
       <tr><th>긴 니크롬선 전류 (mA)</th><td id="pt-l0"></td><td id="pt-l1"></td><td id="pt-l2"></td><td id="pt-l3"></td><td id="pt-l4"></td></tr>
       <tr><th>짧은 니크롬선 전류 (mA)</th><td id="pt-s0"></td><td id="pt-s1"></td><td id="pt-s2"></td><td id="pt-s3"></td><td id="pt-s4"></td></tr>
+      <tr><th>굵은 니크롬선 전류 (mA)</th><td id="pt-t0"></td><td id="pt-t1"></td><td id="pt-t2"></td><td id="pt-t3"></td><td id="pt-t4"></td></tr>
     </table>
-    <h2>2. 두 니크롬선의 결과를 한 그래프에 그려 봅시다</h2>
+    <h2>2. 니크롬선들의 결과를 한 그래프에 그려 봅시다</h2>
     <div class="two">
       <figure><svg viewBox="0 0 320 240" id="ps-grid"></svg><figcaption>직접 그리기</figcaption></figure>
       <figure><img class="graphimg" id="ps-img" alt="가상실험에서 기록한 그래프"><figcaption>가상실험 기록(인쇄할 때의 그래프)</figcaption></figure>
@@ -719,10 +817,18 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
     <ol>
       <li>전압이 커질 때 전류의 세기는 어떻게 달라지는지 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li>
       <li>전압이 같을 때 니크롬선의 길이에 따라 전류의 세기는 어떻게 달라지는지 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li>
+      <li>전압이 같을 때 니크롬선의 굵기에 따라 전류의 세기는 어떻게 달라지는지 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li>
       <li>그래프의 기울기와 저항은 어떤 관계인지 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li>
       <li>전압(V), 전류(I), 저항(R) 사이의 관계를 식으로 나타내 봅시다.<div class="lines"></div></li>
     </ol>
-    <div class="keep"><h2>4. 스스로 평가하기</h2>
+    <div class="keep"><h2>4. 전압을 일정하게 두고 저항을 바꾸었을 때 (전압: <span id="pr-v">&nbsp;&nbsp;&nbsp;</span> V)</h2>
+    <table>
+      <tr><th style="width:24%">저항 (Ω)</th><th>5</th><th>10</th><th>15</th><th>20</th></tr>
+      <tr><th>전류 (mA)</th><td id="pr-0"></td><td id="pr-1"></td><td id="pr-2"></td><td id="pr-3"></td></tr>
+      <tr><th>저항 × 전류 (V)</th><td></td><td></td><td></td><td></td></tr>
+    </table>
+    <ol style="margin-top:8px"><li>저항이 2배, 3배, 4배가 될 때 전류의 세기는 어떻게 달라지는지 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li></ol></div>
+    <div class="keep"><h2>5. 스스로 평가하기</h2>
     <table class="selfcheck">
       <tr><th>평가 내용</th><th style="width:13%">잘함</th><th style="width:13%">보통</th><th style="width:13%">노력 필요</th></tr>
       <tr><td>전류, 전압, 저항 사이의 관계를 설명할 수 있는가?</td><td></td><td></td><td></td></tr>
@@ -780,9 +886,11 @@ var X_CHOICES = [8, 12, 15, 18, 24, 30];
 var WIRE = {
   long:  {name: "긴 니크롬선",  short: "긴 선",  R: 20, shape: "circle", color: "#1D4ED8", mk: "●"},
   short: {name: "짧은 니크롬선", short: "짧은 선", R: 10, shape: "tri",    color: "#C2410C", mk: "▲"},
+  thick: {name: "굵은 니크롬선", short: "굵은 선", R: 10, shape: "sq",     color: "#6D28D9", mk: "■"},   /* 길이는 긴 선과 같고 자른 면의 넓이가 2배 → 저항 절반 */
   x:     {name: "미지의 선 X",   short: "선 X",  R: 15, shape: "dia",    color: "#15803D", mk: "◆"}
 };
-var ORDER = ["long", "short", "x"];
+var ORDER = ["long", "short", "thick", "x"];
+var DRAW_ORDER = ["thick", "long", "short", "x"];   /* 굵은 선(■)을 먼저 그려 겹치는 짧은 선(▲)이 위에 보이게 */
 function newX(){
   var r; do { r = X_CHOICES[Math.floor(Math.random() * X_CHOICES.length)]; } while (r === WIRE.x.R);
   WIRE.x.R = r;
@@ -791,9 +899,9 @@ newX();
 
 var st = {
   on: false, setV: 0, wire: "long", rec: false, flow: true,
-  T: {long: 20, short: 20, x: 20},           /* 니크롬선 온도(°C) — 안전 안내용 */
+  T: {long: 20, short: 20, thick: 20, x: 20},           /* 니크롬선 온도(°C) — 안전 안내용 */
   meas: {V: 0, I: 0, over: false},
-  data: {long: [], short: [], x: []},
+  data: {long: [], short: [], thick: [], x: []},
   unit: "A", phase: 0, sampleT: 0, readT: 0, knobHot: 0,
   auto: false, autoT: 0, autoK: 0, autoMsg: ""             /* 자동 측정: 경과 시간(초), 다음에 찍을 점 번호 */
 };
@@ -968,10 +1076,10 @@ function drawBoard(ctx){
   var col = "rgb(" + Math.round(lerp(125, 205, heat)) + "," + Math.round(lerp(127, 70, heat)) + "," + Math.round(lerp(134, 40, heat)) + ")";
   if (heat > 0.05){
     ctx.beginPath(); ctx.moveTo(L.x, L.y + 16); ctx.lineTo(POST_R.x, POST_R.y + 16);
-    ctx.strokeStyle = "rgba(249,115,22," + (0.35 * heat) + ")"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.stroke();
+    ctx.strokeStyle = "rgba(249,115,22," + (0.35 * heat) + ")"; ctx.lineWidth = st.wire === "thick" ? 12 : 9; ctx.lineCap = "round"; ctx.stroke();
   }
   ctx.beginPath(); ctx.moveTo(L.x, L.y + 16); ctx.lineTo(POST_R.x, POST_R.y + 16);
-  ctx.strokeStyle = col; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = st.wire === "thick" ? 5.6 : 2.6; ctx.lineCap = "round"; ctx.stroke();
   /* 단자 기둥 */
   rrect(ctx, L.x - 8, L.y - 12, 16, 30, 3); ctx.fillStyle = "#1D4ED8"; ctx.fill();
   rrect(ctx, POST_R.x - 8, POST_R.y - 12, 16, 30, 3); ctx.fillStyle = C.red; ctx.fill();
@@ -1033,6 +1141,7 @@ function fitK(arr){   /* 원점을 지나는 직선 I = kV 의 기울기 k (최�
 function marker(ctx, shape, x, y, r, color){
   ctx.beginPath();
   if (shape === "tri"){ ctx.moveTo(x, y - r * 1.15); ctx.lineTo(x + r, y + r * 0.75); ctx.lineTo(x - r, y + r * 0.75); ctx.closePath(); }
+  else if (shape === "sq"){ ctx.rect(x - r * 0.9, y - r * 0.9, r * 1.8, r * 1.8); }
   else if (shape === "dia"){ ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r, y); ctx.closePath(); }
   else ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.stroke();
@@ -1066,24 +1175,25 @@ function drawGraph(G, opt){
   ctx.save(); ctx.translate(15 * tb, m.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("전류 (" + opt.unit + ")", 0, 0); ctx.restore();
   /* 원점을 지나는 직선 */
   var legend = [];
+  DRAW_ORDER.forEach(function(k){
+    var arr = st.data[k]; if (!arr.length || !opt.fit) return;
+    var w = WIRE[k], kk = fitK(arr);
+    if (kk){
+      var vEnd = Math.min(vmax, imax / kk);
+      ctx.save(); ctx.setLineDash([7, 5]); ctx.strokeStyle = w.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(vEnd), Y(kk * vEnd)); ctx.stroke(); ctx.restore();
+    }
+  });
   ORDER.forEach(function(k){
     var arr = st.data[k]; if (!arr.length) return;
-    var w = WIRE[k], txt = w.mk + " " + w.name + " (" + arr.length + "점)";
-    if (opt.fit){
-      var kk = fitK(arr);
-      if (kk){
-        var vEnd = Math.min(vmax, imax / kk);
-        ctx.save(); ctx.setLineDash([7, 5]); ctx.strokeStyle = w.color; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(vEnd), Y(kk * vEnd)); ctx.stroke(); ctx.restore();
-        txt += "  기울기 " + (kk * u).toFixed(u === 1 ? 3 : 1) + " " + opt.unit + "/V";
-      }
-    }
+    var w = WIRE[k], txt = w.mk + " " + w.name + " (" + arr.length + "점)", kk = opt.fit ? fitK(arr) : null;
+    if (kk) txt += "  기울기 " + (kk * u).toFixed(u === 1 ? 3 : 1) + " " + opt.unit + "/V";
     legend.push([w, txt]);
   });
   /* 점 */
-  ORDER.forEach(function(k){
-    var w = WIRE[k];
-    st.data[k].forEach(function(p){ if (p.I <= imax) marker(ctx, w.shape, X(p.V), Y(p.I), 4.2, w.color); });
+  DRAW_ORDER.forEach(function(k){
+    var w = WIRE[k], r = k === "thick" ? 5.2 : 4.2;
+    st.data[k].forEach(function(p){ if (p.I <= imax) marker(ctx, w.shape, X(p.V), Y(p.I), r, w.color); });
   });
   /* 지금 측정값 */
   if (opt.live && st.on){
@@ -1149,6 +1259,13 @@ function toggleRec(){
   explain();
 }
 
+/* 아직 기록하지 않은 다음 니크롬선(긴 선 → 짧은 선 → 굵은 선 순서) */
+function nextWire(){
+  var ks = ["long", "short", "thick"];
+  for (var i = 0; i < ks.length; i++) if (ks[i] !== st.wire && !st.data[ks[i]].length) return ks[i];
+  return null;
+}
+
 /* 자동 측정: 0 V에서 6 V까지 0.2 V씩, 1초마다 한 칸 올리며 점을 하나씩 찍음(약 30초) */
 function setAutoUI(){
   var b = $("b-auto");
@@ -1174,7 +1291,7 @@ function stopAuto(done){
   setV(0);                                 /* 끝나거나 멈추면 손잡이를 0으로 되돌림(안전) */
   st.autoMsg = done
     ? "자동 측정이 끝났어요. 0 V부터 6 V까지 점 " + (AUTO_N + 1) + "개를 찍고 손잡이를 0으로 되돌렸어요." +
-      (st.wire === "long" && !st.data.short.length ? " 이제 <b>짧은 니크롬선</b>으로 바꿔 한 번 더 해 보세요." : "")
+      (st.wire !== "x" && nextWire() ? " 이제 <b>" + WIRE[nextWire()].name + "</b>으로 바꿔 한 번 더 해 보세요." : "")
     : "자동 측정을 멈추고 손잡이를 0으로 되돌렸어요. 그때까지 찍은 점은 그대로 남아 있어요.";
   setAutoUI(); readout(); explain();
 }
@@ -1204,7 +1321,7 @@ $("b-vdn").addEventListener("click", function(){ setV(st.setV - 0.1); });
 $("b-v0").addEventListener("click", function(){ stopAuto(false); setV(0); $("warn").hidden = true; });
 $("b-clear").addEventListener("click", function(){ st.data[st.wire] = []; readout(); predCheck(); });
 $("c-flow").addEventListener("change", function(){ st.flow = this.checked; });
-function setUnit(u){ st.unit = u; $("unit1").value = u; $("unit2").value = u; buildTables(); }
+function setUnit(u){ st.unit = u; $("unit1").value = u; $("unit2").value = u; if ($("unit3")) $("unit3").value = u; buildTables(); if (typeof buildRTable === "function") buildRTable(); }
 $("unit1").addEventListener("change", function(){ setUnit(this.value); });
 $("unit2").addEventListener("change", function(){ setUnit(this.value); });
 
@@ -1254,7 +1371,7 @@ function explain(){
   } else if (!st.on){
     h = "전원이 꺼져 있어요";
     p.push(st.setV > 0.001 ? "전원을 켜기 전에 전압 조절 손잡이를 <b>0</b>으로 돌려 두세요." : "손잡이가 0인 것을 확인했어요. <b>전원 켜기</b>를 눌러 실험을 시작하세요.");
-    if (d.long.length > 5 && !d.short.length) p.push("다음 과정: 니크롬선을 <b>짧은 니크롬선</b>으로 바꾸고 같은 방법으로 반복해요.");
+    if (st.wire !== "x" && d[st.wire].length > 5 && nextWire()) p.push("다음 과정: 니크롬선을 <b>" + WIRE[nextWire()].name + "</b>으로 바꾸고 같은 방법으로 반복해요.");
   } else if (!st.rec){
     h = "전원이 켜졌어요";
     if (st.autoMsg) p.push(st.autoMsg); else p.push("<b>기록 시작</b>을 누른 뒤 손잡이를 조금씩 돌려 전압을 높여 보세요. 전압이 0인 동안 전류는 얼마인가요?");
@@ -1262,8 +1379,8 @@ function explain(){
     h = "기록 중 — " + WIRE[st.wire].name;
     p.push("0 V에서 6 V까지 <b>천천히</b> 높여 보세요. 점이 어떤 모양으로 찍히나요?");
     if (st.setV >= 5.5 && d[st.wire].length > 5){
-      if (st.wire === "long" && !d.short.length) p.push("다 찍었다면 과정 4: 전압을 <b>0으로 낮추고</b> 짧은 니크롬선으로 바꿔 반복해요.");
-      else if (d.long.length && d.short.length) p.push("두 선을 모두 기록했어요. <b>② 결과 분석</b>에서 그래프를 비교해 보세요.");
+      if (st.wire !== "x" && nextWire()) p.push("다 찍었다면 전압을 <b>0으로 낮추고</b> " + WIRE[nextWire()].name + "으로 바꿔 반복해요.");
+      else if (d.long.length && d.short.length && d.thick.length) p.push("세 선을 모두 기록했어요. <b>② 결과 분석</b>에서 그래프를 비교해 보세요. 길이를 비교하려면 긴 선과 짧은 선, 굵기를 비교하려면 긴 선과 굵은 선을 보면 돼요.");
     }
   }
   if (T > 50) p.push("🔥 니크롬선이 뜨거워지고 있어요(" + Math.round(T) + " °C). 측정이 끝나면 전압을 0으로 낮추세요.");
@@ -1348,24 +1465,344 @@ $("b-xnew").addEventListener("click", function(){
 var QS = [
   ["1. 전압이 커질 때 전류의 세기는 어떻게 달라지나요?", "전압이 커질수록 전류도 일정한 비율로 커진다. 그래프가 원점을 지나는 직선이므로 <b>전류는 전압에 비례</b>한다."],
   ["2. 전압이 같을 때 니크롬선의 길이에 따라 전류의 세기는 어떻게 달라지나요?", "같은 전압에서 <b>짧은 니크롬선에 전류가 더 많이</b> 흐른다. 긴 니크롬선은 저항이 커서 전류가 적게 흐른다(길이가 2배이면 전류는 약 절반)."],
-  ["3. 두 그래프의 기울기 차이는 무엇을 뜻하나요?", "기울기는 '전압 1 V당 흐르는 전류'이므로 기울기가 클수록 저항이 작다. 짧은 니크롬선의 그래프가 더 가파르므로 저항이 더 작다. <b>기울기 = 1 ÷ 저항</b>."],
-  ["4. 실험 결과를 바탕으로 전류의 세기에 영향을 미치는 요인을 말하고, 전압·전류·저항의 관계를 식으로 나타내 보세요.", "전류의 세기는 <b>전압</b>과 <b>저항(니크롬선의 길이)</b>에 따라 달라진다. 전류는 전압에 비례하고 저항에 반비례하므로 I = V / R, 곧 <b>V = I × R</b>이다(옴의 법칙)."]
+  ["3. 전압이 같을 때 니크롬선의 굵기에 따라 전류의 세기는 어떻게 달라지나요? (긴 선과 굵은 선 비교)", "길이가 같으면 <b>굵은 니크롬선에 전류가 더 많이</b> 흐른다. 굵을수록 전류가 지나갈 길이 넓어 저항이 작기 때문이다(자른 면의 넓이가 2배이면 저항은 절반, 전류는 약 2배). 그래서 굵은 선의 그래프는 짧은 선의 그래프와 거의 겹친다."],
+  ["4. 그래프의 기울기 차이는 무엇을 뜻하나요?", "기울기는 '전압 1 V당 흐르는 전류'이므로 기울기가 클수록 저항이 작다. 짧은 선과 굵은 선의 그래프가 긴 선보다 더 가파르므로 저항이 더 작다. <b>기울기 = 1 ÷ 저항</b>."],
+  ["5. 실험 결과를 바탕으로 전류의 세기에 영향을 미치는 요인을 말하고, 전압·전류·저항의 관계를 식으로 나타내 보세요.", "전류의 세기는 <b>전압</b>과 <b>저항(니크롬선의 길이·굵기)</b>에 따라 달라진다. 전류는 전압에 비례하고 저항에 반비례하므로 I = V / R, 곧 <b>V = I × R</b>이다(옴의 법칙)."]
 ];
-(function(){
+function buildQA(boxId, list, pre){
   var html = "";
-  QS.forEach(function(q, i){
-    html += '<div class="q"><p class="qt" id="qt' + i + '">' + q[0] + '</p><textarea id="qa' + i + '" aria-labelledby="qt' + i + '" placeholder="내 생각을 적어 보세요"></textarea>' +
-      '<details id="qd' + i + '"><summary>예시 답 보기</summary><p class="ans">' + q[1] + '</p></details><p class="need" id="qn' + i + '" hidden>먼저 내 생각을 한 줄 이상 적어 보세요.</p></div>';
+  list.forEach(function(q, i){
+    var id = pre + i;
+    html += '<div class="q"><p class="qt" id="qt' + id + '">' + q[0] + '</p><textarea id="qa' + id + '" aria-labelledby="qt' + id + '" placeholder="내 생각을 적어 보세요"></textarea>' +
+      '<details id="qd' + id + '"><summary>예시 답 보기</summary><p class="ans">' + q[1] + '</p></details><p class="need" id="qn' + id + '" hidden>먼저 내 생각을 한 줄 이상 적어 보세요.</p></div>';
   });
-  $("qa").innerHTML = html;
-  QS.forEach(function(q, i){
-    var d = $("qd" + i), sm = d.querySelector("summary");
+  $(boxId).innerHTML = html;
+  list.forEach(function(q, i){
+    var id = pre + i, d = $("qd" + id), sm = d.querySelector("summary");
     sm.addEventListener("click", function(e){
-      if (!d.open && $("qa" + i).value.trim().length < 5){ e.preventDefault(); $("qn" + i).hidden = false; $("qa" + i).focus(); }
-      else $("qn" + i).hidden = true;
+      if (!d.open && $("qa" + id).value.trim().length < 5){ e.preventDefault(); $("qn" + id).hidden = false; $("qa" + id).focus(); }
+      else $("qn" + id).hidden = true;
     });
   });
-})();
+}
+buildQA("qa", QS, "");
+
+/* =========================================================
+   ③ 저항–전류: 전압을 고정하고 집게 위치(길이)로 저항 바꾸기
+   ========================================================= */
+var RW = {full: 100, R: 20, min: 15, step: 5};          /* 긴 니크롬선 100 cm = 20 Ω, 집게는 15~100 cm */
+var RV_COL = {1: "#0E7490", 2: "#1D4ED8", 3: "#C2410C"};
+var RV_SHAPE = {1: "circle", 2: "tri", 3: "sq"};
+var rs = {
+  V: 3, len: 100, meas: {V: 0, I: 0}, data: {1: [], 2: [], 3: []},
+  auto: false, autoT: 0, autoK: 0, autoMsg: "", sampleT: 0
+};
+var RAUTO_SEC = 0.6, RAUTO_LENS = [];
+for (var li = 100; li >= RW.min; li -= RW.step) RAUTO_LENS.push(li);   /* 100 → 15 cm, 18점 */
+function rOf(len){ return Math.round(len / RW.full * RW.R * 100) / 100; }
+
+function sample3(){
+  var R = rOf(rs.len);
+  rs.meas.V = rs.V + gauss() * 0.004;
+  rs.meas.I = Math.max(0, rs.V / R * (1 + gauss() * 0.003) + gauss() * 0.0004);
+}
+function recordRI(){
+  var arr = rs.data[rs.V], R = rOf(rs.len);
+  for (var i = arr.length - 1; i >= 0; i--) if (Math.abs(arr[i].R - R) < 1e-6) arr.splice(i, 1);   /* 같은 저항은 새 값으로 */
+  arr.push({R: R, I: rs.meas.I, V: rs.meas.V});
+  arr.sort(function(a, b){ return a.R - b.R; });
+  rReadout(); buildRTable(); pred2Check(); explain3();
+}
+function setLen(l){
+  rs.len = clamp(Math.round(l / RW.step) * RW.step, RW.min, RW.full);
+  $("ls").value = rs.len;
+  $("lset").textContent = rs.len + " cm → " + fmtR(rOf(rs.len)) + " Ω";
+  $("ls").setAttribute("aria-valuetext", rs.len + " 센티미터, 저항 " + fmtR(rOf(rs.len)) + " 옴");
+  sample3(); rReadout();
+}
+function fmtR(r){ return Math.abs(r - Math.round(r)) < 1e-6 ? String(Math.round(r)) : r.toFixed(1); }
+function setRV(v){
+  rs.V = v; rs.autoMsg = "";
+  [].forEach.call(document.querySelectorAll("input[name=rv]"), function(r){ r.checked = Number(r.value) === v; });
+  sample3(); rReadout(); buildRTable(); explain3();
+}
+function rReadout(){
+  $("r3-v").textContent = fmt(rs.meas.V, 2) + " V";
+  $("r3-i").textContent = fmt(rs.meas.I, 3) + " A";
+  $("r3-ma").textContent = Math.round(rs.meas.I * 1000) + " mA";
+  $("r3-r").textContent = fmtR(rOf(rs.len)) + " Ω";
+  $("r3-n").textContent = rs.V + " V에서 기록 " + rs.data[rs.V].length + "개";
+}
+function setRAutoUI(){
+  var b = $("b-rauto");
+  b.setAttribute("aria-pressed", rs.auto ? "true" : "false");
+  b.textContent = rs.auto ? "■ 자동 측정 멈춤 · " + rs.len + " cm" : "▶ 자동 측정";
+  ["ls", "b-lup", "b-ldn", "b-rpt", "b-rclear"].forEach(function(id){ $(id).disabled = rs.auto; });
+  [].forEach.call(document.querySelectorAll("input[name=rv]"), function(r){ r.disabled = rs.auto; });
+}
+function startRAuto(){
+  rs.auto = true; rs.autoT = 0; rs.autoK = 0; rs.autoMsg = "";
+  setLen(RAUTO_LENS[0]); setRAutoUI(); explain3();
+}
+function stopRAuto(done){
+  if (!rs.auto) return;
+  rs.auto = false;
+  rs.autoMsg = done
+    ? "자동 측정이 끝났어요. 집게를 100 cm에서 15 cm까지 옮기며 점 " + RAUTO_LENS.length + "개를 찍었어요."
+    : "자동 측정을 멈췄어요. 그때까지 찍은 점은 그대로 남아 있어요.";
+  setRAutoUI(); explain3();
+}
+function rAutoTick(dt){
+  rs.autoT += dt;
+  var k = Math.min(RAUTO_LENS.length - 1, Math.floor(rs.autoT / RAUTO_SEC));
+  if (rs.len !== RAUTO_LENS[k]){ setLen(RAUTO_LENS[k]); setRAutoUI(); }
+  while (rs.autoK < RAUTO_LENS.length && rs.autoT >= rs.autoK * RAUTO_SEC + 0.4){
+    setLen(RAUTO_LENS[rs.autoK]); sample3(); recordRI(); rs.autoK++;
+  }
+  if (rs.autoK >= RAUTO_LENS.length) stopRAuto(true);
+}
+function explain3(){
+  var h, p = [], n = rs.data[rs.V].length, R = rOf(rs.len), P = rs.V * rs.V / R;
+  if (rs.auto){
+    h = "자동 측정 중 — 전압 " + rs.V + " V";
+    p.push("집게를 <b>5 cm씩</b> 옮기며 점을 찍고 있어요 (" + rs.autoK + " / " + RAUTO_LENS.length + "개). 저항이 작아질수록 전류는 어떻게 되나요?");
+  } else if (!n){
+    h = "전압 " + rs.V + " V로 고정했어요";
+    p.push(rs.autoMsg || "검은 집게를 옮겨 저항을 바꾸고 <b>이 점 기록</b>을 눌러 보세요. 여러 길이에서 점을 찍거나 <b>자동 측정</b>을 눌러요.");
+  } else if (n < 5){
+    h = "기록 중 — 전압 " + rs.V + " V";
+    p.push("점을 " + (5 - n) + "개 이상 더 찍어 보세요. 저항이 작은 쪽과 큰 쪽을 골고루 찍으면 그래프 모양이 잘 보여요.");
+  } else {
+    h = "그래프 모양을 살펴봐요";
+    if (rs.autoMsg) p.push(rs.autoMsg);
+    p.push("점들이 <b>직선</b>으로 늘어서나요, <b>곡선</b>으로 늘어서나요? 저항이 2배인 두 점(예: 5 Ω와 10 Ω)의 전류를 비교해 보세요.");
+    var others = [1, 2, 3].filter(function(v){ return v !== rs.V && rs.data[v].length; });
+    if (!others.length) p.push("전압을 바꿔 한 번 더 기록하면 그래프가 어떻게 달라지는지 비교할 수 있어요.");
+  }
+  if (P > 1.6) p.push("🔥 집게 사이가 짧아 전류가 커요. 실물 실험이라면 니크롬선이 빨리 뜨거워지니 측정을 짧게 끝내요.");
+  $("explain3").innerHTML = '<span class="h">' + h + '</span>' + p.map(function(t){ return "<p>" + t + "</p>"; }).join("");
+}
+
+/* 회로 그림 */
+var S3 = {cv: $("cv3"), LH: 262};
+var WX0 = 60, WX1 = 600, WY = 196;                                  /* 니크롬선: 0 cm ~ 100 cm */
+var PSU3 = {x: 214, y: 12, w: 196, h: 92};
+var CS3 = {x: 24, y: 12, w: 170, h: 58};
+var VS3 = {x: 440, y: 40, w: 176, h: 50};
+var T3P = {x: 260, y: 88}, T3M = {x: 360, y: 88};                  /* 전원 장치 (+)·(−) 단자 */
+function clipX(){ return WX0 + rs.len / RW.full * (WX1 - WX0); }
+function wires3(){
+  var cx = clipX();
+  return {
+    plus:  bez({x: T3P.x, y: T3P.y + 8}, {x: 250, y: 140}, {x: 190, y: 120}, {x: 176, y: 66}),
+    cOut:  bez({x: 42, y: 66}, {x: 20, y: 110}, {x: 30, y: 160}, {x: WX0 - 4, y: WY - 14}),
+    minus: bez({x: T3M.x, y: T3M.y + 8}, {x: 372, y: 150}, {x: cx + 40, y: 140}, {x: cx + 4, y: WY - 14}),
+    vRed:  bez({x: 458, y: 90}, {x: 452, y: 160}, {x: 130, y: 150}, {x: WX0 + 4, y: WY - 14}),
+    vBlack:bez({x: 598, y: 90}, {x: 614, y: 150}, {x: cx - 30, y: 150}, {x: cx - 4, y: WY - 14})
+  };
+}
+function draw3(){
+  var ctx = S3.ctx; if (!ctx) return;
+  var tbSave = S1.tb; S1.tb = S3.tb;                               /* label()이 쓰는 글자 크기 보정 */
+  ctx.clearRect(0, 0, LW, S3.LH);
+  ctx.fillStyle = "#EFE8D8"; ctx.fillRect(0, 0, LW, S3.LH);
+  ctx.strokeStyle = "rgba(92,86,78,.08)"; ctx.lineWidth = 1;
+  for (var gx = 0; gx < LW; gx += 32){ ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, S3.LH); ctx.stroke(); }
+  /* 나무판 + 자 */
+  var bx = 30, by = 176, bw = 600, bh = 78;
+  rrect(ctx, bx + 3, by + 5, bw, bh, 6); ctx.fillStyle = "rgba(0,0,0,.16)"; ctx.fill();
+  rrect(ctx, bx, by, bw, bh, 6);
+  var g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, "#D8B485"); g.addColorStop(1, C.wood);
+  ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = C.woodDk; ctx.lineWidth = 1.2; ctx.stroke();
+  rrect(ctx, WX0 - 8, WY + 12, WX1 - WX0 + 16, 26, 2); ctx.fillStyle = "#F7F1DC"; ctx.fill(); ctx.strokeStyle = "#A08A5F"; ctx.lineWidth = 1; ctx.stroke();
+  for (var cm = 0; cm <= 100; cm += 5){
+    var tx = WX0 + cm / 100 * (WX1 - WX0), big = cm % 10 === 0;
+    ctx.beginPath(); ctx.moveTo(tx, WY + 12); ctx.lineTo(tx, WY + 12 + (big ? 9 : 5)); ctx.strokeStyle = "#5C564E"; ctx.lineWidth = 1; ctx.stroke();
+    if (big) label(ctx, String(cm), tx, WY + 30, {size: 9.5, bold: false, color: "#5C564E"});
+  }
+  label(ctx, "cm", WX1 + 18, WY + 30, {size: 9.5, bold: false, color: "#5C564E"});
+  /* 니크롬선: 집게 사이(전류가 흐르는 부분)만 진하게 */
+  var cx = clipX(), P = rs.V * rs.V / rOf(rs.len), heat = clamp((P - 0.8) / 2.2, 0, 1);
+  ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(WX0, WY); ctx.lineTo(WX1, WY); ctx.strokeStyle = "#A3A5AB"; ctx.lineWidth = 2; ctx.stroke();
+  if (heat > 0.05){ ctx.beginPath(); ctx.moveTo(WX0, WY); ctx.lineTo(cx, WY); ctx.strokeStyle = "rgba(249,115,22," + (0.35 * heat) + ")"; ctx.lineWidth = 9; ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(WX0, WY); ctx.lineTo(cx, WY);
+  ctx.strokeStyle = "rgb(" + Math.round(lerp(110, 205, heat)) + "," + Math.round(lerp(112, 70, heat)) + "," + Math.round(lerp(120, 40, heat)) + ")"; ctx.lineWidth = 3; ctx.stroke();
+  /* 집게 사이 길이 표시 */
+  ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = C.cat; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(WX0, WY + 44); ctx.lineTo(cx, WY + 44); ctx.stroke(); ctx.restore();
+  label(ctx, "집게 사이 " + rs.len + " cm → 저항 " + fmtR(rOf(rs.len)) + " Ω", (WX0 + cx) / 2, WY + 50, {size: 11, color: C.cat, bg: "rgba(255,253,247,.95)", border: C.cat});
+  if (heat > 0.5) label(ctx, "🔥 뜨거움", (WX0 + cx) / 2, by - 6, {size: 11, color: "#9A3412", bg: "#FFF7ED", border: "#9A3412"});
+  /* 전원 장치 */
+  var p = PSU3;
+  rrect(ctx, p.x + 4, p.y + 5, p.w, p.h, 8); ctx.fillStyle = "rgba(0,0,0,.18)"; ctx.fill();
+  rrect(ctx, p.x, p.y, p.w, p.h, 8);
+  var pg = ctx.createLinearGradient(0, p.y, 0, p.y + p.h); pg.addColorStop(0, C.caseLt); pg.addColorStop(1, C.case);
+  ctx.fillStyle = pg; ctx.fill();
+  label(ctx, "전원 장치 (전압 일정)", p.x + 12, p.y + 14, {align: "left", color: "#E5E7EB", size: 11});
+  lcd(ctx, p.x + 14, p.y + 26, 120, 36, rs.V.toFixed(2), true);
+  label(ctx, "V", p.x + 148, p.y + 44, {color: "#E5E7EB", size: 14});
+  [[T3P.x, C.red, "(+)"], [T3M.x, "#1F1F1F", "(−)"]].forEach(function(t){
+    ctx.beginPath(); ctx.arc(t[0], T3P.y, 8, 0, Math.PI * 2); ctx.fillStyle = t[1]; ctx.fill(); ctx.strokeStyle = "#111"; ctx.lineWidth = 1; ctx.stroke();
+    label(ctx, t[2], t[0] + 22, T3P.y, {color: "#E5E7EB", size: 10.5});
+  });
+  /* 센서 */
+  drawSensor(ctx, CS3, "전류 센서", fmt(rs.meas.I, 3) + " A", [{x: 176, y: 62, c: C.red}, {x: 42, y: 62, c: "#1F1F1F"}]);
+  drawSensor(ctx, VS3, "전압 센서", fmt(rs.meas.V, 2) + " V", [{x: 458, y: 84, c: C.red}, {x: 598, y: 84, c: "#1F1F1F"}]);
+  /* 전선 */
+  var W = wires3();
+  strokeBez(ctx, W.plus, C.red, 3.2);
+  strokeBez(ctx, W.cOut, C.red, 3.2);
+  strokeBez(ctx, W.minus, C.black, 3.2);
+  strokeBez(ctx, W.vRed, C.red, 2.2);
+  strokeBez(ctx, W.vBlack, C.black, 2.2);
+  /* 집게: 왼쪽 끝(빨강) 고정, 검은 집게는 움직임 */
+  clip(ctx, WX0 - 4, WY - 12, C.red, -0.4); clip(ctx, WX0 + 5, WY - 12, C.red, 0.4);
+  clip(ctx, cx - 5, WY - 12, C.black, -0.4); clip(ctx, cx + 4, WY - 12, C.black, 0.4);
+  S1.tb = tbSave;
+}
+
+/* 그래프: 가로축 저항, 세로축 전류 */
+var G3 = {cv: $("g3"), LH: 320};
+function drawRI(G, opt){
+  var ctx = G.ctx; if (!ctx) return;
+  var H = G.LH, tb = G.tb, u = opt.unit === "mA" ? 1000 : 1;
+  ctx.clearRect(0, 0, LW, H); ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, H);
+  var m = {l: 70, r: 18, t: 16, b: 50};
+  var x0 = m.l, y0 = H - m.b, pw = LW - m.l - m.r, ph = H - m.t - m.b;
+  var rmax = 20, imax = 1.0;                                       /* 3 V ÷ 3 Ω = 1.0 A가 가장 큰 전류 */
+  function X(r){ return x0 + r / rmax * pw; }
+  function Y(a){ return y0 - a / imax * ph; }
+  var r, a;
+  ctx.lineWidth = 1;
+  for (r = 0; r <= rmax + 1e-9; r += 1){ ctx.strokeStyle = r % 5 === 0 ? C.gridMaj : C.grid; ctx.beginPath(); ctx.moveTo(X(r), m.t); ctx.lineTo(X(r), y0); ctx.stroke(); }
+  for (a = 0; a <= imax + 1e-9; a += 0.05){ var maj = Math.abs(Math.round(a * 10) / 10 - a) < 1e-9; ctx.strokeStyle = maj ? C.gridMaj : C.grid; ctx.beginPath(); ctx.moveTo(x0, Y(a)); ctx.lineTo(x0 + pw, Y(a)); ctx.stroke(); }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(x0, m.t - 4); ctx.lineTo(x0, y0); ctx.lineTo(x0 + pw + 4, y0); ctx.stroke();
+  ctx.fillStyle = C.ink; ctx.font = (11.5 * tb) + "px " + FONT; ctx.textBaseline = "middle"; ctx.textAlign = "center";
+  for (r = 0; r <= rmax + 1e-9; r += 5) ctx.fillText(String(r), X(r), y0 + 13 * tb);
+  ctx.textAlign = "right";
+  for (a = 0; a <= imax + 1e-9; a += 0.1) ctx.fillText(u === 1000 ? String(Math.round(a * 1000)) : a.toFixed(1), x0 - 6, Y(a));
+  ctx.font = "700 " + (12.5 * tb) + "px " + FONT; ctx.textAlign = "center";
+  ctx.fillText("저항 (Ω)", x0 + pw / 2, H - 13 * tb);
+  ctx.save(); ctx.translate(15 * tb, m.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("전류 (" + opt.unit + ")", 0, 0); ctx.restore();
+  var legend = [];
+  [1, 2, 3].forEach(function(v){
+    var arr = rs.data[v]; if (!arr.length) return;
+    if (opt.curve){                                                /* I = V / R */
+      ctx.save(); ctx.setLineDash([7, 5]); ctx.strokeStyle = RV_COL[v]; ctx.lineWidth = 2; ctx.beginPath();
+      for (var rr = Math.max(0.5, v / imax), first = true; rr <= rmax + 1e-9; rr += 0.1){
+        if (first){ ctx.moveTo(X(rr), Y(v / rr)); first = false; } else ctx.lineTo(X(rr), Y(v / rr));
+      }
+      ctx.stroke(); ctx.restore();
+    }
+    legend.push([v, "전압 " + v + " V (" + arr.length + "점)" + (opt.curve ? "  전류 = " + v + " ÷ 저항" : "")]);
+  });
+  [1, 2, 3].forEach(function(v){ rs.data[v].forEach(function(q){ if (q.I <= imax) marker(ctx, RV_SHAPE[v], X(q.R), Y(q.I), 4.4, RV_COL[v]); }); });
+  if (opt.live){
+    var cx = X(rOf(rs.len)), cy = Y(clamp(rs.meas.I, 0, imax));
+    ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = C.graphite; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, y0); ctx.lineTo(cx, cy); ctx.lineTo(x0, cy); ctx.stroke(); ctx.restore();
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.stroke();
+  }
+  if (legend.length){
+    ctx.font = "700 " + (11.5 * tb) + "px " + FONT; ctx.textAlign = "left";
+    var lh = 18 * tb, bw = 0, lx = x0 + pw - 8;
+    legend.forEach(function(l){ bw = Math.max(bw, ctx.measureText(l[1]).width); });
+    rrect(ctx, lx - bw - 34, m.t + 4, bw + 34, legend.length * lh + 8, 4); ctx.fillStyle = "rgba(255,253,247,.94)"; ctx.fill();
+    ctx.strokeStyle = C.hair; ctx.lineWidth = 1; ctx.stroke();
+    legend.forEach(function(l, i){
+      var yy = m.t + 12 + i * lh + lh / 2 - 4;
+      marker(ctx, RV_SHAPE[l[0]], lx - bw - 22, yy, 4.5, RV_COL[l[0]]);
+      ctx.fillStyle = C.ink; ctx.fillText(l[1], lx - bw - 12, yy);
+    });
+  } else {
+    ctx.font = (12.5 * tb) + "px " + FONT; ctx.fillStyle = C.graphite; ctx.textAlign = "center";
+    ctx.fillText(opt.live ? "집게를 옮기고 「이 점 기록」을 눌러 보세요" : "아직 기록이 없어요", x0 + pw / 2, m.t + ph / 2);
+  }
+}
+
+/* 표: 저항 5·10·15·20 Ω에서 전류, 저항 × 전류 */
+var RTARGETS = [5, 10, 15, 20];
+function nearR(arr, R){ for (var i = 0; i < arr.length; i++) if (Math.abs(arr[i].R - R) < 0.01) return arr[i]; return null; }
+function buildRTable(){
+  var u = st.unit, show = $("c-rxi").checked, arr = rs.data[rs.V];
+  var html = '<table class="data"><caption>전압 ' + rs.V + ' V로 고정했을 때</caption><tr><th>집게 사이 길이 (cm)</th><th>저항 (Ω)</th><th>전류 (' + u + ')</th>' + (show ? '<th>저항 × 전류 (V)</th>' : '') + '</tr>';
+  RTARGETS.forEach(function(R){
+    var q = nearR(arr, R), len = R / RW.R * RW.full;
+    if (!q){ html += '<tr><td>' + len + '</td><td>' + R + '</td><td class="empty" colspan="' + (show ? 2 : 1) + '">기록 없음</td></tr>'; return; }
+    var iv = u === "mA" ? Math.round(q.I * 1000) : q.I.toFixed(3);
+    html += '<tr><td>' + len + '</td><td>' + R + '</td><td>' + iv + '</td>' + (show ? '<td class="ratio">' + (q.R * q.I).toFixed(2) + '</td>' : '') + '</tr>';
+  });
+  html += '</table>';
+  if (!arr.length) html += '<p class="tb-note" style="margin-top:.6rem">집게를 25·50·75·100 cm에 두고 기록하면(또는 자동 측정) 표가 채워져요.</p>';
+  $("rtable").innerHTML = html;
+  fillPrintRI();
+}
+$("c-rxi").addEventListener("change", buildRTable);
+
+/* 예상 확인: 같은 전압에서 저항이 2배인 두 점 */
+var pred2Shown = "";
+function pred2Check(){
+  var sel = document.querySelector("input[name=p2]:checked"), fb = $("pred2-fb");
+  if (!sel){ fb.className = "fbk"; fb.textContent = "하나를 고른 뒤 실험으로 확인해 보세요."; return; }
+  var pr = null;
+  [3, 2, 1].forEach(function(v){
+    if (pr) return;
+    var arr = rs.data[v];
+    arr.forEach(function(a){ var b = nearR(arr, a.R * 2); if (b && (!pr || a.R > pr.a.R)) pr = {v: v, a: a, b: b}; });
+  });
+  if (!pr){ fb.className = "fbk"; fb.textContent = "좋아요. 이제 저항이 2배인 두 점(예: 5 Ω와 10 Ω)을 기록해 확인해 보세요."; return; }
+  var ok = sel.value === "half", ratio = pr.b.I / pr.a.I;
+  var msg = "전압 " + pr.v + " V: " + fmtR(pr.a.R) + " Ω → " + Math.round(pr.a.I * 1000) + " mA, " + fmtR(pr.b.R) + " Ω → " + Math.round(pr.b.I * 1000) + " mA. 저항이 2배일 때 전류는 약 " + ratio.toFixed(2) + "배예요. ";
+  msg += ok ? "예상이 맞았어요!" : "예상과 다르지요? 그래프를 다시 살펴보세요.";
+  if (msg === pred2Shown) return;
+  pred2Shown = msg; fb.className = "fbk " + (ok ? "fb-ok" : "fb-bad"); fb.textContent = msg;
+}
+[].forEach.call(document.querySelectorAll("input[name=p2]"), function(r){ r.addEventListener("change", function(){ pred2Shown = ""; pred2Check(); }); });
+
+/* 조작 */
+[].forEach.call(document.querySelectorAll("input[name=rv]"), function(r){ r.addEventListener("change", function(){ setRV(Number(r.value)); }); });
+$("ls").addEventListener("input", function(){ rs.autoMsg = ""; setLen(parseFloat(this.value)); explain3(); });
+$("b-lup").addEventListener("click", function(){ setLen(rs.len + RW.step); explain3(); });
+$("b-ldn").addEventListener("click", function(){ setLen(rs.len - RW.step); explain3(); });
+$("b-rpt").addEventListener("click", function(){ sample3(); recordRI(); });
+$("b-rauto").addEventListener("click", function(){ if (rs.auto) stopRAuto(false); else startRAuto(); });
+$("b-rclear").addEventListener("click", function(){ rs.data[rs.V] = []; rs.autoMsg = ""; rReadout(); buildRTable(); pred2Check(); explain3(); });
+$("unit3").addEventListener("change", function(){ setUnit(this.value); });
+var drag3 = false;
+function lenFrom(p){ return (p.x - WX0) / (WX1 - WX0) * RW.full; }
+S3.cv.addEventListener("pointerdown", function(e){
+  var p = pointer(S3, e);
+  var nearClip = Math.hypot(p.x - clipX(), p.y - (WY - 10)) < 30;
+  var onWire = p.y > WY - 30 && p.y < WY + 14 && p.x > WX0 && p.x < WX1 + 10;
+  if (nearClip || onWire){
+    if (rs.auto) stopRAuto(false);
+    drag3 = true; S3.cv.setPointerCapture(e.pointerId); rs.autoMsg = ""; setLen(lenFrom(p)); explain3(); e.preventDefault();
+  }
+});
+S3.cv.addEventListener("pointermove", function(e){
+  var p = pointer(S3, e);
+  if (drag3){ setLen(lenFrom(p)); return; }
+  var hot = Math.hypot(p.x - clipX(), p.y - (WY - 10)) < 30 || (p.y > WY - 30 && p.y < WY + 14 && p.x > WX0 && p.x < WX1 + 10);
+  S3.cv.style.cursor = hot ? "ew-resize" : "default";
+});
+S3.cv.addEventListener("pointerup", function(){ if (drag3){ drag3 = false; explain3(); } });
+S3.cv.addEventListener("pointercancel", function(){ drag3 = false; });
+S3.cv.addEventListener("keydown", function(e){
+  if (/^Arrow(Up|Down|Left|Right)$/.test(e.key)){
+    if (rs.auto) stopRAuto(false);
+    rs.autoMsg = "";
+    setLen(rs.len + ((e.key === "ArrowRight" || e.key === "ArrowUp") ? RW.step : -RW.step)); explain3(); e.preventDefault();
+  } else if (e.key === " " || e.key === "Enter"){ if (!rs.auto){ sample3(); recordRI(); } e.preventDefault(); }
+});
+
+var QS3 = [
+  ["1. 전압이 같을 때 저항이 커지면 전류의 세기는 어떻게 달라지나요?", "저항이 커질수록 전류는 작아진다. 저항이 2배가 되면 전류는 절반, 3배가 되면 3분의 1이 되므로 <b>전류는 저항에 반비례</b>한다. 그래서 그래프는 직선이 아니라 점점 완만해지는 곡선이다."],
+  ["2. 표에서 저항 × 전류를 계산하면 어떤 값이 나오나요? 그 값은 무엇과 같나요?", "저항이 달라도 <b>저항 × 전류는 거의 일정</b>하고, 고정해 둔 전압과 같다(예: 3 V로 고정하면 약 3). 그래서 <b>V = I × R</b>이다."],
+  ["3. 전압을 높이면 저항–전류 그래프는 어떻게 달라지나요?", "같은 저항에서 전류가 더 커지므로 곡선 전체가 <b>위쪽</b>으로 올라간다. 전압이 2배이면 각 저항에서 전류도 2배이다. 모양은 여전히 반비례 곡선이다."]
+];
+buildQA("qa-ri", QS3, "r");
 
 /* =========================================================
    저장 · 인쇄
@@ -1378,14 +1815,30 @@ function graphPNG(){
   drawGraph(tmp, {unit: st.unit, fit: $("c-fit").checked, live: false});
   return tmp.cv.toDataURL("image/png");
 }
+function riPNG(){
+  var tmp = {cv: document.createElement("canvas"), LH: 400};
+  tmp.scale = 1.6; tmp.h = Math.round(tmp.LH * tmp.scale);
+  tmp.cv.width = Math.round(LW * tmp.scale); tmp.cv.height = tmp.h;
+  tmp.ctx = tmp.cv.getContext("2d"); tmp.ctx.setTransform(tmp.scale, 0, 0, tmp.scale, 0, 0); tmp.tb = 1;
+  drawRI(tmp, {unit: st.unit, curve: $("c-curve").checked, live: false});
+  return tmp.cv.toDataURL("image/png");
+}
 $("b-save").addEventListener("click", function(){
   var a = document.createElement("a");
-  a.download = "전류전압저항_그래프_" + stamp() + ".png"; a.href = graphPNG(); a.click();
+  if (current === 3){ a.download = "저항전류_그래프_" + stamp() + ".png"; a.href = riPNG(); }
+  else { a.download = "전류전압저항_그래프_" + stamp() + ".png"; a.href = graphPNG(); }
+  a.click();
 });
 function fillPrintTable(){
-  [["long", "l"], ["short", "s"]].forEach(function(k){
+  [["long", "l"], ["short", "s"], ["thick", "t"]].forEach(function(k){
     TARGETS.forEach(function(t, i){ var p = nearest(st.data[k[0]], t); $("pt-" + k[1] + i).textContent = p ? Math.round(p.I * 1000) : ""; });
   });
+}
+function fillPrintRI(){
+  var v = rs.V;
+  if (!rs.data[v].length){ [3, 2, 1].forEach(function(k){ if (!rs.data[v].length && rs.data[k].length) v = k; }); }
+  $("pr-v").textContent = rs.data[v].length ? v : "\u00a0\u00a0\u00a0";
+  RTARGETS.forEach(function(R, i){ var q = nearR(rs.data[v], R); $("pr-" + i).textContent = q ? Math.round(q.I * 1000) : ""; });
 }
 (function(){   /* 빈 그래프 모눈 */
   var s = '', x0 = 44, y0 = 206, w = 260, h = 190;
@@ -1398,7 +1851,7 @@ function fillPrintTable(){
   s += '<text x="' + (x0 - 6) + '" y="' + (y0 + 4) + '" font-size="10" text-anchor="end">0</text>';
   $("ps-grid").innerHTML = s;
 })();
-function beforePrint(){ fillPrintTable(); $("ps-img").src = graphPNG(); }
+function beforePrint(){ fillPrintTable(); fillPrintRI(); $("ps-img").src = graphPNG(); }
 window.addEventListener("beforeprint", beforePrint);
 $("b-print").addEventListener("click", function(){ beforePrint(); setTimeout(function(){ window.print(); }, 60); });
 
@@ -1406,7 +1859,7 @@ $("b-print").addEventListener("click", function(){ beforePrint(); setTimeout(fun
    탭 · 크기 · 그리기 반복
    ========================================================= */
 var tabs = [].slice.call(document.querySelectorAll(".tb-tabs [role=tab]"));
-var panels = [1, 2, 3].map(function(n){ return $("panel-" + n); });
+var panels = [1, 2, 3, 4].map(function(n){ return $("panel-" + n); });
 var current = 1;
 function selectTab(n, focus){
   current = n;
@@ -1418,6 +1871,8 @@ function selectTab(n, focus){
   });
   panels.forEach(function(p, i){ p.hidden = (i + 1) !== n; });
   if (n === 2) buildTables();
+  if (n === 3){ buildRTable(); explain3(); }
+  if (n !== 3) stopRAuto(false);
   resizeAll();
 }
 tabs.forEach(function(t, i){
@@ -1435,6 +1890,7 @@ tabs.forEach(function(t, i){
 function resizeAll(){
   if (current === 1){ fitStage(S1); fitStage(G1); }
   if (current === 2) fitStage(G2);
+  if (current === 3){ fitStage(S3); fitStage(G3); }
 }
 var rzT;
 window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(resizeAll, 120); });
@@ -1457,17 +1913,22 @@ function frame(now){
   if (st.readT >= 0.25){ st.readT = 0; readout(); }
   explT += dt;
   if (explT >= 1){ explT = 0; explain(); }
+  if (rs.auto) rAutoTick(dt);
+  rs.sampleT += dt;
+  if (rs.sampleT >= 0.1){ rs.sampleT = 0; sample3(); }
   if (current === 1){ draw1(); drawGraph(G1, {unit: st.unit, live: true}); }
   else if (current === 2){ drawGraph(G2, {unit: st.unit, fit: $("c-fit").checked, live: false}); }
+  else if (current === 3){ draw3(); drawRI(G3, {unit: st.unit, curve: $("c-curve").checked, live: true}); if (st.readT === 0) rReadout(); }
   requestAnimationFrame(frame);
 }
 $("c-fit").addEventListener("change", function(){ /* 다음 그림에서 반영 */ });
 setV(0); readout(); explain();
+setLen(100); explain3(); buildRTable();
 resizeAll();
 requestAnimationFrame(frame);
 
 /* 확인용(검증): 주소 끝에 ?debug 를 붙였을 때만 콘솔에서 window.__ohm 으로 상태를 볼 수 있음 */
-if (/[?&]debug\b/.test(location.search)) window.__ohm = {st: st, WIRE: WIRE, setV: setV, togglePower: togglePower, setWire: setWire, toggleRec: toggleRec, selectTab: selectTab};
+if (/[?&]debug\b/.test(location.search)) window.__ohm = {st: st, WIRE: WIRE, setV: setV, togglePower: togglePower, setWire: setWire, toggleRec: toggleRec, selectTab: selectTab, rs: rs, setLen: setLen, setRV: setRV, recordRI: recordRI, startRAuto: startRAuto};
 })();
 </script>
 </body>
