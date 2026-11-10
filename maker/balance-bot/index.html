@@ -173,7 +173,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
           <button class="chip-btn" id="btn-replay" type="button">다시 보기</button>
           <button class="chip-btn" id="btn-rotate" type="button" aria-pressed="false">자동 회전</button>
         </div>
-        <div class="stage-note">끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리면 이름</div>
+        <div class="stage-note">끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리면 이름 · 왼쪽/오른쪽은 로봇 기준</div>
       </div>
       <label class="explode" id="explode-row" for="explode">분해 정도
         <input type="range" id="explode" min="0" max="100" value="0">
@@ -551,18 +551,22 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
 
     // 앞쪽 표시
     function textSprite(txt) {
-      var c = document.createElement("canvas"); c.width = 128; c.height = 64;
+      var c = document.createElement("canvas"); c.width = 160; c.height = 64;
       var g = c.getContext("2d");
       g.font = "700 40px 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif";
-      g.fillStyle = "#D2622A"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, 64, 34);
+      g.fillStyle = "#D2622A"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, 80, 34);
       var sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthWrite: false }));
-      sp.scale.set(40, 20, 1); return sp;
+      sp.scale.set(50, 20, 1); return sp;
     }
+    // 바닥 화살표: 로봇 앞쪽(three +z)을 가리킴
     var arrowShape = new T.Shape();
-    arrowShape.moveTo(-8, 0); arrowShape.lineTo(8, 0); arrowShape.lineTo(8, 34); arrowShape.lineTo(18, 34); arrowShape.lineTo(0, 54); arrowShape.lineTo(-18, 34); arrowShape.lineTo(-8, 34);
-    var arrow = new T.Mesh(new T.ShapeGeometry(arrowShape), new T.MeshBasicMaterial({ color: 0xD2622A, transparent: true, opacity: 0.85, depthWrite: false }));
+    arrowShape.moveTo(-8, 0); arrowShape.lineTo(8, 0); arrowShape.lineTo(8, -34); arrowShape.lineTo(18, -34); arrowShape.lineTo(0, -54); arrowShape.lineTo(-18, -34); arrowShape.lineTo(-8, -34);
+    var arrow = new T.Mesh(new T.ShapeGeometry(arrowShape), new T.MeshBasicMaterial({ color: 0xD2622A, transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
     arrow.rotation.x = -Math.PI / 2; arrow.position.set(0, GROUND_Y + 0.3, 70); scene.add(arrow);
     var frontLbl = textSprite("앞"); frontLbl.position.set(0, GROUND_Y + 12, 150); scene.add(frontLbl);
+    // 로봇 기준 왼쪽·오른쪽 (앞을 보고 섰을 때). 조립 좌표 +X(오른쪽)가 three -x
+    var leftLbl = textSprite("왼쪽"); leftLbl.scale.set(52, 26, 1); leftLbl.position.set(125, GROUND_Y + 10, 40); scene.add(leftLbl);
+    var rightLbl = textSprite("오른쪽"); rightLbl.scale.set(60, 30, 1); rightLbl.position.set(-125, GROUND_Y + 10, 40); scene.add(rightLbl);
 
     var robot = new T.Group(); scene.add(robot);
     var edgeMat = new T.LineBasicMaterial({ color: new T.Color(cssVar("--edge") || "#24303B"), transparent: true, opacity: 0.55 });
