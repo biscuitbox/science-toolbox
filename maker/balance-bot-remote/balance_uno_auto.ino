@@ -234,7 +234,7 @@ void motorTest() {
 }
 
 // ---------- 자동 튜닝 ----------
-void startPhase(Mode m) { mode = m; phaseStart = millis(); tick = 0; angSum = 0; spdSum = 0; nSum = 0; }
+void startPhase(uint8_t m) { mode = (Mode)m; phaseStart = millis(); tick = 0; angSum = 0; spdSum = 0; nSum = 0; }
 void oscReset() { oscMean = angle; oscMin = 0; oscMax = 0; oscSide = 0; oscCross = 0; }
 void oscUpdate() {
   oscMean += (angle - oscMean) * 0.01;            // 약 0.5초 평균
