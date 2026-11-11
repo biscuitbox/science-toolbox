@@ -1,0 +1,16 @@
+{
+  "name": "밸런싱 봇 리모컨",
+  "short_name": "밸런스봇",
+  "description": "HC-05/06 블루투스로 2륜 밸런싱 로봇을 자동 튜닝하고 조종해요",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F0E8",
+  "theme_color": "#D9480F",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

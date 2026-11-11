@@ -1,0 +1,1047 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>밸런싱 봇 리모컨</title>
+<meta name="description" content="HC-05/06 블루투스로 2륜 밸런싱 로봇을 연결해 자동 튜닝, 값 조정, 조이스틱 조종을 하는 웹앱">
+<meta name="theme-color" content="#F3F0E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111513" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F3F0E8; --surface:#FFFFFF; --surface2:#ECE8DE; --ink:#1C2220; --muted:#5D6863; --line:#D9D3C6;
+  --accent:#D9480F; --accent-ink:#FFFFFF; --accent-soft:#FBE3D6;
+  --sp:#0B7A75; --sp-soft:#D5EDEB;
+  --ok:#2B8A3E; --warn:#C77700; --bad:#C92A2A; --bad-soft:#F9DEDE;
+  --grid:#E6E1D6; --shadow:0 1px 2px rgba(40,30,10,.06),0 4px 14px rgba(40,30,10,.05);
+  --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111513; --surface:#1A201D; --surface2:#222a26; --ink:#E8EDEA; --muted:#93A29B; --line:#2D3632;
+  --accent:#FF7A3D; --accent-ink:#1A0F08; --accent-soft:#3A2418;
+  --sp:#3CC5BD; --sp-soft:#163A37;
+  --ok:#5BD072; --warn:#FFB347; --bad:#FF6B6B; --bad-soft:#3A1E1E;
+  --grid:#232b27; --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#111513; --surface:#1A201D; --surface2:#222a26; --ink:#E8EDEA; --muted:#93A29B; --line:#2D3632;
+  --accent:#FF7A3D; --accent-ink:#1A0F08; --accent-soft:#3A2418;
+  --sp:#3CC5BD; --sp-soft:#163A37;
+  --ok:#5BD072; --warn:#FFB347; --bad:#FF6B6B; --bad-soft:#3A1E1E;
+  --grid:#232b27; --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* 머리 */
+header.top{padding-block:max(14px,env(safe-area-inset-top,0px)) 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.toolbox-back-link ~ header.top{padding-top:60px}
+.brand{flex:1 1 200px;min-width:0}
+.brand h1{margin:0;font-size:20px;line-height:1.25;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.conn{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--surface2);font-size:13px;color:var(--muted);white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:block}
+.chip.on{color:var(--ok)} .chip.on i{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.chip.busy{color:var(--warn)} .chip.busy i{background:var(--warn)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;min-height:44px;touch-action:manipulation}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:13px;border-radius:10px}
+
+.notice{border-radius:14px;padding:12px 14px;margin:6px 0 10px;font-size:14px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.notice b{display:block;margin-bottom:2px}
+
+/* 탭 */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:6px 8px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px}
+.tabbar a{text-align:center;text-decoration:none;color:var(--muted);font-weight:600;font-size:14px;padding:9px 4px;border-radius:10px;white-space:nowrap}
+.tabbar a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.tabbar a .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:4px;vertical-align:middle}
+
+main{padding-bottom:28px}
+section.view{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);min-width:0}
+.card h2{margin:0 0 8px;font-size:15px;font-weight:700}
+.card h2 small{font-weight:500;color:var(--muted);font-size:12px;margin-left:6px}
+.label{font-size:12px;letter-spacing:.02em;color:var(--muted);font-weight:600}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>.btn{flex:1 1 0;min-width:0}
+@media (min-width:760px){
+  .two{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;align-items:start}
+}
+.two{display:grid;gap:12px}
+
+/* 기울기 게이지 */
+.gauge{position:relative}
+.gauge svg{width:100%;height:auto;display:block;max-width:100%}
+.state-badge{position:absolute;left:0;top:0;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.state-badge.s2{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.state-badge.s1{background:var(--bad-soft);color:var(--bad)}
+.state-badge.tune{background:var(--accent-soft);color:var(--accent)}
+.readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.readouts div{background:var(--surface2);border-radius:12px;padding:8px 10px;min-width:0}
+.readouts .v{font:600 18px/1.2 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.readouts .v small{font-size:12px;color:var(--muted);margin-left:2px}
+@media (max-width:420px){.readouts{grid-template-columns:repeat(2,1fr)}}
+canvas.chart{width:100%;height:150px;display:block;border-radius:10px;background:var(--surface2)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle;background:var(--c)}
+
+/* 자동 튜닝 */
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 14px var(--mono);background:var(--surface2);color:var(--muted)}
+.steps li.now .n{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 4px var(--accent-soft)}
+.steps li.done .n{background:var(--sp);color:#fff}
+.steps li.done .n::after{content:""}
+.steps h3{margin:3px 0 2px;font-size:15px}
+.steps p{margin:0;color:var(--muted);font-size:13.5px}
+.steps li.now p{color:var(--ink)}
+.steps .you{display:inline-block;margin-top:4px;font-size:12.5px;font-weight:600;color:var(--accent)}
+.bigbtn{width:100%;min-height:58px;font-size:17px;border-radius:14px}
+.timer{font:600 13px var(--mono);color:var(--muted)}
+.callout{border-radius:14px;padding:14px;font-weight:600;font-size:15.5px;text-align:center}
+.callout.act{background:var(--accent);color:var(--accent-ink)}
+.callout.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+.results{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.results div{background:var(--surface2);border-radius:12px;padding:8px 10px;text-align:center;min-width:0}
+.results .v{font:600 18px var(--mono);font-variant-numeric:tabular-nums}
+.results .v.new{color:var(--accent)}
+.sweep{height:110px;display:flex;align-items:flex-end;gap:3px;padding:6px 0 0;border-bottom:1px solid var(--line);overflow:hidden}
+.sweep i{flex:1 1 0;min-width:3px;max-width:22px;background:var(--sp);border-radius:3px 3px 0 0;position:relative}
+.sweep i.hit{background:var(--accent)}
+.sweep-axis{display:flex;justify-content:space-between;font:500 11px var(--mono);color:var(--muted);margin-top:3px}
+.checklist{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.feed{font:500 12.5px/1.6 var(--mono);background:var(--surface2);border-radius:10px;padding:8px 10px;max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* 값 조정 */
+.params{display:grid;gap:0}
+.param{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.param:first-child{border-top:0}
+.param .nm{font-weight:600;font-size:14.5px}
+.param .nm code{font:600 12px var(--mono);background:var(--surface2);border-radius:6px;padding:1px 6px;margin-left:4px;color:var(--muted)}
+.param .ds{grid-column:1/-1;color:var(--muted);font-size:12.5px;line-height:1.45}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);font-size:20px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.stepper input{width:76px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-align:center;font:600 16px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.stepper input.pending{border-color:var(--warn)}
+.savebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.savebar .st{flex:1 1 160px;font-size:13px;color:var(--muted)}
+.savebar .st.dirty{color:var(--warn);font-weight:600}
+.order{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.order b{font:600 13px var(--mono);background:var(--sp-soft);color:var(--sp);padding:2px 8px;border-radius:8px}
+
+/* 조종 */
+.joywrap{display:grid;place-items:center;padding:8px 0}
+.joy{position:relative;width:min(78vw,280px);aspect-ratio:1;max-width:100%;border-radius:50%;background:radial-gradient(circle,var(--surface2) 0 62%,transparent 63%),repeating-conic-gradient(var(--grid) 0 1deg,transparent 1deg 15deg);border:2px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none}
+.joy::before,.joy::after{content:"";position:absolute;background:var(--line)}
+.joy::before{left:50%;top:10%;bottom:10%;width:1px}
+.joy::after{top:50%;left:10%;right:10%;height:1px}
+.joy .knob{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 40%,transparent);z-index:1}
+.joy .lab{position:absolute;font-size:12px;font-weight:600;color:var(--muted)}
+.joy.off{opacity:.45}
+.joy.off .knob{background:var(--muted);box-shadow:none}
+.sl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:14px}
+.sl input{width:100%;accent-color:var(--accent)}
+
+/* 기록 */
+details.log{margin-top:4px}
+details.log summary{cursor:pointer;font-weight:600;padding:8px 0;list-style:none}
+details.log summary::-webkit-details-marker{display:none}
+details.log summary::before{content:"▸ ";color:var(--muted)}
+details.log[open] summary::before{content:"▾ "}
+.logbox{font:500 12px/1.55 var(--mono);background:var(--surface2);border-radius:10px;padding:8px 10px;height:220px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.logbox .tx{color:var(--accent)}
+.logbox .tl{color:var(--muted)}
+.sendrow{display:flex;gap:6px;margin-top:8px}
+.sendrow input{flex:1 1 auto;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:0 10px;font:500 15px var(--mono)}
+
+/* 확인 창 */
+.sheet{position:fixed;inset:0;z-index:20;display:grid;place-items:end center;background:rgba(10,12,11,.45);padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.sheet .box{background:var(--surface);border-radius:18px;padding:18px;width:min(460px,100%);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 6px;font-size:17px}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:14px}
+@media (min-width:600px){.sheet{place-items:center}}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+footer{color:var(--muted);font-size:12.5px;padding-block:8px 24px}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<header class="top wrap">
+  <div class="brand">
+    <h1>밸런싱 봇 리모컨</h1>
+    <p>HC-05/06 블루투스 · 9600bps · <span class="mono">balance_uno_auto.ino</span></p>
+  </div>
+  <div class="conn">
+    <span class="chip" id="chip"><i></i><span id="chipText">연결 안 됨</span></span>
+    <button class="btn primary" id="btnConnect">연결</button>
+    <button class="btn ghost" id="btnDemo" title="로봇 없이 화면을 둘러봐요">체험</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="notice" id="unsupported" hidden>
+    <b>이 브라우저에서는 블루투스 연결이 안 돼요</b>
+    안드로이드 폰의 <b style="display:inline">크롬(138 이상)</b>이나 PC의 크롬·엣지에서 열어 주세요. 아이폰은 HC-05/06(클래식 블루투스)을 지원하지 않아요. 지금은 <b style="display:inline">체험</b> 버튼으로 화면만 둘러볼 수 있어요.
+  </div>
+  <div class="notice" id="firstTime" hidden>
+    <b>처음 연결할 때</b>
+    ① 폰 설정 → 블루투스에서 HC-06과 먼저 페어링(비밀번호 1234 또는 0000) → ② <b style="display:inline">연결</b>을 누르고 목록에서 HC-06 선택. PC에서는 USB 케이블로 연결해도 돼요.
+    <button class="btn sm ghost" id="hideFirst" style="margin-top:6px">알겠어요</button>
+  </div>
+</div>
+
+<nav class="tabs wrap" aria-label="화면">
+  <div class="tabbar">
+    <a href="#monitor" data-tab="monitor">균형</a>
+    <a href="#tune" data-tab="tune">자동 튜닝<span class="dot" id="tuneDot" hidden></span></a>
+    <a href="#values" data-tab="values">값 조정</a>
+    <a href="#drive" data-tab="drive">조종</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 균형 -->
+  <section class="view" id="view-monitor">
+    <div class="two">
+      <div class="card">
+        <div class="gauge">
+          <span class="state-badge" id="stateBadge">연결 전</span>
+          <svg viewBox="0 0 320 220" aria-label="로봇 기울기">
+            <defs>
+              <clipPath id="arcClip"><rect x="0" y="0" width="320" height="200"/></clipPath>
+            </defs>
+            <g id="ticks"></g>
+            <line id="spLine" x1="160" y1="196" x2="160" y2="40" stroke="var(--sp)" stroke-width="2" stroke-dasharray="5 5"/>
+            <g id="bot" transform="rotate(0 160 186)">
+              <rect x="146" y="70" width="28" height="112" rx="6" fill="var(--surface2)" stroke="var(--ink)" stroke-width="2"/>
+              <rect x="146" y="74" width="28" height="22" rx="3" fill="var(--accent)" opacity=".85"/>
+              <line x1="150" y1="122" x2="170" y2="122" stroke="var(--ink)" stroke-width="2"/>
+              <line x1="150" y1="150" x2="170" y2="150" stroke="var(--ink)" stroke-width="2"/>
+              <path d="M174 132 l10 0 l-4 -4 m4 4 l-4 4" stroke="var(--muted)" stroke-width="1.6" fill="none"/>
+            </g>
+            <circle cx="160" cy="186" r="16" fill="var(--ink)"/>
+            <circle cx="160" cy="186" r="5" fill="var(--surface)"/>
+            <line x1="40" y1="202" x2="280" y2="202" stroke="var(--line)" stroke-width="2"/>
+            <text x="276" y="216" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Sans KR,sans-serif">앞 →</text>
+            <text x="44" y="216" font-size="11" fill="var(--muted)" font-family="IBM Plex Sans KR,sans-serif">← 뒤</text>
+          </svg>
+        </div>
+        <div class="readouts">
+          <div><span class="label">각도</span><div class="v" id="rAngle">–<small>°</small></div></div>
+          <div><span class="label">균형 각도 s</span><div class="v" id="rSp">–<small>°</small></div></div>
+          <div><span class="label">모터 출력</span><div class="v" id="rOut">–</div></div>
+          <div><span class="label">바퀴 속도</span><div class="v" id="rSpd">–<small>회전/s</small></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>최근 10초<small>기울기와 출력</small></h2>
+        <canvas class="chart" id="chart"></canvas>
+        <div class="legend">
+          <span style="--c:var(--accent)">각도</span>
+          <span style="--c:var(--sp)">균형 각도 s</span>
+          <span style="--c:var(--muted)">모터 출력 (±255)</span>
+        </div>
+        <p class="muted" style="font-size:13px;margin:10px 0 0" id="hint">주황 선이 청록 점선 둘레에서 잔잔히 흔들리면 잘 맞은 거예요. 한쪽으로 치우쳐 있으면 s를, 크게 출렁이면 p·d를 손봐요.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row">
+        <button class="btn" id="btnMotor" data-need="run">모터 끄기</button>
+        <button class="btn" id="btnTest" data-need="run">모터·엔코더 시험</button>
+        <button class="btn" id="btnQuery" data-need="run">현재 값 받기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 자동 튜닝 -->
+  <section class="view" id="view-tune" hidden>
+    <div class="two">
+      <div class="card">
+        <h2>자동 튜닝<small>약 40초</small></h2>
+        <div id="tuneIdle">
+          <ol class="checklist">
+            <li>로봇 윗부분에 실을 묶어 주세요.</li>
+            <li>실이 넘어질 때만 잡아 주도록 길이를 맞춰요. 20° 정도 기울면 팽팽해지는 길이면 돼요.</li>
+            <li>로봇을 실로 들어 <b>바퀴를 바닥에서 1~2cm 띄운 채</b> 시작을 눌러요.</li>
+          </ol>
+          <p class="muted" style="font-size:13px">튜닝 중에는 이 앱이 아무 명령도 보내지 않아요. 로봇은 어떤 명령이든 받으면 바로 멈추기 때문이에요. 멈추고 싶을 때만 중단을 누르세요.</p>
+          <button class="btn primary bigbtn" id="btnTune" data-need="run">자동 튜닝 시작</button>
+        </div>
+        <div id="tuneLive" hidden style="display:grid;gap:10px">
+          <div class="callout act" id="tuneCall">바퀴를 띄운 채 기다려요</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="label" id="tuneStageLabel">1/5 단계</span><span class="timer" id="tuneTimer">0초</span></div>
+          <button class="btn danger bigbtn" id="btnAbort">중단</button>
+        </div>
+        <div id="tuneEnd" hidden style="display:grid;gap:10px">
+          <div class="callout" id="tuneEndCall"></div>
+          <div class="row"><button class="btn" id="btnTuneAgain" data-need="run">다시 튜닝</button><button class="btn" id="btnGoValues">값 조정으로</button></div>
+        </div>
+        <ol class="steps" id="steps" style="margin-top:12px"></ol>
+      </div>
+      <div style="display:grid;gap:12px">
+        <div class="card">
+          <h2>찾은 값</h2>
+          <div class="results">
+            <div><span class="label">m</span><div class="v" id="resM">–</div></div>
+            <div><span class="label">s</span><div class="v" id="resS">–</div></div>
+            <div><span class="label">p</span><div class="v" id="resP">–</div></div>
+            <div><span class="label">d</span><div class="v" id="resD">–</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>p 올리며 떨림 재기<small>막대 = 흔들림 크기(°)</small></h2>
+          <div class="sweep" id="sweep"></div>
+          <div class="sweep-axis"><span id="sweepMin">p</span><span id="sweepNote">3단계에서 채워져요</span><span id="sweepMax"></span></div>
+          <p class="muted" style="font-size:12.5px;margin:8px 0 0">p를 1.5씩 올리다가 흔들림이 1.2°를 넘고 방향이 자주 바뀌는 순간(주황 막대)을 찾아요. 그때 p의 0.6배를 쓰고, 떨림 주기로 d를 정해요.</p>
+        </div>
+        <div class="card">
+          <h2>로봇 메시지</h2>
+          <div class="feed" id="tuneFeed">아직 없어요.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 값 조정 -->
+  <section class="view" id="view-values" hidden>
+    <div class="card">
+      <div class="order">새 바닥에서는 <b>s</b>→<b>p</b>→<b>d</b> 순서로 맞춰요. 자동 튜닝을 먼저 돌리면 출발점이 생겨요.</div>
+    </div>
+    <div class="card">
+      <h2>각도 제어</h2>
+      <div class="params" id="paramsA"></div>
+    </div>
+    <div class="card">
+      <h2>제자리 지키기·회전</h2>
+      <div class="params" id="paramsB"></div>
+    </div>
+    <div class="card">
+      <div class="savebar">
+        <span class="st" id="saveSt">로봇에서 값을 받으면 여기 표시돼요.</span>
+        <button class="btn" id="btnDefaults" data-need="run">기본값</button>
+        <button class="btn primary" id="btnSave" data-need="run">로봇에 저장</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 조종 -->
+  <section class="view" id="view-drive" hidden>
+    <div class="two">
+      <div class="card">
+        <h2>조이스틱<small>위 = 앞으로</small></h2>
+        <div class="joywrap">
+          <div class="joy off" id="joy">
+            <span class="lab" style="left:50%;top:4%;transform:translateX(-50%)">앞</span>
+            <span class="lab" style="left:50%;bottom:4%;transform:translateX(-50%)">뒤</span>
+            <span class="lab" style="left:5%;top:50%;transform:translateY(-50%)">왼</span>
+            <span class="lab" style="right:5%;top:50%;transform:translateY(-50%)">오</span>
+            <div class="knob" id="knob"></div>
+          </div>
+        </div>
+        <p class="muted" style="text-align:center;margin:0;font-size:13px" id="joyHint">로봇이 균형을 잡고 있을 때 움직일 수 있어요.</p>
+      </div>
+      <div class="card" style="display:grid;gap:12px">
+        <div class="sl"><span>최고 속도</span><input type="range" id="spdLim" min="20" max="100" step="5" value="50"><span class="mono" id="spdLimV">50%</span></div>
+        <div class="sl"><span>회전 세기</span><input type="range" id="turnLim" min="20" max="100" step="5" value="60"><span class="mono" id="turnLimV">60%</span></div>
+        <div class="readouts" style="grid-template-columns:repeat(2,1fr)">
+          <div><span class="label">보내는 명령</span><div class="v" id="jCmd">j0,0</div></div>
+          <div><span class="label">각도</span><div class="v" id="jAngle">–<small>°</small></div></div>
+        </div>
+        <p class="muted" style="font-size:13px;margin:0">손을 떼거나 연결이 끊기면 로봇은 0.4초 안에 멈추고 그 자리를 지켜요. 처음엔 최고 속도를 낮게 두고 천천히 밀어 보세요. 메카넘휠은 미끄러워서 속도를 올리면 넘어지기 쉬워요.</p>
+      </div>
+    </div>
+  </section>
+
+  <details class="log card" id="logBox">
+    <summary>시리얼 메시지<span class="muted" style="font-weight:500;font-size:12.5px"> · 직접 명령 보내기</span></summary>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:6px"><input type="checkbox" id="showTelem"> 상태 줄(angle:…)도 보기</label>
+    <div class="logbox" id="log"></div>
+    <form class="sendrow" id="sendForm">
+      <input id="sendInput" placeholder="예: p14   s-1.5   ?" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+      <button class="btn" type="submit">보내기</button>
+    </form>
+  </details>
+</main>
+
+<footer class="wrap">
+  로봇 코드 <a href="balance_uno_auto.ino" download class="mono">balance_uno_auto.ino</a>와 함께 써요 (올릴 때는 HC-06을 뽑아 두기) · <a href="../balance-bot/">조립 설명서와 3D 파일</a> · 홈 화면에 추가하면 앱처럼 열려요
+</footer>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h3 id="sheetTitle"></h3>
+    <p id="sheetText"></p>
+    <div class="row"><button class="btn" id="sheetNo">취소</button><button class="btn primary" id="sheetYes">확인</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const SPP = '00001101-0000-1000-8000-00805f9b34fb';
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('bbr.'+k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('bbr.'+k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------------- 상태 ---------------- */
+const S = {
+  link: null,           // {write(text), close()}
+  demo: false,
+  angle: null, out: 0, spd: 0, st: null,
+  vals: null,           // {p,i,d,s,m,x,v,k,y,on}
+  tuning: false, stage: 0, tuneStart: 0, tuneRes: {}, sweep: [],
+  dirty: false,
+  lastTelem: 0,
+};
+const hist = []; // {t, a, o}
+
+/* ---------------- 연결 ---------------- */
+const hasSerial = 'serial' in navigator;
+if (!hasSerial) $('#unsupported').hidden = false;
+else if (!store.get('seenFirst', false)) $('#firstTime').hidden = false;
+$('#hideFirst').onclick = () => { $('#firstTime').hidden = true; store.set('seenFirst', true); };
+
+function setChip(kind, text){ const c = $('#chip'); c.className = 'chip ' + (kind||''); $('#chipText').textContent = text; }
+
+class SerialLink {
+  constructor(port){ this.port = port; this.writeChain = Promise.resolve(); this.closed = false; }
+  async open(onLine, onClose){
+    await this.port.open({ baudRate: 9600 });
+    this.onClose = onClose;
+    this.encoder = new TextEncoder();
+    this.readLoop(onLine);
+  }
+  async readLoop(onLine){
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (this.port.readable && !this.closed){
+      this.reader = this.port.readable.getReader();
+      try{
+        for(;;){
+          const { value, done } = await this.reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let i;
+          while ((i = buf.search(/\r?\n/)) >= 0){
+            const line = buf.slice(0, i); buf = buf.slice(buf[i] === '\r' ? i + 2 : i + 1);
+            if (line.trim()) onLine(line);
+          }
+          if (buf.length > 400) buf = buf.slice(-200);
+        }
+      }catch(e){ /* 끊김 */ break; }
+      finally{ try{ this.reader.releaseLock(); }catch(e){} }
+    }
+    if (!this.closed){ this.closed = true; try{ await this.port.close(); }catch(e){} this.onClose && this.onClose(); }
+  }
+  write(text){
+    this.writeChain = this.writeChain.then(async () => {
+      if (this.closed || !this.port.writable) return;
+      const w = this.port.writable.getWriter();
+      try{ await w.write(this.encoder.encode(text + '\n')); } finally { w.releaseLock(); }
+    }).catch(() => {});
+    return this.writeChain;
+  }
+  async close(){
+    this.closed = true;
+    try{ await this.reader?.cancel(); }catch(e){}
+    try{ await this.writeChain; await this.port.close(); }catch(e){}
+  }
+}
+
+async function connect(){
+  if (S.link){ await disconnect(); return; }
+  if (!hasSerial){ toast('이 브라우저는 블루투스 시리얼을 지원하지 않아요. 체험 모드를 써 보세요.'); return; }
+  let port;
+  try{
+    port = await navigator.serial.requestPort({ allowedBluetoothServiceClassIds: [SPP] });
+  }catch(e){
+    if (e.name !== 'NotFoundError') toast('연결할 장치를 고르지 못했어요: ' + e.message);
+    return;
+  }
+  setChip('busy', '연결 중…');
+  const link = new SerialLink(port);
+  try{
+    await link.open(onLine, () => onDisconnected());
+  }catch(e){
+    setChip('', '연결 안 됨');
+    toast('열 수 없어요. 다른 앱(시리얼 터미널)이 HC-06을 쓰고 있으면 끊고 다시 해 보세요.');
+    return;
+  }
+  attach(link, false);
+}
+
+function attach(link, demo){
+  S.link = link; S.demo = demo;
+  S.vals = S.vals || null;
+  setChip('on', demo ? '체험 모드' : '연결됨');
+  $('#btnConnect').textContent = '끊기';
+  $('#btnDemo').hidden = true;
+  logLine('— ' + (demo ? '체험 모드 시작 (가상의 로봇)' : '연결됨') + ' —', 'tl');
+  requestWake();
+  // 튜닝 중에 다시 연결했을 수 있어요: 상태 줄이 들어오는지 확인한 뒤에만 '?'를 보냄
+  const t0 = Date.now();
+  setTimeout(() => {
+    if (!S.link) return;
+    if (S.lastTelem > t0) send('?');
+    else if (!S.tuning) logLine('상태 줄이 아직 안 들어와요. 로봇이 켜져 있는지, 자동 튜닝 중인지 확인하세요.', 'tl');
+  }, 900);
+  refresh();
+}
+
+async function disconnect(){
+  const l = S.link; if (!l) return;
+  stopJoy(true);
+  S.link = null;
+  await l.close();
+  onDisconnected();
+}
+function onDisconnected(){
+  S.link = null; S.st = null;
+  setChip('', '연결 안 됨');
+  $('#btnConnect').textContent = '연결';
+  $('#btnDemo').hidden = false;
+  logLine('— 연결 끊김 —', 'tl');
+  releaseWake();
+  refresh();
+}
+$('#btnConnect').onclick = connect;
+$('#btnDemo').onclick = () => { const sim = new SimBot(onLine); attach(sim, true); };
+
+function send(cmd, quiet){
+  if (!S.link) { toast('먼저 연결해 주세요.'); return false; }
+  S.link.write(cmd);
+  if (!quiet) logLine('> ' + cmd, 'tx');
+  return true;
+}
+
+/* ---------------- 받은 줄 해석 ---------------- */
+const reTelem = /^angle:(-?[\d.]+)\s+out:(-?\d+)\s+spd:(-?[\d.]+)(?:\s+st:(\d))?/;
+const reVals = /Kp=(-?[\d.]+)\s+Ki=(-?[\d.]+)\s+Kd=(-?[\d.]+)\s+s=(-?[\d.]+)\s+m=(-?\d+)\s+x=(-?\d+)\s+v=(-?[\d.]+)\s+k=(-?[\d.]+)\s+y=(-?[\d.]+)\s*(ON|OFF)?/;
+
+function onLine(line){
+  const m = reTelem.exec(line);
+  if (m){
+    S.angle = +m[1]; S.out = +m[2]; S.spd = +m[3]; S.st = m[4] !== undefined ? +m[4] : 2;
+    S.lastTelem = Date.now();
+    hist.push({ t: performance.now(), a: S.angle, o: S.out });
+    while (hist.length && performance.now() - hist[0].t > 10500) hist.shift();
+    // 튜닝 중인데 상태 줄이 계속 들어오면 로봇은 이미 튜닝을 끝낸 것 (메시지를 놓친 경우)
+    if (S.tuning && Date.now() - S.tuneStart > 2000 && ++S.telemDuringTune > 5) endTune(false, '로봇이 튜닝을 끝냈는데 결과 메시지를 놓쳤어요. 현재 값 받기로 확인하세요.');
+    if ($('#showTelem').checked) logLine(line, 'tl');
+    paintTelem();
+    return;
+  }
+  logLine(line);
+  const v = reVals.exec(line);
+  if (v){
+    S.vals = { p:+v[1], i:+v[2], d:+v[3], s:+v[4], m:+v[5], x:+v[6], v:+v[7], k:+v[8], y:+v[9], on: v[10] ? v[10] === 'ON' : true };
+    pending.clear();
+    paintVals();
+    if (S.tuning) { /* 튜닝 끝 직후 값 줄 */ }
+    refresh();
+  }
+  if (/저장했어요/.test(line)){ S.dirty = false; paintSave(); toast('로봇에 저장했어요'); }
+  if (/기본값으로 되돌렸어요/.test(line)){ S.dirty = false; paintSave(); }
+  tuneParse(line);
+}
+
+/* ---------------- 자동 튜닝 ---------------- */
+const STEPS = [
+  { t: '최소 출력 찾기', d: '바퀴가 앞뒤로 천천히 돌면서, 처음 움직이는 출력을 재요.', you: '실로 들어 바퀴를 띄운 채 기다려요' },
+  { t: '세우고 균형 각도 재기', d: '바닥에 세우면 3초 뒤 균형을 잡기 시작하고, 제자리에서 버티는 동안의 평균 각도를 s로 잡아요.', you: '바닥에 똑바로 세우고 실을 느슨하게' },
+  { t: 'p 찾기', d: 'p를 조금씩 올려 떨리기 시작하는 지점을 찾아요. 잠깐 부르르 떠는 게 정상이에요.', you: '실을 느슨하게 잡고 지켜봐요' },
+  { t: '확인', d: '새 값으로 버텨 보고, 아직 떨리면 p를 낮추고 d를 올려요. 최대 3번까지.', you: '그대로 기다려요' },
+  { t: '마무리', d: '균형 각도를 한 번 더 재고 로봇에 저장해요.', you: '끝나면 실을 천천히 놓아요' },
+];
+function paintSteps(){
+  const ol = $('#steps'); ol.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const n = i + 1;
+    const li = document.createElement('li');
+    if (S.tuning && S.stage === n) li.className = 'now';
+    else if ((S.tuning && S.stage > n) || (S.tuneDone && S.tuneDone.ok)) li.className = 'done';
+    li.innerHTML = `<span class="n">${n}</span><div><h3></h3><p></p>${S.tuning && S.stage === n ? '<span class="you"></span>' : ''}</div>`;
+    li.querySelector('h3').textContent = s.t;
+    li.querySelector('p').textContent = s.d;
+    const you = li.querySelector('.you'); if (you) you.textContent = '→ ' + s.you;
+    ol.appendChild(li);
+  });
+}
+function tuneFeed(line){
+  const f = $('#tuneFeed');
+  if (f.dataset.empty !== '0'){ f.textContent = ''; f.dataset.empty = '0'; }
+  f.textContent += (f.textContent ? '\n' : '') + line.trim();
+  f.scrollTop = f.scrollHeight;
+}
+function startTuneUI(){
+  S.tuning = true; S.stage = 1; S.tuneStart = Date.now(); S.telemDuringTune = 0; S.tuneRes = {}; S.sweep = []; S.tuneDone = null;
+  const f = $('#tuneFeed'); f.textContent = ''; f.dataset.empty = '0';
+  paintSweep(); paintRes(); setCall(STEPS[0].you);
+  stopJoy(true);
+  refresh();
+}
+function setCall(t){ $('#tuneCall').textContent = t; }
+function tuneParse(line){
+  if (/\[자동 튜닝\]/.test(line) && !S.tuning) startTuneUI();
+  if (!S.tuning && !/\[자동 튜닝/.test(line)) return;
+  if (S.tuning) tuneFeed(line);
+  let m;
+  if ((m = /\[(\d)\/5\]/.exec(line))){
+    S.stage = +m[1];
+    if (S.stage === 2) { setCall('지금 바닥에 똑바로 세우고 실을 느슨하게!'); buzz([80, 60, 80]); }
+    else setCall(STEPS[S.stage - 1].you);
+  }
+  if (/균형 각도 찾는 중/.test(line)) setCall('제자리에서 버티는 중… 실이 당기지 않게');
+  if ((m = /최소 출력 m = (\d+)/.exec(line))) S.tuneRes.m = +m[1];
+  if ((m = /균형 각도 s = (-?[\d.]+)/.exec(line))) S.tuneRes.s = +m[1];
+  if ((m = /p=([\d.]+)\s*진폭=([\d.]+)\s*교차=(\d+)/.exec(line))) { S.sweep.push({ p: +m[1], a: +m[2], c: +m[3] }); paintSweep(); }
+  if ((m = /떨림 시작 p=([\d.]+)\s*주기=([\d.]+)초 → p=([\d.]+)\s*d=([\d.]+)/.exec(line))) {
+    S.tuneRes.p = +m[3]; S.tuneRes.d = +m[4]; S.tuneRes.ku = +m[1];
+    S.sweep.forEach(x => x.hit = Math.abs(x.p - S.tuneRes.ku) < 0.01); paintSweep();
+  }
+  if ((m = /아직 떨려서 p=([\d.]+)\s*d=([\d.]+)/.exec(line))) { S.tuneRes.p = +m[1]; S.tuneRes.d = +m[2]; }
+  if (/\[자동 튜닝 끝\]/.test(line)) endTune(true, '튜닝 끝! 저장했어요. 이제 실을 천천히 놓아도 돼요.');
+  if ((m = /\[자동 튜닝 중단\]\s*(.*)/.exec(line))) endTune(false, '중단됐어요. ' + m[1]);
+  paintRes(); paintSteps(); refresh();
+}
+function endTune(ok, text){
+  if (!S.tuning) return;
+  S.tuning = false;
+  S.tuneDone = { ok: !!ok, text };
+  if (ok) { S.dirty = false; buzz([60, 40, 60, 40, 200]); }
+  const c = $('#tuneEndCall'); c.className = 'callout ' + (ok ? 'ok' : 'bad'); c.textContent = text;
+  paintSteps(); refresh(); paintSave();
+}
+function paintRes(){
+  const r = S.tuneRes || {};
+  [['m', 0], ['s', 2], ['p', 1], ['d', 3]].forEach(([k, dec]) => {
+    const el = $('#res' + k.toUpperCase());
+    el.textContent = r[k] !== undefined ? r[k].toFixed(dec) : '–';
+    el.classList.toggle('new', r[k] !== undefined);
+  });
+}
+function paintSweep(){
+  const box = $('#sweep'); box.innerHTML = '';
+  const pts = S.sweep;
+  if (!pts.length){ $('#sweepMin').textContent = 'p'; $('#sweepMax').textContent = ''; $('#sweepNote').textContent = '3단계에서 채워져요'; return; }
+  const top = Math.max(2, ...pts.map(x => x.a));
+  pts.forEach(x => {
+    const i = document.createElement('i');
+    i.style.height = Math.max(3, x.a / top * 100) + '%';
+    if (x.hit) i.className = 'hit';
+    i.title = `p=${x.p} 흔들림 ${x.a}° 교차 ${x.c}`;
+    box.appendChild(i);
+  });
+  $('#sweepMin').textContent = 'p ' + pts[0].p.toFixed(1);
+  $('#sweepMax').textContent = pts[pts.length - 1].p.toFixed(1);
+  const last = pts[pts.length - 1];
+  $('#sweepNote').textContent = `지금 흔들림 ${last.a.toFixed(2)}°`;
+}
+setInterval(() => { if (S.tuning) $('#tuneTimer').textContent = Math.round((Date.now() - S.tuneStart) / 1000) + '초'; }, 500);
+$('#btnTune').onclick = () => {
+  if (send('a')) { startTuneUI(); }
+};
+$('#btnTuneAgain').onclick = () => { if (send('a')) startTuneUI(); };
+$('#btnAbort').onclick = () => { if (S.link) { S.link.write('q'); logLine('> q', 'tx'); } };
+$('#btnGoValues').onclick = () => { location.hash = '#values'; };
+
+/* ---------------- 값 조정 ---------------- */
+const PARAMS = [
+  { k: 'p', g: 'A', n: '기울기 반응', step: .5, dec: 2, min: 0, max: 60, ds: '기운 만큼 바퀴를 미는 세기. 낮으면 힘없이 넘어지고, 높으면 부르르 떨어요.' },
+  { k: 'd', g: 'A', n: '흔들림 잡기', step: .02, dec: 3, min: 0, max: 3, ds: '넘어지는 빠르기에 반응해 출렁임을 눌러 줘요. 너무 높으면 자잘하게 떨려요.' },
+  { k: 's', g: 'A', n: '균형 각도', step: .1, dec: 2, min: -20, max: 20, unit: '°', ds: '로봇이 똑바로 섰다고 볼 각도. 계속 앞으로 달려가면 +, 뒤로 가면 − 쪽으로.' },
+  { k: 'i', g: 'A', n: '누적 보정', step: .1, dec: 2, min: 0, max: 10, ds: '오래 남는 작은 기울어짐을 천천히 지워요. 보통 0으로 둬요.' },
+  { k: 'm', g: 'A', n: '최소 출력', step: 1, dec: 0, min: 0, max: 200, ds: '모터가 돌기 시작하는 출력. 작은 기울기에도 바퀴가 바로 반응하게 해요.' },
+  { k: 'x', g: 'A', n: '최대 출력', step: 5, dec: 0, min: 0, max: 255, ds: '모터 출력 상한 (255가 최대).' },
+  { k: 'v', g: 'B', n: '속도 잡기', step: .1, dec: 2, min: 0, max: 10, ds: '굴러가면 반대쪽으로 살짝 기울여 멈추게 해요. 바닥에 따라 s가 조금 틀려도 버티게 해 줘요.' },
+  { k: 'k', g: 'B', n: '위치 잡기', step: .1, dec: 2, min: 0, max: 10, ds: '밀려난 거리만큼 되돌아와 제자리를 지켜요.' },
+  { k: 'y', g: 'B', n: '회전 잡기', step: .1, dec: 2, min: 0, max: 5, ds: '메카넘휠이 제자리에서 빙글 도는 것을 눌러 줘요. 돌면 0.3부터.' },
+];
+const pending = new Set();
+function buildParams(){
+  PARAMS.forEach(P => {
+    const row = document.createElement('div'); row.className = 'param';
+    row.innerHTML = `<div class="nm"></div><div class="stepper"><button type="button" aria-label="줄이기">−</button><input inputmode="decimal" enterkeyhint="done"><button type="button" aria-label="늘리기">+</button></div><div class="ds"></div>`;
+    row.querySelector('.nm').innerHTML = `${P.n}<code>${P.k}</code>`;
+    row.querySelector('.ds').textContent = P.ds;
+    const [minus, plus] = row.querySelectorAll('button');
+    const inp = row.querySelector('input'); inp.id = 'in-' + P.k;
+    const bump = dir => {
+      const cur = S.vals ? S.vals[P.k] : NaN;
+      if (isNaN(cur)) { toast('먼저 연결해서 값을 받아 주세요.'); return; }
+      setParam(P, cur + dir * P.step);
+    };
+    minus.onclick = () => bump(-1); plus.onclick = () => bump(1);
+    minus.dataset.need = plus.dataset.need = 'run'; inp.dataset.need = 'run';
+    inp.onchange = () => { const v = parseFloat(inp.value.replace(',', '.')); if (!isNaN(v)) setParam(P, v); else paintVals(); };
+    $('#params' + P.g).appendChild(row);
+  });
+}
+function setParam(P, v){
+  v = Math.min(P.max, Math.max(P.min, Math.round(v / P.step) * P.step));
+  const txt = P.dec ? v.toFixed(P.dec) : String(Math.round(v));
+  if (!send(P.k + txt)) return;
+  S.vals[P.k] = +txt; pending.add(P.k);
+  S.dirty = true; paintVals(); paintSave(); buzz(8);
+}
+function paintVals(){
+  PARAMS.forEach(P => {
+    const inp = $('#in-' + P.k);
+    if (document.activeElement === inp) return;
+    inp.value = S.vals ? (P.dec ? S.vals[P.k].toFixed(P.dec) : S.vals[P.k]) : '';
+    inp.classList.toggle('pending', pending.has(P.k));
+  });
+  $('#rSp').innerHTML = S.vals ? `${S.vals.s.toFixed(2)}<small>°</small>` : '–<small>°</small>';
+}
+function paintSave(){
+  const st = $('#saveSt');
+  if (!S.vals) { st.textContent = '로봇에서 값을 받으면 여기 표시돼요.'; st.className = 'st'; return; }
+  st.textContent = S.dirty ? '바꾼 값이 아직 저장되지 않았어요. 전원을 끄면 사라져요.' : '로봇에 저장된 값과 같아요.';
+  st.className = 'st' + (S.dirty ? ' dirty' : '');
+}
+$('#btnSave').onclick = () => send('w');
+$('#btnDefaults').onclick = () => ask('기본값으로 되돌릴까요?', '자동 튜닝으로 찾은 값도 지워지고 처음 값(p10, d0.25, s0 …)으로 저장돼요.', '되돌리기', () => send('r'));
+
+/* ---------------- 균형 화면 ---------------- */
+function buildTicks(){
+  const g = $('#ticks'); const cx = 160, cy = 186, R1 = 150, R2 = 140;
+  let html = '';
+  for (let a = -40; a <= 40; a += 5){
+    const r = a * Math.PI / 180, big = a % 10 === 0;
+    const x1 = cx + Math.sin(r) * R1, y1 = cy - Math.cos(r) * R1;
+    const x2 = cx + Math.sin(r) * (big ? R2 - 4 : R2), y2 = cy - Math.cos(r) * (big ? R2 - 4 : R2);
+    html += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${Math.abs(a) >= 40 ? 'var(--bad)' : 'var(--muted)'}" stroke-width="${big ? 2 : 1}"/>`;
+    if (big && a !== 0) html += `<text x="${(cx + Math.sin(r) * (R1 + 9)).toFixed(1)}" y="${(cy - Math.cos(r) * (R1 + 9) + 4).toFixed(1)}" font-size="10" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${a > 0 ? '+' + a : a}</text>`;
+  }
+  g.innerHTML = html;
+}
+let shownAngle = 0;
+function paintTelem(){
+  $('#rAngle').innerHTML = S.angle === null ? '–<small>°</small>' : `${S.angle.toFixed(1)}<small>°</small>`;
+  $('#jAngle').innerHTML = S.angle === null ? '–<small>°</small>' : `${S.angle.toFixed(1)}<small>°</small>`;
+  $('#rOut').textContent = S.angle === null ? '–' : S.out;
+  $('#rSpd').innerHTML = S.angle === null ? '–<small>회전/s</small>' : `${S.spd.toFixed(2)}<small>회전/s</small>`;
+  refreshBadge();
+  refreshJoy();
+}
+function refreshBadge(){
+  const b = $('#stateBadge');
+  let t = '연결 전', c = '';
+  if (S.tuning) { t = '자동 튜닝 중'; c = 'tune'; }
+  else if (S.link && S.st === null) { t = '기다리는 중'; }
+  else if (S.st === 0) { t = '모터 꺼짐'; }
+  else if (S.st === 1) { t = '넘어짐 · 세우면 다시 시작'; c = 's1'; }
+  else if (S.st === 2) { t = '균형 잡는 중'; c = 's2'; }
+  b.textContent = t; b.className = 'state-badge ' + c;
+  $('#btnMotor').textContent = S.st === 0 ? '모터 켜기' : '모터 끄기';
+}
+function frame(){
+  // 게이지
+  const target = S.angle === null ? 0 : Math.max(-60, Math.min(60, S.angle));
+  shownAngle += (target - shownAngle) * 0.35;
+  $('#bot').setAttribute('transform', `rotate(${shownAngle.toFixed(2)} 160 186)`);
+  const sp = S.vals ? Math.max(-40, Math.min(40, S.vals.s)) : 0;
+  const r = sp * Math.PI / 180;
+  const sl = $('#spLine'); sl.setAttribute('x2', (160 + Math.sin(r) * 146).toFixed(1)); sl.setAttribute('y2', (186 - Math.cos(r) * 146).toFixed(1));
+  sl.setAttribute('x1', (160 + Math.sin(r) * 16).toFixed(1)); sl.setAttribute('y1', (186 - Math.cos(r) * 16).toFixed(1));
+  drawChart();
+  requestAnimationFrame(frame);
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function drawChart(){
+  const cv = $('#chart'); if (cv.offsetParent === null) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const now = performance.now(), span = 10000;
+  const sp = S.vals ? S.vals.s : 0;
+  let range = 5;
+  hist.forEach(h => { range = Math.max(range, Math.abs(h.a - sp) * 1.15); });
+  range = Math.min(range, 45);
+  const y = a => H / 2 - (a - sp) / range * (H / 2 - 8);
+  const x = t => W - (now - t) / span * W;
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1; ctx.font = '10px "IBM Plex Mono",monospace'; ctx.fillStyle = css('--muted');
+  const stepDeg = range > 20 ? 10 : range > 8 ? 5 : 2;
+  for (let d = -Math.floor(range / stepDeg) * stepDeg; d <= range; d += stepDeg){
+    if (d === 0) continue;
+    const yy = y(sp + d); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke();
+    ctx.fillText((d > 0 ? '+' : '') + d + '°', 4, yy - 2);
+  }
+  // 출력
+  ctx.strokeStyle = css('--muted'); ctx.globalAlpha = .45; ctx.lineWidth = 1.2; ctx.beginPath();
+  hist.forEach((h, i) => { const yy = H / 2 - h.o / 255 * (H / 2 - 8); i ? ctx.lineTo(x(h.t), yy) : ctx.moveTo(x(h.t), yy); }); ctx.stroke(); ctx.globalAlpha = 1;
+  // 균형 각도
+  ctx.strokeStyle = css('--sp'); ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke(); ctx.setLineDash([]);
+  // 각도
+  ctx.strokeStyle = css('--accent'); ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.beginPath();
+  hist.forEach((h, i) => { i ? ctx.lineTo(x(h.t), y(h.a)) : ctx.moveTo(x(h.t), y(h.a)); }); ctx.stroke();
+  if (!hist.length){ ctx.fillStyle = css('--muted'); ctx.font = '13px "IBM Plex Sans KR",sans-serif'; ctx.textAlign = 'center'; ctx.fillText(S.tuning ? '튜닝 중에는 로봇이 각도를 보내지 않아요' : '연결하면 그래프가 그려져요', W / 2, H / 2 + 20); ctx.textAlign = 'left'; }
+}
+$('#btnMotor').onclick = () => send('g');
+$('#btnQuery').onclick = () => send('?');
+$('#btnTest').onclick = () => ask('모터·엔코더 시험', '로봇을 들거나 받쳐서 바퀴를 띄워 주세요. 왼쪽 → 오른쪽 바퀴가 1초씩 앞으로 돌고, 두 엔코더 값이 모두 + 이면 정상이에요. 결과는 아래 시리얼 메시지에 나와요.', '시작', () => { send('t'); $('#logBox').open = true; });
+
+/* ---------------- 조이스틱 ---------------- */
+const joy = $('#joy'), knob = $('#knob');
+let joyActive = false, joyPid = null, jx = 0, jy = 0, joyTimer = null, zeroLeft = 0;
+const spdLim = $('#spdLim'), turnLim = $('#turnLim');
+spdLim.value = store.get('spdLim', 50); turnLim.value = store.get('turnLim', 60);
+const paintLim = () => { $('#spdLimV').textContent = spdLim.value + '%'; $('#turnLimV').textContent = turnLim.value + '%'; };
+spdLim.oninput = () => { paintLim(); store.set('spdLim', +spdLim.value); };
+turnLim.oninput = () => { paintLim(); store.set('turnLim', +turnLim.value); };
+paintLim();
+function canDrive(){ return !!S.link && !S.tuning && S.st === 2; }
+function refreshJoy(){
+  const ok = canDrive();
+  joy.classList.toggle('off', !ok);
+  $('#joyHint').textContent = !S.link ? '먼저 연결해 주세요.' : S.tuning ? '자동 튜닝 중에는 조종할 수 없어요.' : S.st === 2 ? '가운데 동그라미를 끌어서 조종해요.' : '로봇이 균형을 잡고 있을 때 움직일 수 있어요.';
+  if (!ok && joyActive) stopJoy(true);
+}
+function joyMove(e){
+  const r = joy.getBoundingClientRect(), R = r.width / 2 * 0.72;
+  let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const len = Math.hypot(dx, dy); if (len > R) { dx *= R / len; dy *= R / len; }
+  jx = dx / R; jy = -dy / R;
+  knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+function jCmd(){
+  const f = Math.round(jy * spdLim.value), t = Math.round(jx * turnLim.value);
+  return `j${f},${t}`;
+}
+joy.addEventListener('pointerdown', e => {
+  if (!canDrive()) { refreshJoy(); return; }
+  joyActive = true; joyPid = e.pointerId; joy.setPointerCapture(e.pointerId); joyMove(e);
+  clearInterval(joyTimer); zeroLeft = 0;
+  joyTimer = setInterval(joyTick, 100); joyTick();
+});
+joy.addEventListener('pointermove', e => { if (joyActive && e.pointerId === joyPid) joyMove(e); });
+const joyUp = e => { if (joyActive && e.pointerId === joyPid) stopJoy(false); };
+joy.addEventListener('pointerup', joyUp); joy.addEventListener('pointercancel', joyUp); joy.addEventListener('lostpointercapture', joyUp);
+function joyTick(){
+  if (!S.link) { stopJoy(true); return; }
+  if (joyActive) { const c = jCmd(); S.link.write(c); $('#jCmd').textContent = c; }
+  else if (zeroLeft > 0) { S.link.write('j0,0'); $('#jCmd').textContent = 'j0,0'; if (--zeroLeft === 0) clearInterval(joyTimer); }
+}
+function stopJoy(hard){
+  const was = joyActive || joyTimer;
+  joyActive = false; jx = jy = 0;
+  knob.style.transform = 'translate(-50%,-50%)';
+  if (!was) return;
+  if (hard || !S.link || S.tuning) { clearInterval(joyTimer); joyTimer = null; $('#jCmd').textContent = 'j0,0'; return; }
+  zeroLeft = 3; // 손을 떼면 멈춤 명령을 3번 보냄
+}
+
+/* ---------------- 기록·직접 보내기 ---------------- */
+const logEl = $('#log');
+function logLine(text, cls){
+  const atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 30;
+  const d = document.createElement('div'); d.textContent = text; if (cls) d.className = cls;
+  logEl.appendChild(d);
+  while (logEl.childNodes.length > 400) logEl.removeChild(logEl.firstChild);
+  if (atBottom) logEl.scrollTop = logEl.scrollHeight;
+}
+$('#sendForm').onsubmit = e => {
+  e.preventDefault();
+  const v = $('#sendInput').value.trim(); if (!v) return;
+  if (S.tuning && !/^q$/i.test(v)) { ask('튜닝 중이에요', '지금 명령을 보내면 자동 튜닝이 멈춰요. 그래도 보낼까요?', '보내기', () => { send(v); $('#sendInput').value = ''; }); return; }
+  if (/^a$/i.test(v)) startTuneUI();
+  send(v); $('#sendInput').value = '';
+};
+
+/* ---------------- 공통 ---------------- */
+function refresh(){
+  const run = !!S.link && !S.tuning;
+  document.querySelectorAll('[data-need="run"]').forEach(b => { b.disabled = !run; });
+  $('#tuneIdle').hidden = S.tuning || !!S.tuneDone;
+  $('#tuneLive').hidden = !S.tuning;
+  $('#tuneEnd').hidden = S.tuning || !S.tuneDone;
+  $('#tuneLive').style.display = S.tuning ? 'grid' : '';
+  $('#tuneEnd').style.display = (!S.tuning && S.tuneDone) ? 'grid' : '';
+  $('#tuneDot').hidden = !S.tuning;
+  $('#tuneStageLabel').textContent = S.stage + '/5 단계 · ' + (STEPS[S.stage - 1] ? STEPS[S.stage - 1].t : '');
+  if (S.tuning && location.hash !== '#tune') location.hash = '#tune';
+  refreshBadge(); refreshJoy(); paintSave();
+}
+let sheetCb = null;
+function ask(title, text, yes, cb){
+  $('#sheetTitle').textContent = title; $('#sheetText').textContent = text; $('#sheetYes').textContent = yes;
+  sheetCb = cb; $('#sheet').hidden = false;
+}
+$('#sheetNo').onclick = () => { $('#sheet').hidden = true; sheetCb = null; };
+$('#sheetYes').onclick = () => { $('#sheet').hidden = true; const cb = sheetCb; sheetCb = null; cb && cb(); };
+$('#sheet').onclick = e => { if (e.target.id === 'sheet') $('#sheetNo').onclick(); };
+let toastT = null;
+function toast(t){ const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+let wake = null;
+async function requestWake(){ try{ wake = await navigator.wakeLock.request('screen'); }catch(e){ wake = null; } }
+function releaseWake(){ try{ wake && wake.release(); }catch(e){} wake = null; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.link && !wake) requestWake(); });
+
+const TABS = ['monitor', 'tune', 'values', 'drive'];
+function route(){
+  let t = (location.hash || '').slice(1); if (!TABS.includes(t)) t = store.get('tab', 'monitor');
+  if (S.tuning) t = 'tune';
+  TABS.forEach(n => { $('#view-' + n).hidden = n !== t; });
+  document.querySelectorAll('.tabbar a').forEach(a => { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  store.set('tab', t);
+  if (t !== 'drive') stopJoy(false);
+}
+window.addEventListener('hashchange', route);
+
+/* ---------------- 체험 모드: 가상의 로봇 ----------------
+   실제 로봇과 똑같은 줄을 보내고 같은 명령을 받아요. 물리는 단순한 도립진자 모델이에요. */
+class SimBot {
+  constructor(onLine){
+    this.onLine = onLine; this.closed = false;
+    this.v = { p: 10, i: 0, d: .25, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0 };
+    this.saved = { ...this.v };
+    this.trueSp = 1.8;               // 이 바닥에서 실제 균형 각도
+    this.th = 3; this.om = 0;        // 각도(°), 각속도(°/s)
+    this.wv = 0; this.wp = 0;        // 바퀴 속도(회전/s), 위치(회전)
+    this.on = true; this.fallen = false; this.fallT = 0;
+    this.drive = 0; this.turn = 0; this.lastJ = 0; this.dspd = 0;
+    this.tune = null; this.t = 0; this.printT = 0; this.gyroD = 0;
+    this.q = [];
+    this.phys = { dead: 28, vmax: 14, tau: .1, L: .11 };   // 체험용으로 단순화한 값
+    this.timer = setInterval(() => this.step(), 10);
+    setTimeout(() => { this.say('자이로 보정 중... 로봇을 움직이지 마세요 (약 1초)'); }, 150);
+    setTimeout(() => { this.say('a 자동튜닝  q 중단  w 저장  r 기본값  g 모터 켜기/끄기  t 시험  ? 현재값'); this.vals(); }, 900);
+  }
+  say(t){ if (!this.closed) this.onLine(t); }
+  vals(){ const v = this.v; this.say(`Kp=${v.p.toFixed(2)} Ki=${v.i.toFixed(2)} Kd=${v.d.toFixed(3)} s=${v.s.toFixed(2)} m=${v.m} x=${v.x} v=${v.v.toFixed(2)} k=${v.k.toFixed(2)} y=${v.y.toFixed(2)}${this.on ? ' ON' : ' OFF'}`); }
+  write(text){
+    const line = text.trim(); if (!line) return Promise.resolve();
+    setTimeout(() => this.cmd(line), 30);
+    return Promise.resolve();
+  }
+  close(){ this.closed = true; clearInterval(this.timer); this.q.forEach(clearTimeout); return Promise.resolve(); }
+  cmd(line){
+    const c = line[0].toLowerCase(), val = parseFloat(line.slice(1));
+    if (c === 'j'){ if (this.tune) return; const [f, t] = line.slice(1).split(','); this.drive = +f || 0; this.turn = +t || 0; this.lastJ = this.t; return; }
+    if (this.tune){ this.abort('명령을 받아서 멈췄어요.'); return; }
+    const v = this.v;
+    switch (c){
+      case 'a': this.startTune(); return;
+      case 'q': return;
+      case 'p': case 'i': case 'd': case 's': case 'v': case 'k': case 'y': if (!isNaN(val)) v[c] = val; break;
+      case 'm': v.m = Math.max(0, Math.min(200, Math.round(val) || 0)); break;
+      case 'x': v.x = Math.max(0, Math.min(255, Math.round(val) || 0)); break;
+      case 'w': this.saved = { ...v }; this.say('저장했어요.'); break;
+      case 'r': this.v = { p: 10, i: 0, d: .25, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0 }; this.saved = { ...this.v }; this.say('기본값으로 되돌렸어요.'); break;
+      case 'g': this.on = !this.on; this.wp = 0; break;
+      case 't':
+        this.say('시험: 바퀴를 띄우세요. 왼쪽 → 오른쪽 순서로 1초씩 앞으로 돌립니다.');
+        this.later(2800, () => this.say('왼쪽 엔코더: 1187'));
+        this.later(4200, () => { this.say('오른쪽 엔코더: 1204'); this.say('바퀴가 앞으로 돌았고 두 값이 모두 + 이면 정상이에요.'); });
+        return;
+      case '?': break;
+      default: this.say('a 자동튜닝  q 중단  w 저장  r 기본값  g 모터 켜기/끄기  t 시험  ? 현재값'); return;
+    }
+    this.vals();
+  }
+  later(ms, f){ const id = setTimeout(() => { if (!this.closed) f(); }, ms); this.q.push(id); return id; }
+  startTune(){
+    this.on = true;
+    this.say('[자동 튜닝] 약 40초 걸려요. 아무 키나 보내면 중단.');
+    this.say('[1/5] 최소 출력 찾는 중... 실로 들어서 바퀴를 바닥에서 띄워 두세요.');
+    this.tune = { ids: [], air: true };   // 1~2단계: 실에 매달려 공중에 떠 있음
+    const T = (ms, f) => this.tune.ids.push(this.later(ms, f));
+    T(3200, () => { this.v.m = 27; this.say('  최소 출력 m = 27'); this.say('[2/5] 이제 바닥에 똑바로 세워 주세요. 실은 느슨하게! 바로 서면 자동으로 시작해요.'); });
+    T(7000, () => { this.tune.air = false; this.th = this.trueSp + .5; this.om = 0; this.wv = 0; this.wp = 0; this.fallen = false; this.say('  균형 각도 찾는 중... (로봇이 제자리에서 버티게 둬요)'); });
+    T(13000, () => { this.v.s = this.trueSp - .07; this.say(`  균형 각도 s = ${this.v.s.toFixed(2)}`); this.say('[3/5] p 게인 찾는 중... (조금씩 떨리기 시작하면 정상이에요)'); });
+    const sweep = [[7, .34, 1], [8.5, .31, 1], [10, .36, 1], [11.5, .40, 2], [13, .44, 2], [14.5, .47, 2], [16, .55, 2], [17.5, .63, 3], [19, .74, 3], [20.5, .86, 3], [22, 1.04, 3], [23.5, 1.52, 5]];
+    sweep.forEach(([p, a, c], i) => T(14200 + i * 1200, () => this.say(`  p=${p.toFixed(1)} 진폭=${a.toFixed(2)} 교차=${c}`)));
+    const tEnd = 14200 + (sweep.length - 1) * 1200;
+    T(tEnd + 50, () => { this.v.p = 14.1; this.v.d = .423; this.say('  떨림 시작 p=23.5 주기=0.24초 → p=14.1 d=0.423'); this.say('[4/5] 확인 중...'); });
+    T(tEnd + 3100, () => { this.say('  흔들림 진폭=0.58'); this.say('[5/5] 새 게인으로 균형 각도 다시 확인 중...'); });
+    T(tEnd + 7200, () => {
+      this.v.s = this.trueSp + .02; if (!this.v.v) this.v.v = 1.5; if (!this.v.k) this.v.k = .8;
+      this.saved = { ...this.v }; this.tune = null; this.wp = 0;
+      this.say('[자동 튜닝 끝] 저장했어요. 이제 실을 천천히 놓아도 돼요.'); this.vals();
+    });
+  }
+  abort(why){
+    this.tune.ids.forEach(clearTimeout); this.tune = null;
+    this.v = { ...this.saved }; this.on = false;
+    this.say('[자동 튜닝 중단] ' + why);
+    this.say('모터를 껐어요. 로봇을 다시 세우고 g로 켜거나 a로 다시 시작하세요.');
+  }
+  step(){
+    const dt = .01; this.t += dt;
+    // 튜닝 중에는 대본대로 메시지를 보내고, 로봇은 안정된 값으로 버티게 함
+    const v = this.tune ? { ...this.v, p: 14, d: .42, s: this.trueSp, v: 1.5, k: .8, m: 27 } : this.v;
+    if (this.tune && this.tune.air) { this.th = 6; this.om = 0; this.fallen = false; this.wv = Math.sin(this.t * 3) * .3; return; }
+    if (this.t - this.lastJ > .4) { this.drive = 0; this.turn = 0; }
+    const tgt = (this.on && !this.fallen) ? this.drive / 100 * 1.2 : 0;
+    this.dspd += Math.max(-1.5 * dt, Math.min(1.5 * dt, tgt - this.dspd));
+    const driving = Math.abs(this.dspd) > .02 || Math.abs(this.turn) > 1;
+    if (driving) this.wp = 0;
+    const gyro = this.om + (Math.random() - .5) * 2;
+    this.gyroD += (gyro - this.gyroD) * .5;
+    const meas = this.th + (Math.random() - .5) * .25;
+    let u = 0;
+    if (this.on && !this.fallen) {
+      const kv = (driving && v.v < 1) ? 1 : v.v;
+      const lean = Math.max(-8, Math.min(8, kv * (this.wv - this.dspd) + v.k * this.wp));
+      const err = meas - (v.s - lean);
+      u = v.p * err + v.d * this.gyroD;
+      u = u > .5 ? v.m + u : u < -.5 ? -v.m + u : 0;
+      u = Math.max(-v.x, Math.min(v.x, u));
+    }
+    const P = this.phys;
+    const eff = Math.sign(u) * Math.max(0, Math.abs(u) - P.dead);
+    const vt = eff / 255 * P.vmax;
+    const acc = (vt - this.wv) / P.tau;         // 회전/s²
+    this.wv += acc * dt; this.wp += this.wv * dt;
+    const a = acc * Math.PI * .065;             // m/s²
+    const phys = (this.th - this.trueSp) * Math.PI / 180;
+    const L = P.L;
+    const alpha = (9.81 * Math.sin(phys) - a * Math.cos(phys)) / L - this.om * Math.PI / 180 * .4;
+    this.om += alpha * 180 / Math.PI * dt;
+    this.th += this.om * dt;
+    if (Math.abs(this.th) > 40 && !this.fallen) { this.fallen = true; this.fallT = this.t; }
+    if (this.fallen) { this.th = Math.sign(this.th) * Math.min(80, Math.abs(this.th)); this.om = 0; this.wv *= .9;
+      if (this.t - this.fallT > 2) { this.th = v.s + (Math.random() - .5) * 3; this.om = 0; this.wv = 0; this.wp = 0; this.fallen = false; } }
+    this.out = u;
+    if (!this.tune && this.t - this.printT >= .1) {
+      this.printT = this.t;
+      this.say(`angle:${meas.toFixed(2)} out:${Math.round(u)} spd:${this.wv.toFixed(2)} st:${!this.on ? 0 : this.fallen ? 1 : 2}`);
+    }
+  }
+}
+
+/* ---------------- 시작 ---------------- */
+buildTicks(); buildParams(); paintSteps(); paintVals(); paintRes(); paintSweep(); route(); refresh();
+requestAnimationFrame(frame);
+</script>
+<script src="../../toolbox-nav.js"></script>
+</body>
+</html>
