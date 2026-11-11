@@ -129,6 +129,21 @@ section.block { padding-block: 34px; border-bottom: 1px solid var(--line); scrol
 .parts button { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 2px 9px; font-size: 13px; cursor: pointer; }
 .parts button .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
 .parts button:hover, .parts button:focus-visible { border-color: var(--accent); }
+.act-bar { display: flex; align-items: center; gap: 6px; margin: 12px 0 8px; }
+.act-bar button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; }
+.act-bar .play { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; min-width: 86px; }
+.act-bar span { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+ol.acts { list-style: none; padding: 0; margin: 0; counter-reset: ac; display: grid; gap: 4px; }
+ol.acts li { counter-increment: ac; position: relative; padding: 7px 10px 7px 34px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-size: 14px; line-height: 1.5; color: var(--muted); }
+ol.acts li::before { content: counter(ac); position: absolute; left: 9px; top: 7px; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); font-family: var(--font-mono); font-size: 11px; display: grid; place-items: center; color: var(--muted); }
+ol.acts li.done { color: var(--ink); }
+ol.acts li.done::before { content: "✓"; background: var(--ink); border-color: var(--ink); color: var(--bg); }
+ol.acts li.on { color: var(--ink); background: var(--accent-soft); border-color: var(--accent); }
+ol.acts li.on::before { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+ol.acts li:hover { border-color: var(--line); }
+ol.acts .what { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+ol.acts .what i { font-style: normal; font-size: 12px; border: 1px solid var(--line); border-radius: 5px; padding: 0 6px; background: var(--surface); color: var(--ink); }
+ol.acts .what i.sc { border-color: #9AA3AC; background: #EEF1F4; color: #1A222A; }
 .step-actions { display: flex; gap: 8px; }
 .step-actions button { flex: 1; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); font-weight: 500; }
 .step-actions .next { background: var(--ink); color: var(--bg); border-color: var(--ink); }
@@ -275,7 +290,7 @@ footer p { margin: 0 0 4px; }
     <div>
       <span class="num">Part 1</span>
       <h2>조립 순서 3D로 보기</h2>
-      <p>받침의 1번 모터부터 그리퍼의 6번 모터까지 아래에서 위로 쌓아 올려요. 이미 조립된 키트라도 모터를 바꾸거나 다시 조립할 때 이 순서를 따라요. 위쪽 단추로 팔로워암과 리더암을 바꿔 볼 수 있어요.</p>
+      <p>받침의 1번 모터부터 그리퍼의 6번 모터까지 아래에서 위로 쌓아 올려요. 단계마다 부품이 끼워지고 나사가 실제 위치에 돌며 들어가는 모습이 순서대로 재생돼요. 이미 조립된 키트라도 모터를 바꾸거나 다시 조립할 때 이 순서를 따라요.</p>
     </div>
   </div>
   <div class="guide">
@@ -288,7 +303,8 @@ footer p { margin: 0 0 4px; }
             <button type="button" class="l" id="asm-leader" aria-pressed="false">리더암</button>
           </div>
           <button class="chip-btn" id="asm-gear" type="button" aria-pressed="false">기어비 색</button>
-          <button class="chip-btn" id="asm-replay" type="button">다시 보기</button>
+          <button class="chip-btn" id="asm-follow" type="button" aria-pressed="true" title="동작마다 카메라가 그 부품으로 다가가요">카메라 따라가기</button>
+          <button class="chip-btn" id="asm-xray" type="button" aria-pressed="false" title="다른 부품을 반투명하게 해서 안쪽 나사를 봐요">투시</button>
           <button class="chip-btn" id="asm-rotate" type="button" aria-pressed="false">자동 회전</button>
         </div>
         <div class="stage-note">끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리면 이름</div>
@@ -725,7 +741,7 @@ footer p { margin: 0 0 4px; }
 </main>
 
 <footer class="wrap">
-  <p>3D 모델: TheRobotStudio <a href="https://github.com/TheRobotStudio/SO-ARM100">SO-ARM100</a>의 SO101 URDF·STL (Apache-2.0)을 가볍게 줄여 사용했어요. 시뮬레이션의 움직임과 오류 화면은 이해를 돕기 위한 흉내로, 실제 값과 다를 수 있어요.</p>
+  <p>3D 모델: TheRobotStudio <a href="https://github.com/TheRobotStudio/SO-ARM100">SO-ARM100</a>의 SO101 조립 CAD(STEP, 나사·보드·케이블 포함)와 URDF 관절 정보(Apache-2.0)를 웹용으로 변환해 사용했어요. 시뮬레이션의 움직임과 오류 화면은 이해를 돕기 위한 흉내로, 실제 값과 다를 수 있어요.</p>
   <p>참고: <a href="https://huggingface.co/docs/lerobot/en/so101">LeRobot SO-101 공식 문서</a> · <a href="https://huggingface.co/docs/lerobot/en/installation">LeRobot 설치 가이드</a></p>
 </footer>
 

@@ -104,13 +104,13 @@
   var MODEL = null;
 
   function decode(buf, meta) {
-    Object.keys(meta.meshes).forEach(function (name) {
-      var m = meta.meshes[name];
+    Object.keys(meta.geoms).forEach(function (name) {
+      var m = meta.geoms[name];
       var q = new Int16Array(buf, m.po, m.v * 3);
       var p = new Float32Array(m.v * 3);
       for (var i = 0; i < p.length; i++) { var a = i % 3; p[i] = (q[i] + 32767) * m.s[a] + m.lo[a]; }
       var n = new Int8Array(buf, m.no, m.v * 3).slice();
-      var idx = new Uint16Array(buf, m.io, m.i).slice();
+      var idx = m.u32 ? new Uint32Array(buf, m.io, m.i).slice() : new Uint16Array(buf, m.io, m.i).slice();
       var g = new T.BufferGeometry();
       g.setAttribute("position", new T.BufferAttribute(p, 3));
       g.setAttribute("normal", new T.BufferAttribute(n, 3, true));
@@ -122,16 +122,26 @@
 
   var COLORS = {
     follower: 0xE8833A, leader: 0x4F86C6, motor: 0x2B3036,
-    g345: 0x3A4048, g191: 0x1E9C8E, g147: 0x8C5BC4, board: 0x1F6E43, cable: 0xE9D24A
+    g345: 0x3A4048, g191: 0x1E9C8E, g147: 0x8C5BC4,
+    board: 0x1F6E43, cable: 0xE9C73A, steel: 0xC3C9D0, brass: 0xC9A04A
   };
-
+  var FASTENER_KO = {
+    screw_m3x6: "M3×6 나사", screw_m2x6: "M2×6 나사", screw_m2x5: "M2×6 나사", screw_m25x4: "M2.5×4 나사 (보드용)",
+    nut_m3_555: "M3 너트", nut_m3_934: "M3 너트", spacer_m25: "M2.5 육각 스페이서"
+  };
+  function itemName(it) {
+    if (it.kind === "motor") return it.motor + "번 모터 · " + JK[JOINTS[it.motor - 1]];
+    if (FASTENER_KO[it.g]) return FASTENER_KO[it.g];
+    if (it.kind === "cable") return it.g === "connector" ? "케이블 커넥터" : "3핀 케이블";
+    return PART_KO[it.id] || it.id;
+  }
   function rpyEuler(rpy) { return new T.Euler(rpy[0], rpy[1], rpy[2], "ZYX"); }
 
-  /* URDF → three 객체. 바깥 group 이 Z-up 을 Y-up 으로 돌린다. */
-  function buildRobot(kind) {
-    var def = MODEL[kind];
+  /* CAD 부품 목록 + URDF 관절 → three 객체. 바깥 group 이 Z-up 을 Y-up 으로, 로봇 앞을 화면 앞으로 돌린다. */
+  function buildRobot(kind, opts) {
+    opts = opts || {};
     var outer = new T.Group();
-    outer.rotation.y = -Math.PI / 2; // 로봇 앞(+x)이 화면 앞(+z)을 보게
+    outer.rotation.y = -Math.PI / 2;
     var root = new T.Group();
     root.rotation.x = -Math.PI / 2;
     outer.add(root);
@@ -139,7 +149,7 @@
     root.add(links.base_link);
     var joints = {};
     var byParent = {};
-    def.joints.forEach(function (j) { (byParent[j.parent] = byParent[j.parent] || []).push(j); });
+    MODEL[kind + "Joints"].forEach(function (j) { (byParent[j.parent] = byParent[j.parent] || []).push(j); });
     (function walk(parent) {
       (byParent[parent] || []).forEach(function (j) {
         var origin = new T.Group();
@@ -154,31 +164,36 @@
       });
     })("base_link");
 
-    var printed = COLORS[kind];
-    var parts = {};
-    var meshes = [];
-    Object.keys(def.links).forEach(function (ln) {
-      def.links[ln].forEach(function (v) {
-        var isMotor = v.mesh.indexOf("sts3215") === 0;
-        var mat = new T.MeshStandardMaterial({ color: isMotor ? COLORS.motor : printed, roughness: isMotor ? 0.55 : 0.62, metalness: isMotor ? 0.15 : 0.02 });
-        var mesh = new T.Mesh(GEOM[v.mesh], mat);
-        mesh.position.fromArray(v.xyz);
-        mesh.quaternion.setFromEuler(rpyEuler(v.rpy));
-        var key = ln + "/" + v.mesh;
-        var motorId = isMotor ? MOTOR_LINK[ln] : 0;
-        mesh.userData = { key: key, motorId: motorId, base: mesh.position.clone(), baseColor: mat.color.getHex(), name: isMotor ? motorId + "번 모터 · " + JK[JOINTS[motorId - 1]] : (PART_KO[v.mesh] || v.mesh) };
-        links[ln].add(mesh);
-        parts[key] = mesh;
-        meshes.push(mesh);
-      });
+    var items = {}, meshes = [];
+    var Mx = new T.Matrix4();
+    MODEL[kind].forEach(function (it) {
+      if (opts.noCables && it.kind === "cable") return;
+      if (!GEOM[it.g] || !links[it.link]) return;
+      var col, rough = 0.6, metal = 0.02;
+      if (it.kind === "printed") col = COLORS[kind];
+      else if (it.kind === "motor") { col = COLORS.motor; rough = 0.55; metal = 0.15; }
+      else if (it.kind === "screw" || it.kind === "nut") { col = COLORS.steel; rough = 0.32; metal = 0.75; }
+      else if (it.kind === "spacer") { col = COLORS.brass; rough = 0.35; metal = 0.7; }
+      else if (it.kind === "board") { col = COLORS.board; rough = 0.5; }
+      else { col = COLORS.cable; rough = 0.7; }
+      var mesh = new T.Mesh(GEOM[it.g], new T.MeshStandardMaterial({ color: col, roughness: rough, metalness: metal }));
+      var m = it.m;
+      Mx.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], 0, 0, 0, 1);
+      Mx.decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.userData = { id: it.id, kind: it.kind, g: it.g, link: it.link, motorId: it.motor || 0, under: it.under, into: it.into, horn: !!it.horn, order: it.order,
+        base: mesh.position.clone(), baseQ: mesh.quaternion.clone(), baseColor: col, name: itemName(it), emi: 0 };
+      links[it.link].add(mesh);
+      items[it.id] = mesh;
+      meshes.push(mesh);
     });
-    var robot = { kind: kind, group: outer, root: root, links: links, joints: joints, parts: parts, meshes: meshes, gear: false };
+    var robot = { kind: kind, group: outer, root: root, links: links, joints: joints, items: items, meshes: meshes, gear: false };
+    robot.motor = function (id) { return items["motor" + id]; };
     robot.setGear = function (on) {
       robot.gear = on;
-      meshes.forEach(function (m) {
-        if (!m.userData.motorId) return;
-        var c = on ? COLORS["g" + GEAR[kind][m.userData.motorId]] : COLORS.motor;
-        m.material.color.setHex(c); m.userData.baseColor = c;
+      meshes.forEach(function (mm) {
+        if (!mm.userData.motorId) return;
+        var c = on ? COLORS["g" + GEAR[kind][mm.userData.motorId]] : COLORS.motor;
+        mm.material.color.setHex(c); mm.userData.baseColor = c;
       });
     };
     return robot;
@@ -201,6 +216,7 @@
     j.obj.quaternion.setFromAxisAngle(j.axis, q);
   }
   function setPose(robot, pose) { JOINTS.forEach(function (n) { if (pose[n] !== undefined) setQ(robot, n, normToRad(robot.joints[n], n, pose[n])); }); }
+  function setPoseRad(robot, pose) { JOINTS.forEach(function (n) { if (pose[n] !== undefined) setQ(robot, n, clamp(pose[n], robot.joints[n].lower, robot.joints[n].upper)); }); }
 
   /* 뷰어 */
   function makeViewer(stage, opts) {
@@ -208,20 +224,21 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     stage.insertBefore(renderer.domElement, stage.firstChild);
     var scene = new T.Scene();
-    var camera = new T.PerspectiveCamera(36, 1, 0.01, 10);
+    var camera = new T.PerspectiveCamera(36, 1, 0.005, 10);
     camera.position.fromArray(opts.cam);
     var controls = new T.OrbitControls(camera, renderer.domElement);
     controls.target.fromArray(opts.target);
     controls.enableDamping = true; controls.dampingFactor = 0.12;
-    controls.minDistance = 0.18; controls.maxDistance = 2.2;
-    controls.maxPolarAngle = Math.PI * 0.52;
+    controls.minDistance = opts.minDist || 0.18; controls.maxDistance = 2.2;
+    controls.maxPolarAngle = Math.PI * (opts.maxPolar || 0.52);
     controls.update();
     scene.add(new T.HemisphereLight(0xffffff, 0x6f7a86, 0.75));
     var key = new T.DirectionalLight(0xffffff, 0.8); key.position.set(0.5, 1.0, 0.7); scene.add(key);
-    var rim = new T.DirectionalLight(0xffffff, 0.3); rim.position.set(-0.7, 0.5, -0.6); scene.add(rim);
+    var rim = new T.DirectionalLight(0xffffff, 0.35); rim.position.set(-0.7, 0.5, -0.6); scene.add(rim);
+    var under = new T.DirectionalLight(0xffffff, 0.2); under.position.set(0.2, -1, 0.3); scene.add(under);
     var grid = new T.GridHelper(opts.grid || 1.0, 20, 0x8794a0, 0x8794a0);
     grid.material.transparent = true; grid.material.opacity = 0.22; scene.add(grid);
-    var v = { renderer: renderer, scene: scene, camera: camera, controls: controls, stage: stage, visible: true, dirty: true };
+    var v = { renderer: renderer, scene: scene, camera: camera, controls: controls, stage: stage, visible: true, dirty: true, grid: grid };
     function resize() {
       var w = stage.clientWidth, h = stage.clientHeight;
       if (!w || !h) return;
@@ -231,97 +248,242 @@
     if ("ResizeObserver" in window) new ResizeObserver(resize).observe(stage); else window.addEventListener("resize", resize);
     if ("IntersectionObserver" in window) new IntersectionObserver(function (e) { v.visible = e[0].isIntersecting; if (v.visible) v.dirty = true; }).observe(stage);
     controls.addEventListener("change", function () { v.dirty = true; });
+    controls.addEventListener("start", function () { v.userMoved = true; v.tween = null; });
     return v;
   }
 
   // 물체 상자가 화면에 꽉 차도록 카메라 맞추기
+  function fitDist(v, r) {
+    var fov = v.camera.fov * Math.PI / 180;
+    return r / Math.sin(fov / 2) / Math.min(1, v.camera.aspect * 0.95);
+  }
   function frame(v, box, dir, pad) {
     var c = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
     var r = size.length() / 2 * (pad || 1.15);
-    var fov = v.camera.fov * Math.PI / 180;
-    var fit = r / Math.sin(fov / 2) / Math.min(1, v.camera.aspect * 0.95);
     v.controls.target.copy(c);
-    v.camera.position.copy(c).addScaledVector(new T.Vector3().fromArray(dir).normalize(), fit);
+    v.camera.position.copy(c).addScaledVector(new T.Vector3().fromArray(dir).normalize(), fitDist(v, r));
     v.controls.update(); v.dirty = true;
-    v.home = { box: box.clone(), dir: dir, pad: pad };
+  }
+  // 카메라를 부드럽게 옮기기
+  function flyTo(v, target, pos, ms) {
+    v.tween = { t0: performance.now(), d: reduceMotion ? 1 : (ms || 750), ft: v.controls.target.clone(), fp: v.camera.position.clone(), tt: target.clone(), tp: pos.clone() };
+  }
+  function tickTween(v, now) {
+    var tw = v.tween; if (!tw) return;
+    var u = clamp((now - tw.t0) / tw.d, 0, 1), e = u * u * (3 - 2 * u);
+    v.controls.target.lerpVectors(tw.ft, tw.tt, e);
+    v.camera.position.lerpVectors(tw.fp, tw.tp, e);
+    v.dirty = true;
+    if (u >= 1) v.tween = null;
   }
 
   // 마우스를 올리면 부품 이름
   function attachHover(v, getMeshes) {
     var tip = document.createElement("div"); tip.className = "tip3d"; tip.hidden = true; v.stage.appendChild(tip);
     var ray = new T.Raycaster(), mouse = new T.Vector2(), last = null;
+    function restore(m) { m.material.emissive.setHex(m.userData.emi || 0); }
     v.renderer.domElement.addEventListener("pointermove", function (e) {
       if (e.buttons) { tip.hidden = true; return; }
       var r = v.renderer.domElement.getBoundingClientRect();
       mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
       ray.setFromCamera(mouse, v.camera);
-      var hit = ray.intersectObjects(getMeshes().filter(function (m) { return m.visible; }), false)[0];
+      var hit = ray.intersectObjects(getMeshes().filter(function (m) { return m.visible && !m.userData.ghost; }), false)[0];
       var m = hit ? hit.object : null;
-      if (last && last !== m) { last.material.emissive.setHex(last.userData.emi || 0); v.dirty = true; }
+      if (last && last !== m) { restore(last); v.dirty = true; }
       if (m) {
         if (last !== m) { m.material.emissive.setHex(0x333333); v.dirty = true; }
         tip.textContent = m.userData.name; tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; tip.hidden = false;
       } else tip.hidden = true;
       last = m;
     });
-    v.renderer.domElement.addEventListener("pointerleave", function () { tip.hidden = true; if (last) { last.material.emissive.setHex(last.userData.emi || 0); last = null; v.dirty = true; } });
+    v.renderer.domElement.addEventListener("pointerleave", function () { tip.hidden = true; if (last) { restore(last); last = null; v.dirty = true; } });
   }
 
-  /* ───────── 3. 조립 순서 ───────── */
-  var DISPLAY_POSE = { shoulder_pan: 0, shoulder_lift: -35, elbow_flex: 30, wrist_flex: 45, wrist_roll: 0, gripper: 35 };
+  /* ───────── 3. 조립 순서 (세부 동작) ───────── */
+  // 동작: place = 부품이 날아와 끼워짐, screw = 나사가 축 방향으로 돌며 들어감
+  // sel: 부품 조건, half: 'hi'/'lo' = 8개를 양쪽 4개씩 나눔, from: 'above' = 위에서 내려옴
   var STEPS = [
-    { nav: "전체", title: "완성된 모습", lead: "SO-101은 모터 6개가 받침에서 그리퍼까지 차례로 쌓인 6관절 로봇팔이에요. 리더암과 팔로워암은 뼈대가 거의 같고, 끝부분(그리퍼/핸들)과 모터의 기어비만 달라요.",
-      items: ["오른쪽 위 단추로 팔로워암과 리더암을 바꿔 보세요.", "<b>기어비 색</b>을 켜면 모터가 기어비별로 칠해져요. 리더암은 관절마다 색이 달라요.", "부품에 마우스를 올리면 이름이 나와요. <b>다음 단계</b>로 조립을 시작해요."], parts: null },
-    { nav: "받침", title: "받침에 1번 모터 넣기", motor: 1,
-      lead: "받침 회전(shoulder_pan)을 맡는 1번 모터를 받침에 고정해요.",
-      items: ["모터 축에 혼 2개를 끼우고 <b>위쪽 혼만</b> M3×6 나사로 고정해요. 아래 혼은 나사가 없어요.", "3핀 케이블 하나를 모터에 먼저 꽂아 두고, 모터를 받침에 넣어요.", "M2×6 나사(가장 작은 나사) 4개로 고정해요. 위 2개, 아래 2개.", "받침 모터 홀더를 밀어 끼우고 양쪽에 M2×6 나사를 1개씩 박아요."],
-      parts: ["base_link/base_so101_v2", "base_link/sts3215_03a_v1", "base_link/base_motor_holder_so101_v1"] },
-    { nav: "어깨", title: "어깨 부품 올리기", lead: "1번 모터 위에 어깨 부품(회전대)을 얹어요. 이 부품이 받침 위에서 좌우로 돌아요.",
-      items: ["어깨 부품을 1번 모터 혼에 맞춰 올려요.", "위쪽 M3×6 나사 4개, 아래쪽 M3×6 나사 4개로 조여요.", "어깨 모터 홀더를 끼워 둬요. 다음 단계의 2번 모터가 여기에 들어가요."],
-      parts: ["shoulder_link/rotation_pitch_so101_v1", "shoulder_link/motor_holder_so101_base_v1"] },
+    { nav: "전체", title: "완성된 모습", lead: "SO-101은 모터 6개를 받침에서 그리퍼까지 차례로 쌓은 6관절 로봇팔이에요. 리더암과 팔로워암은 뼈대가 같고, 끝부분(그리퍼/핸들)과 모터의 기어비만 달라요.",
+      tips: ["<b>다음 단계</b>를 누르면 부품 하나, 나사 하나까지 순서대로 조립되는 모습이 재생돼요.", "회색 나사는 실제 나사 위치예요. 나사가 들어갈 때 카메라가 그쪽으로 다가가요.", "<b>기어비 색</b>을 켜면 모터가 기어비별로 칠해져요. 리더암은 관절마다 색이 달라요."], acts: [] },
+    { nav: "받침", title: "받침에 1번 모터 넣기", motor: 1, lead: "받침 회전(shoulder_pan)을 맡는 1번 모터를 받침에 고정해요. 모터 축에는 혼 2개를 미리 끼우고, 위쪽 혼만 가운데 나사로 고정해 둬요(아래 혼은 나사 없음).",
+      acts: [
+        { t: "받침(베이스)을 평평한 곳에 놓아요.", type: "place", sel: { id: "base_so101_v2" }, from: "above" },
+        { t: "1번 모터를 혼이 위를 보게 해서 받침에 넣어요. 3핀 케이블을 미리 하나 꽂아 두면 나중에 편해요.", type: "place", sel: { id: "motor1" }, from: "above" },
+        { t: "위쪽에서 M2×6 나사 2개로 모터를 받침에 고정해요.", type: "screw", sel: { kind: "screw", under: "base_so101_v2", into: "motor1" }, half: "hi", xray: true },
+        { t: "받침을 뒤집어 아래쪽에서도 M2×6 나사 2개를 박아요.", type: "screw", sel: { kind: "screw", under: "base_so101_v2", into: "motor1" }, half: "lo", xray: true },
+        { t: "받침 모터 홀더를 모터 뒤쪽으로 밀어 끼워요.", type: "place", sel: { id: "base_motor_holder_so101_v1" } },
+        { t: "홀더 양쪽에 M2×6 나사를 1개씩 박아요.", type: "screw", sel: { kind: "screw", under: "base_motor_holder_so101_v1", into: "base_so101_v2" } }
+      ] },
+    { nav: "어깨", title: "어깨 부품 올리기", lead: "1번 모터의 혼 위에 어깨 부품(회전대)을 얹어요. 이 부품이 받침 위에서 좌우로 돌아요.",
+      acts: [
+        { t: "어깨 부품을 1번 모터의 위아래 혼 사이에 맞춰 끼워요.", type: "place", sel: { id: "rotation_pitch_so101_v1" }, from: "above" },
+        { t: "위쪽 혼에 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "rotation_pitch_so101_v1" }, half: "hi" },
+        { t: "받침을 뒤집어 아래쪽 혼에도 M3×6 나사 4개를 박아요. (받침 안쪽이라 투시로 보여 줘요)", type: "screw", sel: { g: "screw_m3x6", under: "rotation_pitch_so101_v1" }, half: "lo", xray: true },
+        { t: "어깨 모터 홀더를 끼워요. 다음 단계의 2번 모터가 여기에 들어가요.", type: "place", sel: { id: "motor_holder_so101_base_v1" } }
+      ] },
     { nav: "위팔", title: "2번 모터와 위팔", motor: 2, lead: "어깨를 들어 올리는 2번 모터(shoulder_lift)와 위팔을 달아요. 팔 전체 무게를 버티는 관절이에요.",
-      items: ["2번 모터에 혼 2개를 끼우고 위쪽만 M3×6으로 고정해요.", "2번 모터를 위에서 밀어 넣고 M2×6 나사 4개로 고정해요.", "위팔을 양쪽에 M3×6 나사 4개씩으로 고정해요."],
-      parts: ["shoulder_link/sts3215_03a_v1", "upper_arm_link/upper_arm_so101_v1"] },
+      acts: [
+        { t: "2번 모터(혼 2개 끼움)를 위에서 밀어 넣어요.", type: "place", sel: { id: "motor2" }, from: "above" },
+        { t: "한쪽에서 M2×6 나사 2개로 2번 모터를 고정해요.", type: "screw", sel: { g: "screw_m2x6", into: "motor2" }, half: "hi" },
+        { t: "반대쪽에서도 M2×6 나사 2개를 박아요.", type: "screw", sel: { g: "screw_m2x6", into: "motor2" }, half: "lo" },
+        { t: "위팔을 2번 모터의 양쪽 혼에 맞춰 끼워요.", type: "place", sel: { id: "upper_arm_so101_v1" } },
+        { t: "한쪽 혼에 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "upper_arm_so101_v1" }, half: "hi" },
+        { t: "반대쪽 혼에도 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "upper_arm_so101_v1" }, half: "lo" }
+      ] },
     { nav: "아래팔", title: "3번 모터와 아래팔", motor: 3, lead: "팔꿈치(elbow_flex)를 굽히는 3번 모터와 아래팔을 달아요.",
-      items: ["3번 모터에 혼 2개를 끼우고 위쪽만 M3×6으로 고정해요.", "위팔 끝에 3번 모터를 넣고 M2×6 나사 4개로 고정해요.", "아래팔을 양쪽 M3×6 나사 4개씩으로 3번 모터에 연결해요."],
-      parts: ["upper_arm_link/sts3215_03a_v1", "lower_arm_link/under_arm_so101_v1"] },
+      acts: [
+        { t: "3번 모터(혼 2개 끼움)를 위팔 끝에 넣어요.", type: "place", sel: { id: "motor3" } },
+        { t: "한쪽에서 M2×6 나사 2개로 3번 모터를 고정해요.", type: "screw", sel: { g: "screw_m2x6", link: "upper_arm_link" }, half: "hi" },
+        { t: "반대쪽에서도 M2×6 나사 2개를 박아요.", type: "screw", sel: { g: "screw_m2x6", link: "upper_arm_link" }, half: "lo" },
+        { t: "아래팔을 3번 모터의 양쪽 혼에 맞춰 끼워요.", type: "place", sel: { id: "under_arm_so101_v1" } },
+        { t: "한쪽 혼에 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "under_arm_so101_v1" }, half: "hi" },
+        { t: "반대쪽 혼에도 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "under_arm_so101_v1" }, half: "lo" }
+      ] },
     { nav: "4번", title: "4번 모터 (손목 굽힘)", motor: 4, lead: "아래팔 끝에 손목을 위아래로 굽히는 4번 모터(wrist_flex)를 달아요.",
-      items: ["4번 모터에 혼 2개를 끼우고 위쪽만 M3×6으로 고정해요.", "4번 모터 홀더를 아래팔 끝에 밀어 끼워요.", "4번 모터를 밀어 넣고 M2×6 나사 4개로 고정해요."],
-      parts: ["lower_arm_link/motor_holder_so101_wrist_v1", "lower_arm_link/sts3215_03a_v1"] },
-    { nav: "손목", title: "5번 모터와 손목", motor: 5, lead: "손목을 비트는 5번 모터(wrist_roll)를 손목 홀더에 넣어 4번 모터에 연결해요.",
-      items: ["5번 모터를 손목 홀더에 넣고 앞쪽 M2×6 나사 2개로 고정해요.", "5번 모터에는 <b>혼을 1개만</b> 끼우고 M3×6으로 고정해요.", "손목 홀더를 4번 모터에 양쪽 M3×6 나사 4개씩으로 연결해요."],
-      parts: ["wrist_link/sts3215_03a_no_horn_v1", "wrist_link/wrist_roll_pitch_so101_v2"] },
-    { nav: "그리퍼", navL: "핸들", motor: 6,
-      title: "그리퍼와 6번 모터", titleL: "핸들·트리거와 6번 모터",
+      acts: [
+        { t: "4번 모터 홀더를 아래팔 끝에 밀어 끼워요.", type: "place", sel: { id: "motor_holder_so101_wrist_v1" } },
+        { t: "4번 모터(혼 2개 끼움)를 밀어 넣어요.", type: "place", sel: { id: "motor4" } },
+        { t: "한쪽에서 M2×6 나사 2개로 4번 모터를 고정해요.", type: "screw", sel: { g: "screw_m2x6", into: "motor4" }, half: "hi" },
+        { t: "반대쪽에서도 M2×6 나사 2개를 박아요.", type: "screw", sel: { g: "screw_m2x6", into: "motor4" }, half: "lo" }
+      ] },
+    { nav: "손목", title: "5번 모터와 손목", motor: 5, lead: "손목을 비트는 5번 모터(wrist_roll)를 손목 홀더에 넣고, 손목 홀더를 4번 모터에 연결해요.",
+      acts: [
+        { t: "손목 홀더를 4번 모터 앞에 가져와요.", type: "place", sel: { id: "wrist_roll_pitch_so101_v2" } },
+        { t: "5번 모터를 손목 홀더에 넣어요.", type: "place", sel: { id: "motor5" } },
+        { t: "앞쪽 M2×6 나사 2개로 5번 모터를 고정해요.", type: "screw", sel: { g: "screw_m2x6", into: "motor5" } },
+        { t: "5번 모터에는 혼을 1개만 끼우고, 가운데를 M3×6 나사로 고정해요.", type: "screw", sel: { horn: true } },
+        { t: "손목 홀더를 4번 모터의 혼에 맞추고 한쪽에 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "wrist_roll_pitch_so101_v2" }, half: "hi" },
+        { t: "반대쪽에도 M3×6 나사 4개를 박아요.", type: "screw", sel: { g: "screw_m3x6", under: "wrist_roll_pitch_so101_v2" }, half: "lo" }
+      ] },
+    { nav: "그리퍼", navL: "핸들", motor: 6, title: "그리퍼와 6번 모터", titleL: "핸들·트리거와 6번 모터",
       lead: "팔로워암 끝에는 물건을 집는 그리퍼가 달려요. 6번 모터가 움직이는 집게를 여닫아요.",
       leadL: "리더암 끝에는 그리퍼 대신 손잡이(핸들)와 트리거가 달려요. 손가락으로 트리거를 당기면 6번 모터가 돌아 팔로워의 그리퍼가 닫혀요.",
-      items: ["그리퍼 몸체를 5번 모터 혼에 M3×6 나사 4개로 고정해요.", "6번 모터를 넣고 양쪽에 M2×6 나사 2개씩으로 고정해요.", "6번 모터에 혼 2개를 끼우고 위쪽만 M3×6으로 고정해요.", "움직이는 집게를 양쪽 M3×6 나사 4개씩으로 고정해요."],
-      itemsL: ["핸들 연결부를 5번 모터 혼에 고정해요.", "6번 모터(리더용 1/147)를 넣고 나사로 고정해요.", "손잡이(핸들)를 연결부에 고정해요.", "트리거를 6번 모터 혼에 고정해요. 당겼다 놓았을 때 부드럽게 움직이는지 확인해요."],
-      parts: ["gripper_link/wrist_roll_follower_so101_v1", "gripper_link/sts3215_03a_v1", "moving_jaw_so101_v1_link/moving_jaw_so101_v1"],
-      partsL: ["gripper_link/Wrist_Roll_SO101", "gripper_link/sts3215_03a_v1", "gripper_link/Handle_SO101", "trigger_link/Trigger_SO101"] },
-    { nav: "배선", title: "컨트롤러 보드와 케이블", lead: "모터 6개를 3핀 케이블로 한 줄로 이어 보드에 연결해요(데이지 체인). 노란 선이 케이블 길이에요.",
-      items: ["<b>모터 ID 설정(설명서 5단계)을 먼저 끝낸 뒤</b> 보드를 받침의 장착판에 고정해요. ID 설정 때는 모터를 하나씩 따로 연결해야 하기 때문이에요.", "케이블을 보드 → 1번 → 2번 → 3번 → 4번 → 5번 → 6번 순서로 이어요.", "Waveshare 보드라면 점퍼 2개를 <b>B 채널(USB)</b>에 꽂아요.", "관절을 끝까지 움직여 보며 케이블이 끼거나 당기지 않는지 확인해요."],
+      acts: [
+        { t: "그리퍼 몸체를 5번 모터의 혼에 맞춰 올려요.", type: "place", sel: { id: "wrist_roll_follower_so101_v1" } },
+        { t: "M3×6 나사 4개로 그리퍼 몸체를 혼에 고정해요.", type: "screw", sel: { g: "screw_m3x6", link: "gripper_link", into: "motor5" } },
+        { t: "6번 모터(혼 2개 끼움)를 그리퍼 몸체에 넣어요.", type: "place", sel: { id: "motor6" } },
+        { t: "한쪽에서 M2×6 나사 2개로 6번 모터를 고정해요.", type: "screw", sel: { g: "screw_m2x6", into: "motor6" }, half: "hi" },
+        { t: "반대쪽에서도 M2×6 나사 2개를 박아요.", type: "screw", sel: { g: "screw_m2x6", into: "motor6" }, half: "lo" },
+        { t: "M3 너트 2개를 몸체의 육각 홈에 끼워요.", type: "place", sel: { kind: "nut" }, small: true },
+        { t: "움직이는 집게를 6번 모터의 혼에 맞춰 끼워요.", type: "place", sel: { id: "moving_jaw_so101_v1" } },
+        { t: "한쪽 혼에 M3×6 나사 4개를 박아요.", type: "screw", sel: { under: "moving_jaw_so101_v1" }, half: "hi" },
+        { t: "반대쪽 혼에도 M3×6 나사 4개를 박아요.", type: "screw", sel: { under: "moving_jaw_so101_v1" }, half: "lo" }
+      ],
+      actsL: [
+        { t: "핸들 연결부를 5번 모터의 혼에 맞춰 올려요.", type: "place", sel: { id: "Wrist_Roll_SO101" } },
+        { t: "M3×6 나사 4개로 핸들 연결부를 혼에 고정해요.", type: "screw", sel: { g: "screw_m3x6", link: "gripper_link", into: "motor5" } },
+        { t: "6번 모터(리더용 1/147)를 넣고 나사로 고정해요.", type: "place", sel: { id: "motor6" } },
+        { t: "손잡이(핸들)를 연결부에 고정해요.", type: "place", sel: { id: "Handle_SO101" } },
+        { t: "트리거를 6번 모터의 혼에 고정해요. 당겼다 놓았을 때 부드럽게 움직이는지 확인해요.", type: "place", sel: { id: "Trigger_SO101" } }
+      ] },
+    { nav: "배선", title: "컨트롤러 보드와 케이블", lead: "모터 6개를 3핀 케이블로 한 줄로 이어 보드에 연결해요(데이지 체인).",
       callout: "<strong>전원</strong> 팔로워암 보드에는 12V, 리더암 보드에는 5V 어댑터를 꽂아요.",
-      parts: ["base_link/waveshare_mounting_plate_so101_v2", "board", "cable"] }
+      acts: [
+        { t: "<b>모터 ID 설정(설명서 5단계)을 먼저 끝낸 뒤</b> 보드 장착판을 받침 뒤쪽에 달아요. ID 설정 때는 모터를 하나씩 따로 연결해야 하기 때문이에요.", type: "place", sel: { id: "waveshare_mounting_plate_so101_v2" } },
+        { t: "M2.5 육각 스페이서 4개를 장착판에 세워요.", type: "place", sel: { kind: "spacer" }, small: true },
+        { t: "컨트롤러 보드를 스페이서 위에 올려요. Waveshare 보드라면 점퍼 2개를 B 채널(USB)에 꽂아 둬요.", type: "place", sel: { id: "board" } },
+        { t: "M2.5×4 나사 4개로 보드를 고정해요.", type: "screw", sel: { g: "screw_m25x4" } },
+        { t: "3핀 케이블을 보드 → 1번 → 2번 → … → 6번 순서로 이어요. 관절을 끝까지 움직여 보며 케이블이 끼지 않는지 확인해요.", type: "place", sel: { kind: "cable" }, cable: true }
+      ] }
   ];
 
+  function matches(u, sel) {
+    for (var k in sel) { if (sel[k] !== u[k]) return false; }
+    return true;
+  }
+
   var asm = null;
+  var tmpBox = new T.Box3(), tv = new T.Vector3(), tq = new T.Quaternion();
+  function worldCenter(meshes) {
+    tmpBox.makeEmpty();
+    meshes.forEach(function (m) { tmpBox.expandByObject(m); });
+    return { c: tmpBox.getCenter(new T.Vector3()), r: Math.max(0.006, tmpBox.getSize(new T.Vector3()).length() / 2) };
+  }
+  function dirToLink(m, worldDir) { m.parent.getWorldQuaternion(tq); return worldDir.clone().applyQuaternion(tq.invert()).normalize(); }
+
+  // 단계·동작에 부품 배정, 들어오는 방향과 카메라 위치 미리 계산 (조립 화면은 CAD 자세로 고정)
+  function makePlan(r) {
+    r.group.updateMatrixWorld(true);
+    var used = {};
+    var whole = worldCenter(r.meshes);
+    r.center = whole.c;
+    var assembled = [];
+    r.plan = STEPS.map(function (s, si) {
+      var acts = (r.kind === "leader" && s.actsL) ? s.actsL : s.acts;
+      return acts.map(function (a, ai) {
+        var ms = r.meshes.filter(function (m) { return !used[m.userData.id] && matches(m.userData, a.sel); });
+        if (a.half === "hi") {   // 'lo' 는 남은 것 전부
+          var w = ms.map(function (m) { return m.getWorldPosition(new T.Vector3()); });
+          var lo = new T.Vector3(Infinity, Infinity, Infinity), hi = lo.clone().negate();
+          w.forEach(function (p) { lo.min(p); hi.max(p); });
+          var span = hi.clone().sub(lo), ax = span.x >= span.y && span.x >= span.z ? "x" : span.y >= span.z ? "y" : "z";
+          var mid = (lo[ax] + hi[ax]) / 2;
+          ms = ms.filter(function (m, i) { return w[i][ax] >= mid; });
+        }
+        if (a.cable) ms.sort(function (x, y) { return x.userData.order - y.userData.order; });
+        ms.forEach(function (m, k) {
+          used[m.userData.id] = true;
+          var u = m.userData; u.s = si; u.a = ai; u.k = k;
+          if (a.type === "screw") {
+            var info = MODEL.screwInfo[u.g];
+            u.axisL = new T.Vector3().fromArray(info.axis);            // 나사 자신의 좌표계 (머리→끝)
+            u.axisP = u.axisL.clone().applyQuaternion(u.baseQ);         // 링크 좌표계
+            u.drive = info.len + 0.012;
+          } else {
+            var wc = worldCenter([m]).c, ref = assembled.length ? worldCenter(assembled).c : r.center.clone().setY(0);
+            var wd = a.from === "above" ? new T.Vector3(0, 1, 0) : wc.clone().sub(ref);
+            if (wd.lengthSq() < 1e-8) wd.set(0, 1, 0);
+            wd.normalize(); if (a.from !== "above") wd.y = Math.max(wd.y, 0.25);
+            u.flyL = dirToLink(m, wd.normalize());
+            u.flyD = a.small ? 0.03 : a.cable ? 0.035 : 0.07;
+          }
+        });
+        assembled = assembled.concat(ms);
+        // 카메라
+        var wc2 = worldCenter(ms.length ? ms : r.meshes);
+        var view = null;
+        if (a.type === "screw" && ms.length) {
+          var ax = new T.Vector3();
+          ms.forEach(function (m) { m.getWorldQuaternion(tq); ax.add(m.userData.axisL.clone().applyQuaternion(tq)); });
+          if (ax.length() > ms.length * 0.6) view = ax.normalize().negate();   // 머리 쪽에서 바라보기 (방향이 한쪽일 때만)
+        }
+        return { meshes: ms, def: a, cam: { c: wc2.c, r: wc2.r, view: view } };
+      });
+    });
+    // 어느 동작에도 안 들어간 부품은 1단계부터 보이게
+    r.meshes.forEach(function (m) { if (m.userData.s === undefined) { m.userData.s = 1; m.userData.a = -1; } });
+    // 분해 방향: 나사는 붙는 부품과 함께
+    var q = new T.Quaternion();
+    r.meshes.forEach(function (m) {
+      var c = worldCenter([m]).c, d = c.sub(r.center); d.y *= 1.6;
+      if (d.lengthSq() < 1e-8) d.set(0, 1, 0);
+      m.parent.getWorldQuaternion(q);
+      m.userData.dir = d.normalize().applyQuaternion(q.invert());
+    });
+    r.meshes.forEach(function (m) {
+      var host = m.userData.under && r.items[m.userData.under];
+      if ((m.userData.kind === "screw" || m.userData.kind === "nut") && host && host.parent === m.parent) m.userData.dir = host.userData.dir;
+    });
+  }
+
   function initAssembly() {
-    var v = makeViewer($("asm-stage"), { cam: [0.42, 0.36, 0.5], target: [0, 0.16, 0], grid: 0.8 });
-    asm = { v: v, robots: {}, kind: "follower", step: 0, explode: 0, fly: 0, flyT0: 0, rotate: false, gear: false, extras: {} };
+    var v = makeViewer($("asm-stage"), { cam: [0.42, 0.36, 0.5], target: [0, 0.16, 0], grid: 0.8, minDist: 0.04, maxPolar: 0.9 });
+    asm = { v: v, robots: {}, kind: "follower", step: 0, act: -1, explode: 0, rotate: false, gear: false, follow: true, xray: false, playing: false, anim: null, wait: 0 };
     ["follower", "leader"].forEach(function (k) {
       var r = buildRobot(k);
-      setPose(r, DISPLAY_POSE);
+      setPoseRad(r, MODEL.cadPose);
+      setQ(r, "gripper", k === "leader" ? 0.25 : 0.35);
       r.group.visible = k === "follower";
       v.scene.add(r.group);
       asm.robots[k] = r;
+      makePlan(r);
     });
-    v.scene.updateMatrixWorld(true);
-    ["follower", "leader"].forEach(function (k) { prepExplode(asm.robots[k]); addBoard(asm.robots[k]); });
-    frame(v, new T.Box3().setFromObject(asm.robots.follower.group), [0.85, 0.5, 0.55], 0.95);
-    attachHover(v, function () { var r = asm.robots[asm.kind]; return r.meshes.concat(r.extraMeshes || []); });
+    var r0 = asm.robots.follower;
+    asm.home = { box: new T.Box3().setFromObject(r0.group), dir: [0.85, 0.5, 0.55] };
+    frame(v, asm.home.box, asm.home.dir, 0.95);
+    attachHover(v, function () { return asm.robots[asm.kind].meshes; });
     buildStepNav();
-    showStep(0, true);
+    showStep(0);
     $("asm-status").hidden = true;
 
     $("asm-follower").onclick = function () { setKind("follower"); };
@@ -331,80 +493,18 @@
       $("gear-legend").hidden = !asm.gear;
       asm.robots.follower.setGear(asm.gear); asm.robots.leader.setGear(asm.gear); v.dirty = true;
     };
-    $("asm-replay").onclick = function () { showStep(asm.step, true); };
+    $("asm-follow").onclick = function () { asm.follow = !asm.follow; this.setAttribute("aria-pressed", asm.follow); if (asm.follow) aimCamera(); };
+    $("asm-xray").onclick = function () { asm.xray = !asm.xray; this.setAttribute("aria-pressed", asm.xray); applyLook(); };
     $("asm-rotate").onclick = function () { asm.rotate = !asm.rotate; this.setAttribute("aria-pressed", asm.rotate); v.controls.autoRotate = asm.rotate; v.controls.autoRotateSpeed = 1.6; };
-    $("asm-explode").oninput = function () { asm.explode = this.value / 100; applyExplode(); };
-    $("btn-prev").onclick = function () { if (asm.step > 0) showStep(asm.step - 1, true); };
-    $("btn-next").onclick = function () { if (asm.step < STEPS.length - 1) showStep(asm.step + 1, true); };
+    $("asm-explode").oninput = function () { asm.explode = this.value / 100; applyPositions(performance.now()); };
+    $("btn-prev").onclick = function () { if (asm.step > 0) showStep(asm.step - 1); };
+    $("btn-next").onclick = function () { if (asm.step < STEPS.length - 1) showStep(asm.step + 1); };
     document.querySelectorAll("[data-goto-step]").forEach(function (a) {
-      a.addEventListener("click", function () { showStep(+a.getAttribute("data-goto-step"), true); });
+      a.addEventListener("click", function () { showStep(+a.getAttribute("data-goto-step")); });
     });
   }
 
-  function prepExplode(r) {
-    var box = new T.Box3().setFromObject(r.group);
-    var center = box.getCenter(new T.Vector3());
-    r.center = center;
-    var q = new T.Quaternion(), c = new T.Vector3();
-    r.meshes.forEach(function (m) {
-      m.geometry.boundingBox.getCenter(c); m.localToWorld(c);
-      var dir = c.clone().sub(center); dir.y *= 1.6;
-      if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0);
-      dir.normalize();
-      m.parent.getWorldQuaternion(q);
-      m.userData.dir = dir.applyQuaternion(q.invert());
-    });
-  }
-
-  // 보드(초록 판)와 케이블(노란 선)
-  function addBoard(r) {
-    var plate = r.parts["base_link/waveshare_mounting_plate_so101_v2"];
-    var bb = plate.geometry.boundingBox;
-    var size = bb.getSize(new T.Vector3());
-    var dims = [size.x, size.y, size.z];
-    var thin = dims.indexOf(Math.min.apply(null, dims));
-    var bdims = dims.map(function (d, i) { return i === thin ? 0.004 : d * 0.92; });
-    var board = new T.Mesh(new T.BoxGeometry(bdims[0], bdims[1], bdims[2]), new T.MeshStandardMaterial({ color: COLORS.board, roughness: 0.5 }));
-    var c = bb.getCenter(new T.Vector3());
-    // 장착판의 바깥쪽(받침 중심에서 먼 쪽)으로 띄우기
-    var pw = c.clone(); plate.localToWorld(pw);
-    var probe = c.clone(); probe.setComponent(thin, c.getComponent(thin) + 0.01); plate.localToWorld(probe);
-    var sign = probe.distanceTo(r.center) > pw.distanceTo(r.center) ? 1 : -1;
-    c.setComponent(thin, c.getComponent(thin) + sign * (dims[thin] / 2 + 0.003));
-    board.position.copy(c);
-    board.userData = { key: "board", name: PART_KO.board, base: c.clone() }; // 장착판에 붙어서 함께 움직임
-    plate.add(board);
-    r.parts.board = board;
-    r.extraMeshes = [board];
-    r.cableMat = new T.MeshStandardMaterial({ color: COLORS.cable, roughness: 0.6 });
-  }
-  function rebuildCable(r, show) {
-    if (r.cable) { asm.v.scene.remove(r.cable); r.cable.geometry.dispose(); r.cable = null; }
-    if (!show) return;
-    asm.v.scene.updateMatrixWorld(true);
-    var pts = [];
-    var bw = new T.Vector3(); r.parts.board.getWorldPosition(bw); pts.push(bw);
-    var c = new T.Vector3();
-    for (var id = 1; id <= 6; id++) {
-      var m = r.meshes.filter(function (x) { return x.userData.motorId === id; })[0];
-      m.geometry.boundingBox.getCenter(c); var w = c.clone(); m.localToWorld(w); pts.push(w);
-    }
-    var curve = new T.CatmullRomCurve3(pts, false, "centripetal");
-    var tube = new T.Mesh(new T.TubeGeometry(curve, 120, 0.0022, 8, false), r.cableMat);
-    tube.userData = { name: PART_KO.cable, key: "cable" };
-    r.cable = tube;
-    asm.v.scene.add(tube);
-  }
-
-  function stepParts(i) {
-    var s = STEPS[i];
-    return (asm.kind === "leader" && s.partsL) ? s.partsL : s.parts;
-  }
-  function visibleUpTo(i) {
-    var set = {};
-    for (var k = 1; k <= i; k++) (stepParts(k) || []).forEach(function (p) { set[p] = true; });
-    return set;
-  }
+  function curPlan() { return asm.robots[asm.kind].plan[asm.step]; }
   function setKind(k) {
     asm.kind = k;
     $("asm-follower").setAttribute("aria-pressed", k === "follower");
@@ -412,14 +512,14 @@
     asm.robots.follower.group.visible = k === "follower";
     asm.robots.leader.group.visible = k === "leader";
     buildStepNav();
-    showStep(asm.step, true);
+    showStep(asm.step);
   }
   function buildStepNav() {
     var nav = $("steps-nav"); nav.innerHTML = "";
     STEPS.forEach(function (s, i) {
       var b = document.createElement("button"); b.type = "button";
       b.innerHTML = i + "<small>" + esc(asm.kind === "leader" && s.navL ? s.navL : s.nav) + "</small>";
-      b.onclick = function () { showStep(i, true); };
+      b.onclick = function () { showStep(i); };
       nav.appendChild(b);
     });
   }
@@ -430,95 +530,169 @@
       '<div class="' + (asm.kind === "follower" ? "on" : "") + '">팔로워암<br><span class="gr r' + f + '">1/' + f + "</span> 12V</div>" +
       '<div class="' + (asm.kind === "leader" ? "on l" : "") + '">리더암<br><span class="gr r' + l + '">1/' + l + "</span> 7.4V</div></div>";
   }
-  function showStep(i, animate) {
+  function countLabel(meshes) {
+    var c = {}, order = [];
+    meshes.forEach(function (m) { var n = m.userData.name; if (!c[n]) { c[n] = 0; order.push(n); } c[n]++; });
+    return order.map(function (n) { return c[n] > 1 ? n + " ×" + c[n] : n; });
+  }
+
+  function showStep(i) {
     asm.step = i;
     var s = STEPS[i], L = asm.kind === "leader";
-    var r = asm.robots[asm.kind];
     var nav = $("steps-nav").children;
     for (var k = 0; k < nav.length; k++) {
       if (k === i) nav[k].setAttribute("aria-current", "step"); else nav[k].removeAttribute("aria-current");
       nav[k].classList.toggle("done", k < i);
     }
-    var items = (L && s.itemsL) || s.items;
+    var plan = curPlan();
     var html = '<div class="step-no">' + (i === 0 ? "Overview" : "Step " + i + " / " + (STEPS.length - 1)) + "</div>";
-    html += "<h3>" + esc((L && s.titleL) || s.title) + "</h3><p>" + ((L && s.leadL) || s.lead) + "</p><ol>";
-    items.forEach(function (t) { html += "<li>" + t + "</li>"; });
-    html += "</ol>";
+    html += "<h3>" + esc((L && s.titleL) || s.title) + "</h3><p>" + ((L && s.leadL) || s.lead) + "</p>";
+    if (s.tips) { html += "<ul>"; s.tips.forEach(function (t) { html += "<li>" + t + "</li>"; }); html += "</ul>"; }
+    if (plan.length) {
+      html += '<div class="act-bar"><button type="button" id="act-restart" title="처음부터">↺</button><button type="button" id="act-prev" title="이전 동작">◀</button>' +
+        '<button type="button" id="act-play" class="play">▶ 재생</button><button type="button" id="act-next" title="다음 동작">▶|</button><span id="act-count"></span></div>';
+      html += '<ol class="acts" id="acts">';
+      plan.forEach(function (p, ai) {
+        var labels = countLabel(p.meshes);
+        html += '<li data-a="' + ai + '"><span class="t">' + p.def.t + '</span>' +
+          (labels.length ? '<span class="what">' + labels.map(function (x) { return '<i class="' + (p.def.type === "screw" ? "sc" : "") + '">' + esc(x) + "</i>"; }).join("") + "</span>" : "") + "</li>";
+      });
+      html += "</ol>";
+    }
     if (s.motor) html += motorBadge(s.motor);
     if (s.motor && L && GEAR.leader[s.motor] !== 345) html += '<div class="callout"><strong>모터 확인</strong> 이 자리는 리더암 전용 <b>1/' + GEAR.leader[s.motor] + '</b> 모터예요. 팔로워용 1/345 모터를 넣으면 손으로 움직이기 뻑뻑해져요.</div>';
     if (s.motor && !L) html += '<div class="callout"><strong>모터 확인</strong> 팔로워암은 6개 모두 <b>1/345</b> 모터예요. 리더용 모터가 섞이면 그 관절만 힘이 약해 쉽게 밀려요.</div>';
     if (s.callout) html += '<div class="callout">' + s.callout + "</div>";
-    var ps = stepParts(i);
-    if (ps && ps.length) {
-      html += '<div class="parts-h">이 단계 부품</div><div class="parts">';
-      ps.forEach(function (key) {
-        var m = key === "cable" ? null : r.parts[key];
-        var col = key === "cable" ? "#E9D24A" : "#" + m.material.color.getHexString();
-        var nm = key === "cable" ? PART_KO.cable : m.userData.name;
-        html += '<button type="button" data-part="' + esc(key) + '"><span class="dot" style="background:' + col + '"></span>' + esc(nm) + "</button>";
-      });
-      html += "</div>";
-    }
+    if (i > 0 && i < STEPS.length - 1 && s.acts.some(function (a) { return a.type === "screw"; })) html += '<div class="callout info"><strong>나사 구별</strong> M2×6은 가장 작은 나사로 모터를 홀더에 고정할 때, M3×6은 머리가 둥근 조금 큰 나사로 혼에 부품을 고정할 때 써요.</div>';
     $("step-card").innerHTML = html;
-    $("step-card").querySelectorAll("[data-part]").forEach(function (b) {
-      b.onclick = function () { flashPart(b.getAttribute("data-part")); };
-    });
+    if (plan.length) {
+      $("act-play").onclick = function () { if (asm.playing) pause(); else play(); };
+      $("act-prev").onclick = function () { pause(); goAct(Math.max(0, asm.act - 1), true); };
+      $("act-next").onclick = function () { pause(); if (asm.act < plan.length - 1) goAct(asm.act + 1, true); else finishAct(); };
+      $("act-restart").onclick = function () { goAct(0, true); play(true); };
+      $("acts").querySelectorAll("li").forEach(function (li) { li.onclick = function () { pause(); goAct(+li.getAttribute("data-a"), true); }; });
+    }
     $("btn-prev").disabled = i === 0;
     $("btn-next").disabled = i === STEPS.length - 1;
-
-    // 보이기·강조
-    var vis = i === 0 ? null : visibleUpTo(i);
-    var cur = {};
-    if (i > 0) (ps || []).forEach(function (p) { cur[p] = true; });
+    asm.anim = null;
+    if (i === 0) {
+      asm.act = -1; asm.playing = false; refresh();
+      if (asm.follow) homeCamera();
+    } else {
+      goAct(0, !reduceMotion);
+      if (!reduceMotion) play(true); else { asm.act = plan.length - 1; refresh(); }
+    }
+  }
+  function homeCamera() {
+    var v = asm.v, d = new T.Vector3().fromArray(asm.home.dir).normalize();
+    var c = asm.home.box.getCenter(new T.Vector3()), r = asm.home.box.getSize(new T.Vector3()).length() / 2 * 0.95;
+    flyTo(v, c, c.clone().addScaledVector(d, fitDist(v, r)));
+  }
+  function aimCamera() {
+    var v = asm.v, plan = curPlan(), p = plan[asm.act];
+    if (!p) return;
+    var cur = v.camera.position.clone().sub(v.controls.target).normalize();
+    var dir = cur.clone();
+    if (p.cam.view) dir = p.cam.view.clone().multiplyScalar(0.75).add(cur.multiplyScalar(0.25)).add(new T.Vector3(0, 0.25, 0)).normalize();
+    var dist = p.def.type === "screw" ? clamp(fitDist(v, p.cam.r) * 2.3, 0.13, 0.36) : clamp(fitDist(v, p.cam.r) * 1.5, 0.18, 0.6);
+    flyTo(v, p.cam.c, p.cam.c.clone().addScaledVector(dir, dist));
+  }
+  // 동작 시작: done=true 이면 애니메이션 없이 끝난 상태로
+  function goAct(ai, animate) {
+    asm.act = ai;
+    var p = curPlan()[ai];
+    asm.anim = animate && p ? { t0: performance.now(), n: p.meshes.length, type: p.def.type } : null;
+    refresh();
+    if (asm.follow) aimCamera();
+  }
+  function actDuration(a) {
+    if (!a) return 0;
+    if (a.type === "screw") return 1100 + (a.n - 1) * 320;
+    return a.n > 1 ? 800 + (a.n - 1) * 220 : 950;
+  }
+  function finishAct() {
+    asm.anim = null; refresh();
+  }
+  function play(fromStart) {
+    asm.playing = true; asm.wait = 0;
+    var b = $("act-play"); if (b) b.textContent = "⏸ 멈춤";
+    if (!fromStart && !asm.anim) { if (asm.act < curPlan().length - 1) goAct(asm.act + 1, true); else { goAct(0, true); } }
+  }
+  function pause() {
+    asm.playing = false;
+    var b = $("act-play"); if (b) b.textContent = "▶ 재생";
+  }
+  function refresh() {
+    var r = asm.robots[asm.kind];
+    var lis = $("acts") ? $("acts").children : [];
+    for (var k = 0; k < lis.length; k++) { lis[k].classList.toggle("on", k === asm.act); lis[k].classList.toggle("done", k < asm.act); }
+    var plan = curPlan();
+    if ($("act-count")) $("act-count").textContent = (asm.act + 1) + " / " + plan.length;
     var emi = asm.kind === "leader" ? 0x0b2a55 : 0x552008;
-    r.meshes.concat(r.extraMeshes).forEach(function (m) {
-      var key = m.userData.key;
-      m.visible = vis ? !!vis[key] : true;
-      m.userData.cur = !!cur[key];
-      m.userData.emi = cur[key] ? emi : 0;
-      m.material.emissive.setHex(m.userData.emi);
+    r.meshes.forEach(function (m) {
+      var u = m.userData;
+      var vis = asm.step === 0 || u.s < asm.step || (u.s === asm.step && u.a <= asm.act);
+      m.visible = vis;
+      u.cur = asm.step > 0 && u.s === asm.step && u.a === asm.act;
+      u.emi = u.cur ? (u.kind === "screw" || u.kind === "nut" || u.kind === "spacer" ? 0x7a3a00 : emi) : 0;
+      m.material.emissive.setHex(u.emi);
     });
-    // 움직이는 집게/트리거는 별도 링크라 위 키로 처리됨. 케이블:
-    rebuildCable(asm.robots.follower, false); rebuildCable(asm.robots.leader, false);
-    asm.cableOn = i === 0 || i === STEPS.length - 1;
-    asm.fly = animate && i > 0 && !reduceMotion ? 1 : 0;
-    asm.flyT0 = performance.now();
-    applyExplode();
+    applyLook();
+    applyPositions(performance.now());
+  }
+  // 투시: 지금 동작이 아닌 부품을 반투명하게
+  function applyLook() {
+    var r = asm.robots[asm.kind], p = curPlan()[asm.act];
+    var hidden = p && p.def.type === "screw" && p.meshes.length && /^screw_m2x/.test(p.meshes[0].userData.g); // 모터 고정 나사는 홈 안쪽이라 투시로
+    var on = asm.xray || !!(p && (p.def.xray || hidden) && asm.step > 0);
+    var keep = {};
+    if (p) p.meshes.forEach(function (m) { if (m.userData.into) keep[m.userData.into] = true; });
+    r.meshes.forEach(function (m) {
+      var ghost = on && !m.userData.cur && !keep[m.userData.id] && asm.step > 0;
+      m.userData.ghost = ghost;
+      m.material.transparent = ghost; m.material.opacity = ghost ? 0.18 : 1; m.material.depthWrite = !ghost;
+      m.renderOrder = ghost ? 1 : 0;
+      m.material.needsUpdate = true;
+    });
     asm.v.dirty = true;
   }
-  function applyExplode() {
-    var r = asm.robots[asm.kind];
-    var e = asm.explode * 0.075;
-    r.meshes.concat(r.extraMeshes).forEach(function (m) {
-      var d = e + (m.userData.cur ? asm.fly * 0.075 : 0);
-      if (!m.userData.dir) return;
-      m.position.copy(m.userData.base).addScaledVector(m.userData.dir, d);
+  function ease(x) { return 1 - Math.pow(1 - x, 3); }
+  var spinQ = new T.Quaternion();
+  function applyPositions(now) {
+    var r = asm.robots[asm.kind], e = asm.explode * 0.075;
+    var a = asm.anim, el = a ? now - a.t0 : 0;
+    r.meshes.forEach(function (m) {
+      var u = m.userData;
+      if (!m.visible) return;
+      m.position.copy(u.base);
+      m.quaternion.copy(u.baseQ);
+      if (e && u.dir) m.position.addScaledVector(u.dir, e);
+      if (!a || !u.cur) return;
+      if (a.type === "screw") {
+        var p = clamp((el - u.k * 320) / 1100, 0, 1), w = ease(p);
+        m.position.addScaledVector(u.axisP, -u.drive * (1 - w));
+        spinQ.setFromAxisAngle(u.axisL, (1 - w) * Math.PI * 8);
+        m.quaternion.multiply(spinQ);
+      } else {
+        var p2 = clamp((el - u.k * 220) / (a.n > 1 ? 800 : 950), 0, 1);
+        m.position.addScaledVector(u.flyL, u.flyD * (1 - ease(p2)));
+      }
     });
-    rebuildCable(r, asm.cableOn && asm.explode < 0.02 && asm.fly < 0.02);
     asm.v.dirty = true;
-  }
-  function flashPart(key) {
-    var r = asm.robots[asm.kind];
-    if (key === "cable") { if (r.cable) { r.cableMat.emissive.setHex(0x664400); asm.v.dirty = true; setTimeout(function () { r.cableMat.emissive.setHex(0); asm.v.dirty = true; }, 700); } return; }
-    var m = r.parts[key]; if (!m) return;
-    var t0 = performance.now();
-    (function blink() {
-      var t = (performance.now() - t0) / 900;
-      if (t > 1) { m.material.emissive.setHex(m.userData.emi); asm.v.dirty = true; return; }
-      m.material.emissive.setHex(Math.floor(t * 6) % 2 ? 0x777777 : m.userData.emi); asm.v.dirty = true;
-      requestAnimationFrame(blink);
-    })();
   }
   function tickAssembly(now) {
     if (!asm) return;
-    if (asm.fly > 0) {
-      var t = clamp((now - asm.flyT0) / 700, 0, 1);
-      asm.fly = Math.pow(1 - t, 3);
-      if (t >= 1) asm.fly = 0;
-      applyExplode();
+    var v = asm.v;
+    tickTween(v, now);
+    if (asm.anim) {
+      applyPositions(now);
+      if (now - asm.anim.t0 > actDuration(asm.anim)) { asm.anim = null; applyPositions(now); asm.wait = now; }
+    } else if (asm.playing && asm.step > 0 && asm.wait && now - asm.wait > 550) {
+      asm.wait = 0;
+      if (asm.act < curPlan().length - 1) goAct(asm.act + 1, true); else pause();
     }
-    asm.v.controls.update();
-    if (asm.v.visible && (asm.v.dirty || asm.rotate)) { asm.v.renderer.render(asm.v.scene, asm.v.camera); asm.v.dirty = false; }
+    v.controls.update();
+    if (v.visible && (v.dirty || asm.rotate)) { v.renderer.render(v.scene, v.camera); v.dirty = false; }
   }
 
   /* ───────── 4. 연동 시뮬레이션 ───────── */
@@ -545,7 +719,7 @@
   var sim = null;
   function initSim() {
     var v = makeViewer($("sim-stage"), { cam: [0, 0.42, 0.78], target: [0, 0.15, 0], grid: 1.0 });
-    sim = { v: v, mode: "teleop", fault: "none", leader: buildRobot("leader"), follower: buildRobot("follower"),
+    sim = { v: v, mode: "teleop", fault: "none", leader: buildRobot("leader", { noCables: true }), follower: buildRobot("follower", { noCables: true }),
       lv: Object.assign({}, MID), fq: {}, fqv: {}, push: 0, pushT0: -1, demoT0: -1, labels: {}, termT: 0 };
     sim.leader.group.position.set(-0.24, 0, 0);
     sim.follower.group.position.set(0.24, 0, 0);
@@ -876,14 +1050,24 @@
     requestAnimationFrame(loop);
   }
 
+  function loadBin() {
+    if ("DecompressionStream" in window) {
+      return fetch("model/so101.bin.gz").then(function (r) {
+        if (!r.ok || !r.body) throw new Error(r.status);
+        return new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+      }).catch(function () { return fetch("model/so101.bin").then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }); });
+    }
+    return fetch("model/so101.bin").then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); });
+  }
   Promise.all([
     fetch("model/so101.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }),
-    fetch("model/so101.bin").then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    loadBin()
   ]).then(function (res) {
     MODEL = res[0];
     decode(res[1], MODEL);
     initAssembly();
     initSim();
+    if (/[?&]debug/.test(location.search)) window.SO101 = { asm: asm, sim: sim };
     requestAnimationFrame(loop);
   }).catch(function (err) {
     var msg = "3D 모델을 불러오지 못했어요 (" + esc(err && err.message || err) + "). 파일을 직접 연 경우에는 웹 주소로 열어 주세요.";
