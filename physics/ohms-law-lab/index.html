@@ -437,6 +437,11 @@ table.terms th { width: 8.5em; white-space: nowrap; font-family: var(--font-disp
 .safe b { color: #9A3412; }
 .safe ul { margin: .2rem 0 0; padding-left: 1.05rem; }
 
+/* 탭④ 강물 모형 */
+.rv-wide { display: grid; gap: 1rem; }
+@media (min-width: 980px) { .rv-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+#vtable table.data td:first-child { white-space: nowrap; }
+
 /* 탭② 분석 */
 .ana { display: grid; gap: 1rem; }
 @media (min-width: 980px) { .ana { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; } }
@@ -522,11 +527,12 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
   </header>
 
   <details class="tb-teacher no-print">
-    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과14-02], 수준별 활용, 모델 설명, 실물 센서 도구 연결</span></summary>
+    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과14-02], 수준별 활용, 모델 설명, 강물 모형, 실물 센서 도구 연결</span></summary>
     <div class="tb-teacher-body">
     <p style="margin:6px 0"><span class="tb-std">[9과14-02]</span> 전기 회로에서 전류를 모형으로 설명하고, 실험을 통해 저항, 전류, 전압 사이의 관계를 이끌어낼 수 있다. — 탐구 활동 「저항, 전류, 전압 사이의 관계 탐구하기」. 교육과정 적용 시 고려 사항의 "전기 회로 실험에서 디지털 탐구 도구나 가상 실험을 활용할 수 있다"에 맞춘 도구입니다.</p>
     <ul>
-      <li><b>탭 구성</b> — ① 실험하기(전원 장치·전압 센서·전류 센서·니크롬선 회로, 실시간 그래프) ② 결과 분석(측정값 표, 원점을 지나는 직선과 기울기, 미지의 니크롬선 X의 저항 구하기, 결과 정리 질문) ③ 저항–전류(전압을 고정하고 집게 위치로 니크롬선 길이를 바꿔 교과서 「저항과 전류의 관계」 그래프를 직접 그림, 저항 × 전류 계산) ④ 정리하기(옴의 법칙, 저항에 영향을 주는 요인, 도체·부도체·반도체, 오개념).</li>
+      <li><b>탭 구성</b> — ① 실험하기(전원 장치·전압 센서·전류 센서·니크롬선 회로, 실시간 그래프) ② 결과 분석(측정값 표, 원점을 지나는 직선과 기울기, 미지의 니크롬선 X의 저항 구하기, 결과 정리 질문) ③ 저항–전류(전압을 고정하고 집게 위치로 니크롬선 길이를 바꿔 교과서 「저항과 전류의 관계」 그래프를 직접 그림, 저항 × 전류 계산) ④ 강물 모형(강의 종류·길이·폭을 바꾸며 바위 수와 물 흐름을 비교 — 물질·길이·굵기와 저항의 관계를 모형으로 설명) ⑤ 정리하기(옴의 법칙, 저항에 영향을 주는 요인, 도체·부도체·반도체, 오개념).</li>
+      <li><b>④ 강물 모형</b> — 성취수준 D(전류를 모형으로 설명)와 A(물질마다 저항이 다름 → 도체·부도체)에 맞춘 탭입니다. 강은 "길이 1 × 폭 1" 구간을 이어 붙여 만들며, 바위의 빽빽한 정도는 강의 종류로만 정해집니다. 그래서 폭을 넓히면 바위 수는 늘지만 물 흐름도 같은 비율로 커집니다(「구간 나눠 보기」로 직렬·병렬의 기초 개념과도 연결). 물 흐름 = 24 × 높이 차이 × 폭 ÷ (방해 정도 × 길이), 방해 정도는 구리 1 · 철 2 · 니크롬 4로 <b>그림용으로 줄인 값</b>입니다(실제 니크롬선 저항은 같은 크기 구리선의 약 60배 이상 — 탭 안 「모형이 실제와 다른 점」에서 안내). 강폭은 깊이가 모두 같다고 보고 "자른 면의 넓이"에 대응시켰습니다. 니크롬 강 길이 1·폭 1 = 10 Ω으로 맞춰 ①의 긴·짧은·굵은 선과 바로 연결됩니다. 「높이 차이(= 전압)」 1·2·3배를 바꾸면 물 흐름은 비례해 커지지만 바위 수·방해 정도(저항)는 그대로여서, ①의 "전류는 전압에 비례"와 오개념 "저항은 전압을 크게 하면 커진다"를 같은 모형으로 다룰 수 있습니다.</li>
       <li><b>성취수준과 연결</b> — E: 회로를 꾸미고 전원을 켜 전류가 흐르게 함(①). B: 전압에 따른 전류 변화를 그래프로 나타내고 "전류는 전압에 비례한다"를 말함(① 그래프, ② 질문 1). A: 니크롬선의 기울기 차이를 저항 차이로 해석하고 V = IR로 표현, 미지의 선 X의 저항을 구함(② 기울기·V÷I·도전 과제, 질문 2~5), 전압이 같을 때 전류가 저항에 반비례함을 그래프와 저항 × 전류로 확인함(③). ④의 도체·부도체·반도체는 성취기준 해설 내용입니다.</li>
       <li><b>수준별 활용</b> — 하: 긴 니크롬선 하나로 "전압이 커지면 전류도 커진다"까지. 중: 긴 선과 짧은 선(길이), 긴 선과 굵은 선(굵기)을 한 그래프에 겹쳐 같은 전압에서 전류를 비교. 상: ②에서 기울기와 V÷I를 계산해 저항을 구하고 미지의 선 X에 적용, ③에서 저항 × 전류가 전압과 같음을 확인.</li>
       <li><b>모델 설명</b> — 긴 니크롬선 20 Ω, 짧은 니크롬선(길이 절반) 10 Ω, 굵은 니크롬선(길이는 긴 선과 같고 자른 면의 넓이가 2배) 10 Ω, 미지의 선 X는 8~30 Ω 중 하나(「새 미지의 선」을 누를 때마다 바뀜). 짧은 선과 굵은 선은 저항이 같아 그래프가 겹칩니다. "길이를 절반으로 하는 것과 굵기를 2배로 하는 것은 효과가 같다"는 발문으로 쓸 수 있습니다. ③은 긴 니크롬선(100 cm, 20 Ω)에서 집게 사이 길이를 15~100 cm(3~20 Ω)로 바꾸며, 전압은 1·2·3 V 중 하나로 고정합니다. 센서 값에는 실제처럼 아주 작은 흔들림을 넣었습니다. 실제 니크롬선은 뜨거워지면 저항이 조금 커지지만, 이 도구는 <b>저항이 일정한 이상적인 경우</b>로 다룹니다(온도는 안전 안내용으로만 표시).</li>
@@ -546,7 +552,8 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
     <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 실험하기</button>
     <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">② 결과 분석</button>
     <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 저항–전류</button>
-    <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">④ 정리하기</button>
+    <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">④ 강물 모형</button>
+    <button class="tab" role="tab" id="tab-5" aria-controls="panel-5" aria-selected="false" tabindex="-1">⑤ 정리하기</button>
   </div>
 
   <!-- ================= 탭 1 : 실험하기 ================= -->
@@ -738,8 +745,129 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
     </div>
   </section>
 
-  <!-- ================= 탭 4 : 정리하기 ================= -->
-  <section class="tabpanel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+  <!-- ================= 탭 4 : 강물 모형 ================= -->
+  <section class="card tabpanel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+    <div class="stagewrap">
+      <div>
+        <div class="tb-stage"><canvas id="cv4" role="img" aria-label="위에서 내려다본 강. 왼쪽 높은 곳에서 오른쪽 낮은 곳으로 물 알갱이가 흐르고, 강바닥의 바위가 물의 흐름을 방해합니다. 오른쪽 끝의 물 흐름 측정기가 1초에 지나가는 물 알갱이 수를 셉니다."></canvas></div>
+        <p class="kbd-hint">파란 점 = 물 알갱이(전하), 갈색 동그라미 = 바위(도선 속 원자). 오른쪽 끝 <b>물 흐름 측정기</b>는 전류 센서 역할이에요.</p>
+      </div>
+      <div class="tb-stage" style="padding:.8rem .9rem">
+        <div class="row" style="justify-content:space-between;margin-bottom:.5rem">
+          <span style="font-family:var(--font-display);font-weight:700">강 비교 기록</span>
+          <span class="row" style="flex:0 0 auto">
+            <button class="tb-btn" id="b-vrec" style="flex:0 0 auto">● 이 강 기록</button>
+            <button class="tb-btn ghost" id="b-vclear" style="flex:0 0 auto">기록 지우기</button>
+          </span>
+        </div>
+        <div id="vtable" style="overflow-x:auto"></div>
+        <p class="kbd-hint" style="margin-top:.5rem">💡 <b>한 번에 하나만</b> 바꿔서 기록해야 무엇 때문에 물 흐름이 달라졌는지 알 수 있어요(변인 통제).</p>
+      </div>
+    </div>
+
+    <div class="side">
+      <p class="tb-note">강의 시작과 끝의 <b>높이 차이(= 전압)</b>가 물을 흐르게 해요. 먼저 높이 차이는 그대로 두고 강의 종류, 길이, 폭을 바꿔 보세요. 물의 흐름(= 전류)이 어떻게 달라질까요?</p>
+      <div class="controls">
+        <div>
+          <p class="lab" id="lab-vm">강의 종류 ↔ 도선의 물질</p>
+          <div class="seg seg4" role="radiogroup" aria-labelledby="lab-vm">
+            <label><input type="radio" name="vm" value="cu">구리 강<small>바위 적고 작음</small></label>
+            <label><input type="radio" name="vm" value="fe">철 강<small>바위 조금 많음</small></label>
+            <label><input type="radio" name="vm" value="ni" checked>니크롬 강<small>바위 많고 큼</small></label>
+            <label><input type="radio" name="vm" value="ru">고무 강<small>부도체 · 꽉 막힘</small></label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-vl">강의 길이 ↔ 도선의 길이</p>
+          <div class="seg" role="radiogroup" aria-labelledby="lab-vl">
+            <label><input type="radio" name="vl" value="1" checked>1배</label>
+            <label><input type="radio" name="vl" value="2">2배</label>
+            <label><input type="radio" name="vl" value="3">3배</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-vw">강폭 ↔ 도선의 굵기(자른 면의 넓이)</p>
+          <div class="seg" role="radiogroup" aria-labelledby="lab-vw">
+            <label><input type="radio" name="vw" value="1" checked>1배</label>
+            <label><input type="radio" name="vw" value="2">2배</label>
+            <label><input type="radio" name="vw" value="3">3배</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-vh">높이 차이 ↔ 전압</p>
+          <div class="seg" role="radiogroup" aria-labelledby="lab-vh">
+            <label><input type="radio" name="vh" value="1" checked>1배</label>
+            <label><input type="radio" name="vh" value="2">2배</label>
+            <label><input type="radio" name="vh" value="3">3배</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab">① 실험의 니크롬선을 강으로 보기</p>
+          <div class="row">
+            <button class="tb-btn ghost" data-preset="2,1">● 긴 선</button>
+            <button class="tb-btn ghost" data-preset="1,1">▲ 짧은 선</button>
+            <button class="tb-btn ghost" data-preset="2,2">■ 굵은 선</button>
+          </div>
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="c-blocks"> 같은 크기 구간으로 나눠 보기</label>
+        </div>
+      </div>
+
+      <div class="readout" aria-live="off">
+        <div class="rd"><span class="k">바위 수</span><span class="v" id="r4-n">12개</span><span class="s" id="r4-d">빽빽한 정도: 많음</span></div>
+        <div class="rd"><span class="k">물 흐름 측정기</span><span class="v" id="r4-q">6개/초</span><span class="s">↔ 전류</span></div>
+        <div class="rd"><span class="k">방해 정도(저항)</span><span class="v" id="r4-r">기준</span><span class="s" id="r4-rs">같은 종류·길이 1·폭 1 강과 비교</span></div>
+      </div>
+
+      <div class="explain" id="explain4" aria-live="polite"></div>
+
+      <fieldset class="pred" id="pred4">
+        <legend>먼저 예상해 보기</legend>
+        <p style="margin:0 0 .45rem;font-size:.93rem;word-break:keep-all">강폭을 <b>2배</b>로 넓히면 바위 수도 <b>2배</b>가 돼요. 그럼 물의 흐름은?</p>
+        <div class="opts">
+          <label><input type="radio" name="p4" value="half"> 절반으로 준다</label>
+          <label><input type="radio" name="p4" value="same"> 변하지 않는다</label>
+          <label><input type="radio" name="p4" value="double"> 2배가 된다</label>
+          <label><input type="radio" name="p4" value="quad"> 4배가 된다</label>
+        </div>
+        <p class="fbk" id="pred4-fb">하나를 고른 뒤 강폭을 1배 → 2배로 바꿔 확인해 보세요.</p>
+      </fieldset>
+    </div>
+
+    <div class="wide rv-wide">
+      <div style="display:grid;gap:.9rem;align-content:start">
+        <h2 class="tb-panel-title" style="margin:0">강물 모형 ↔ 전기 회로</h2>
+        <table class="terms">
+          <tr><th>물 알갱이</th><td>전하(전자)</td></tr>
+          <tr><th>물의 흐름</th><td><b>전류</b> — 1초 동안 한 지점을 지나가는 양</td></tr>
+          <tr><th>높이 차이</th><td><b>전압</b> — 물(전류)을 흐르게 하는 능력. 높이 차이가 2배면 물의 흐름도 2배</td></tr>
+          <tr><th>바위</th><td>도선 속 원자 — 전자가 부딪혀 이동을 방해받음 → <b>저항</b></td></tr>
+          <tr><th>강의 종류</th><td>도선의 <b>물질</b> (바위의 수와 크기가 다름)</td></tr>
+          <tr><th>강의 길이</th><td>도선의 <b>길이</b> (길수록 바위를 더 많이 지나야 함)</td></tr>
+          <tr><th>강폭</th><td>도선의 <b>굵기</b> (넓을수록 물이 지나갈 길이 많음)</td></tr>
+          <tr><th>측정기</th><td>전류 센서(전류계)</td></tr>
+        </table>
+        <div class="miscon">
+          <h3>모형이 실제와 다른 점</h3>
+          <ul>
+            <li><span class="yes">①</span>강물은 바다로 흘러가면 끝나지만, 전류는 전원 → 도선 → 다시 전원으로 돌아오는 <b>닫힌 길(회로)</b>을 따라 계속 돈다.</li>
+            <li><span class="yes">②</span>물질마다 원자의 종류와 배열이 달라 전자가 방해받는 정도가 다르다. "니크롬선에는 원자가 더 많다"는 뜻이 아니다.</li>
+            <li><span class="yes">③</span>그림에서는 니크롬 강의 흐름이 구리 강의 4분의 1이지만, 실제로 같은 길이·굵기의 니크롬선 저항은 구리선의 <b>수십 배</b>(약 60배 이상)이다.</li>
+            <li><span class="yes">④</span>전류의 방향은 (+)극 → (−)극이지만, 실제 전자는 반대로 (−)극 → (+)극 쪽으로 이동한다.</li>
+          </ul>
+        </div>
+        <p class="tb-note">✔ 모형이 잘 맞는 점: 물이 바위에 부딪히며 에너지를 잃듯, 전자가 원자와 부딪히면 <b>열</b>이 난다. 그래서 저항이 큰 니크롬선이 뜨거워진다.</p>
+      </div>
+      <div>
+        <h2 class="tb-panel-title" style="margin:0 0 .7rem">생각 정리 — 내 생각을 먼저 적어야 예시 답을 볼 수 있어요</h2>
+        <div class="qa" id="qa-rv"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 탭 5 : 정리하기 ================= -->
+  <section class="tabpanel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" hidden>
     <div class="sum-grid">
       <div style="display:grid;gap:.9rem;align-content:start">
         <h2 class="tb-panel-title" style="margin:0">전류, 전압, 저항 사이의 관계 (옴의 법칙)</h2>
@@ -751,19 +879,21 @@ table.data .ratio { color: var(--cat); font-weight: 700; }
         <p class="tb-note"><b>1 Ω</b>은 1 V의 전압을 걸었을 때 1 A의 전류가 흐르는 도선의 저항입니다. 전압–전류 그래프에서 <b>기울기가 클수록 저항이 작습니다</b>(기울기 = 1 ÷ 저항).</p>
         <p class="tb-note">전압이 같을 때 <b>저항–전류 그래프</b>는 직선이 아니라 점점 완만해지는 <b>곡선</b>입니다. 저항이 2배가 되면 전류는 절반, 3배가 되면 3분의 1이 됩니다(반비례). 이때 어느 점에서나 <b>저항 × 전류 = 전압</b>으로 일정합니다.</p>
         <figure class="fig">
-          <svg viewBox="0 0 420 232" role="img" aria-label="물의 흐름 비유: 좁고 긴 관일수록 물이 덜 흐르듯, 길이가 긴 니크롬선일수록 저항이 커서 전류가 적게 흐른다">
-            <defs><pattern id="wv" width="12" height="8" patternUnits="userSpaceOnUse"><path d="M0 4q3-3 6 0t6 0" fill="none" stroke="#3B82C4" stroke-width="1.2"/></pattern></defs>
-            <text x="10" y="22" font-size="14" font-weight="700" fill="#24211D">물의 흐름으로 보는 저항</text>
-            <rect x="20" y="44" width="380" height="26" rx="4" fill="#DCEBFA" stroke="#5C564E"/><rect x="20" y="44" width="380" height="26" rx="4" fill="url(#wv)"/>
-            <text x="22" y="90" font-size="12.5" fill="#24211D">짧은 관: 물이 많이 흐른다 ↔ 짧은 니크롬선: 전류가 많이 흐른다</text>
-            <rect x="20" y="112" width="380" height="26" rx="4" fill="#DCEBFA" stroke="#5C564E"/>
-            <rect x="20" y="112" width="380" height="26" rx="4" fill="url(#wv)" opacity=".5"/>
-            <g fill="#9A6B43" opacity=".85"><circle cx="60" cy="125" r="5"/><circle cx="110" cy="120" r="4"/><circle cx="160" cy="129" r="5"/><circle cx="210" cy="121" r="4"/><circle cx="260" cy="128" r="5"/><circle cx="310" cy="120" r="4"/><circle cx="360" cy="127" r="5"/></g>
-            <text x="22" y="158" font-size="12.5" fill="#24211D">방해물이 길게 놓인 관: 물이 덜 흐른다 ↔ 긴 니크롬선: 저항이 커서</text>
-            <text x="22" y="176" font-size="12.5" fill="#24211D">전류가 적게 흐른다.</text>
-            <text x="22" y="198" font-size="12.5" fill="#24211D" font-weight="700">같은 물질이면 길이가 길수록, 굵기가 가늘수록 저항이 크다.</text>
-            <text x="22" y="222" font-size="11" fill="#5C564E">※ 비유는 이해를 돕기 위한 것으로 실제 전자의 움직임과 똑같지는 않아요.</text>
-          </svg>
+          <svg viewBox="0 0 420 252" role="img" aria-label="강물 모형: 짧은 강보다 긴 강은 지나야 할 바위가 많아 물이 적게 흐르고, 같은 길이에서 넓은 강은 물이 지나갈 길이 넓어 물이 많이 흐른다. 니크롬선도 길이가 길수록, 굵기가 가늘수록 저항이 크다.">
+            <defs><pattern id="wv" width="12" height="8" patternUnits="userSpaceOnUse"><path d="M0 4q3-3 6 0t6 0" fill="none" stroke="#3B82C4" stroke-width="1" opacity=".7"/></pattern></defs>
+            <text x="10" y="20" font-size="14" font-weight="700" fill="#24211D">강물 모형으로 보는 저항 <tspan font-size="11.5" font-weight="400" fill="#5C564E">(자세히: ④ 강물 모형)</tspan></text>
+            <rect x="20" y="32" width="180" height="22" rx="5" fill="#CFE3F5" stroke="#7A6A55" stroke-width="1.2"/><rect x="20" y="32" width="180" height="22" rx="5" fill="url(#wv)"/>
+            <g fill="#8B6B4A" stroke="#5E4630" stroke-width=".8"><circle cx="35" cy="39" r="4.5"/><circle cx="64" cy="48" r="4.5"/><circle cx="93" cy="39" r="4.5"/><circle cx="122" cy="48" r="4.5"/><circle cx="151" cy="39" r="4.5"/><circle cx="180" cy="48" r="4.5"/></g>
+            <text x="22" y="70" font-size="12" fill="#24211D">짧은 강 ↔ 짧은 니크롬선: 바위를 적게 지나 물(전류)이 많이 흐른다</text>
+            <rect x="20" y="82" width="360" height="22" rx="5" fill="#CFE3F5" stroke="#7A6A55" stroke-width="1.2"/><rect x="20" y="82" width="360" height="22" rx="5" fill="url(#wv)"/>
+            <g fill="#8B6B4A" stroke="#5E4630" stroke-width=".8"><circle cx="35.0" cy="89" r="4.5"/><circle cx="64.5" cy="98" r="4.5"/><circle cx="94.0" cy="89" r="4.5"/><circle cx="123.5" cy="98" r="4.5"/><circle cx="153.0" cy="89" r="4.5"/><circle cx="182.5" cy="98" r="4.5"/><circle cx="212.0" cy="89" r="4.5"/><circle cx="241.5" cy="98" r="4.5"/><circle cx="271.0" cy="89" r="4.5"/><circle cx="300.5" cy="98" r="4.5"/><circle cx="330.0" cy="89" r="4.5"/><circle cx="359.5" cy="98" r="4.5"/></g>
+            <text x="22" y="120" font-size="12" fill="#24211D">긴 강 ↔ 긴 니크롬선: 지나야 할 바위가 많아 물(전류)이 적게 흐른다</text>
+            <rect x="20" y="132" width="360" height="44" rx="5" fill="#CFE3F5" stroke="#7A6A55" stroke-width="1.2"/><rect x="20" y="132" width="360" height="44" rx="5" fill="url(#wv)"/>
+            <g fill="#8B6B4A" stroke="#5E4630" stroke-width=".8"><circle cx="35.0" cy="139" r="4.5"/><circle cx="64.5" cy="148" r="4.5"/><circle cx="94.0" cy="139" r="4.5"/><circle cx="123.5" cy="148" r="4.5"/><circle cx="153.0" cy="139" r="4.5"/><circle cx="182.5" cy="148" r="4.5"/><circle cx="212.0" cy="139" r="4.5"/><circle cx="241.5" cy="148" r="4.5"/><circle cx="271.0" cy="139" r="4.5"/><circle cx="300.5" cy="148" r="4.5"/><circle cx="330.0" cy="139" r="4.5"/><circle cx="359.5" cy="148" r="4.5"/><circle cx="44.0" cy="161" r="4.5"/><circle cx="73.5" cy="170" r="4.5"/><circle cx="103.0" cy="161" r="4.5"/><circle cx="132.5" cy="170" r="4.5"/><circle cx="162.0" cy="161" r="4.5"/><circle cx="191.5" cy="170" r="4.5"/><circle cx="221.0" cy="161" r="4.5"/><circle cx="250.5" cy="170" r="4.5"/><circle cx="280.0" cy="161" r="4.5"/><circle cx="309.5" cy="170" r="4.5"/><circle cx="339.0" cy="161" r="4.5"/><circle cx="368.5" cy="170" r="4.5"/></g>
+            <text x="22" y="192" font-size="12" fill="#24211D">넓은 강 ↔ 굵은 니크롬선: 물이 지나갈 길이 넓어 물(전류)이 많이 흐른다</text>
+            <text x="22" y="216" font-size="12.5" fill="#24211D" font-weight="700">같은 물질이면 길이가 길수록, 굵기가 가늘수록 저항이 크다.</text>
+            <text x="22" y="240" font-size="11" fill="#5C564E">※ 물질마다 바위의 수·크기가 달라요. 비유는 실제 전자의 움직임과 똑같지는 않아요.</text>
+            </svg>
         </figure>
       </div>
       <div style="display:grid;gap:.9rem;align-content:start">
@@ -1825,7 +1955,8 @@ function riPNG(){
 }
 $("b-save").addEventListener("click", function(){
   var a = document.createElement("a");
-  if (current === 3){ a.download = "저항전류_그래프_" + stamp() + ".png"; a.href = riPNG(); }
+  if (current === 4){ a.download = "강물모형_" + stamp() + ".png"; a.href = S4.cv.toDataURL("image/png"); }
+  else if (current === 3){ a.download = "저항전류_그래프_" + stamp() + ".png"; a.href = riPNG(); }
   else { a.download = "전류전압저항_그래프_" + stamp() + ".png"; a.href = graphPNG(); }
   a.click();
 });
@@ -1856,10 +1987,298 @@ window.addEventListener("beforeprint", beforePrint);
 $("b-print").addEventListener("click", function(){ beforePrint(); setTimeout(function(){ window.print(); }, 60); });
 
 /* =========================================================
+   ④ 강물 모형: 강의 종류(물질)·길이·폭(굵기)과 물의 흐름(전류)
+   - 강은 "길이 1 × 폭 1" 크기의 같은 구간(블록)을 이어 붙여 만든다.
+     길이 2배 = 같은 구간을 앞뒤로 2개 이음, 폭 2배 = 같은 구간을 나란히 2개 놓음.
+   - 바위의 빽빽한 정도(같은 넓이 안의 바위 수)는 강의 종류로만 정해진다.
+   - 물 흐름(1초에 측정기를 지나는 물 알갱이 수) = 24 × 폭 ÷ (방해 m × 길이)
+   ========================================================= */
+var RMAT = {
+  cu: {name: "구리 강",  wire: "구리선",   m: 1, k: 3,  r: 2.6, cols: 3,  rows: 1, dens: "적음"},
+  fe: {name: "철 강",    wire: "철선",     m: 2, k: 6,  r: 3.6, cols: 3,  rows: 2, dens: "조금 많음"},
+  ni: {name: "니크롬 강", wire: "니크롬선", m: 4, k: 12, r: 5.2, cols: 6,  rows: 2, dens: "많음"},
+  ru: {name: "고무 강",  wire: "고무",     m: 0, k: 30, r: 8.2, cols: 10, rows: 3, dens: "꽉 막힘"}   /* m: 0 → 부도체(거의 흐르지 않음) */
+};
+var RV = {X0: 76, UL: 172, UW: 34, CY: 122, D: 0.0088};   /* 강 시작 x, 구간 길이·폭(px), 강 가운데 y, 물 알갱이 밀도 */
+var S4 = {cv: $("cv4"), LH: 250};
+var rv = {mat: "ni", L: 1, W: 1, H: 1, rocks: [], cols: [], parts: [], acc: 0, prev: null, why: "start", recs: [], blocks: false};
+
+function rvQ(mat, L, W, H){ var m = RMAT[mat].m; return m ? 24 * (H || 1) * W / (m * L) : 0; }   /* H: 높이 차이(= 전압) 배수 */
+function rvN(mat, L, W){ return RMAT[mat].k * L * W; }
+function rvTop(){ return RV.CY - rv.W * RV.UW / 2; }
+function rvBot(){ return RV.CY + rv.W * RV.UW / 2; }
+function rvEnd(){ return RV.X0 + rv.L * RV.UL; }
+
+/* 구간마다 같은 규칙(씨앗 값)으로 바위를 놓아, 길이·폭을 바꿔도 이미 있던 바위는 그 자리에 그대로 */
+function seeded(seed){ var s = seed >>> 0; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function buildRocks(){
+  var M = RMAT[rv.mat], top = rvTop(), mi = ["cu", "fe", "ni", "ru"].indexOf(rv.mat);
+  rv.rocks = [];
+  for (var i = 0; i < rv.L; i++) for (var j = 0; j < rv.W; j++){
+    var rnd = seeded(9973 * (mi + 1) + 131 * i + 17 * j + 7), cw = RV.UL / M.cols, ch = RV.UW / M.rows;
+    for (var a = 0; a < M.cols; a++) for (var b = 0; b < M.rows; b++){
+      if (rv.rocks.length >= 999) break;
+      var jx = M.m ? 0.62 : 0.3, jy = M.m ? 0.5 : 0.3;
+      rv.rocks.push({
+        x: RV.X0 + i * RV.UL + (a + 0.5 + (rnd() - 0.5) * jx) * cw,
+        y: top + j * RV.UW + (b + 0.5 + (rnd() - 0.5) * jy) * ch,
+        r: M.r * (0.8 + rnd() * 0.4)
+      });
+    }
+  }
+  /* 물 알갱이가 가까운 바위만 확인하도록 x 방향 20 px 칸으로 나눠 둠 */
+  rv.cols = [];
+  rv.rocks.forEach(function(k){
+    for (var c = Math.floor((k.x - k.r - 3 - RV.X0) / 20); c <= Math.floor((k.x + k.r + 3 - RV.X0) / 20); c++){
+      if (c < 0) continue; (rv.cols[c] = rv.cols[c] || []).push(k);
+    }
+  });
+}
+function rvSpeed(){ var Q = rvQ(rv.mat, rv.L, rv.W, rv.H); return Q / (RV.D * rv.W * RV.UW); }
+function newPart(x){
+  var top = rvTop(), h = rv.W * RV.UW;
+  return {x: x, y: top + 3 + Math.random() * (h - 6), f: 0.85 + Math.random() * 0.3, ph: Math.random() * 6.28};
+}
+function fillParts(){
+  rv.parts = []; rv.acc = 0;
+  if (!rvQ(rv.mat, rv.L, rv.W, rv.H)) return;
+  var n = Math.round(RV.D * rv.L * RV.UL * rv.W * RV.UW);
+  for (var i = 0; i < n; i++){ var p = newPart(RV.X0 + Math.random() * rv.L * RV.UL); avoid(p); rv.parts.push(p); }
+}
+/* 바위 속으로 들어간 물 알갱이는 바위 가장자리(위·아래)로 비켜 가게 */
+function avoid(p){
+  var list = rv.cols[Math.floor((p.x - RV.X0) / 20)];
+  if (list) for (var i = 0; i < list.length; i++){
+    var k = list[i], dx = p.x - k.x, dy = p.y - k.y, R = k.r + 2;
+    if (dx * dx + dy * dy < R * R){
+      var off = Math.sqrt(Math.max(0, R * R - dx * dx));
+      p.y = k.y + (dy >= 0 ? off : -off);
+    }
+  }
+  p.y = clamp(p.y, rvTop() + 2, rvBot() - 2);
+}
+function rvTick(dt){
+  var Q = rvQ(rv.mat, rv.L, rv.W, rv.H);
+  if (!Q || REDUCE) return;
+  var v = rvSpeed(), end = rvEnd();
+  rv.acc += Q * dt;
+  while (rv.acc >= 1){ rv.acc -= 1; var p = newPart(RV.X0); avoid(p); rv.parts.push(p); }
+  for (var i = rv.parts.length - 1; i >= 0; i--){
+    var q = rv.parts[i];
+    q.x += v * q.f * dt;
+    q.ph += dt * 3;
+    q.y += Math.sin(q.ph) * 4 * dt;
+    avoid(q);
+    if (q.x > end) rv.parts.splice(i, 1);
+  }
+}
+
+function draw4(){
+  var ctx = S4.ctx, top = rvTop(), bot = rvBot(), end = rvEnd(), M = RMAT[rv.mat];
+  var Q = rvQ(rv.mat, rv.L, rv.W, rv.H);
+  ctx.clearRect(0, 0, LW, S4.LH);
+  /* 땅 */
+  ctx.fillStyle = "#EDE6D0"; ctx.fillRect(0, 0, LW, S4.LH);
+  ctx.fillStyle = "#DCD3B8";
+  for (var gx = 8; gx < LW; gx += 22) for (var gy = 40; gy < 210; gy += 18){ ctx.fillRect(gx + (gy % 36 ? 11 : 0), gy, 4, 1.4); }
+  /* 높이 차이 안내 */
+  label(ctx, "높은 곳 ➜ 낮은 곳 · 높이 차이(= 전압) " + rv.H + "배", LW / 2, 18, {size: 13, color: C.ink});
+  /* 높은 호수(왼쪽)와 낮은 호수(오른쪽) */
+  ctx.fillStyle = "#B9D6F0"; ctx.strokeStyle = "#7A6A55"; ctx.lineWidth = 1.3;
+  rrect(ctx, 8, RV.CY - 64, RV.X0 - 6, 128, 14); ctx.fill(); ctx.stroke();
+  rrect(ctx, end - 2, RV.CY - 64, 42, 128, 14); ctx.fill(); ctx.stroke();
+  label(ctx, "높은 곳", 8 + (RV.X0 - 6) / 2, RV.CY + 76, {size: 12, color: C.ink});
+  label(ctx, "낮은 곳", end + 19, RV.CY + 76, {size: 12, color: C.ink});
+  /* 높이 차이 눈금: 높은 곳 안에 3칸 중 H칸을 채움 */
+  var hx = 8 + (RV.X0 - 6) / 2 - 13;
+  for (var hk = 0; hk < 3; hk++){
+    var hy = RV.CY + 40 - (hk + 1) * 26;
+    rrect(ctx, hx, hy, 26, 22, 3);
+    ctx.fillStyle = hk < rv.H ? "#1D4ED8" : "rgba(255,255,255,.55)"; ctx.fill();
+    ctx.strokeStyle = "#1E3A8A"; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  label(ctx, "높이 " + rv.H + "배", hx + 13, RV.CY - 48, {size: 11, color: "#1E3A8A"});
+  /* 강 */
+  ctx.fillStyle = "#CFE3F5"; ctx.fillRect(RV.X0 - 2, top, end - RV.X0 + 4, bot - top);
+  ctx.strokeStyle = "#7A6A55"; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(RV.X0 - 2, top); ctx.lineTo(end + 2, top); ctx.moveTo(RV.X0 - 2, bot); ctx.lineTo(end + 2, bot); ctx.stroke();
+  /* 같은 크기 구간 나눠 보기 */
+  if (rv.blocks){
+    ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = "rgba(36,33,29,.55)"; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (var i = 1; i < rv.L; i++){ ctx.moveTo(RV.X0 + i * RV.UL, top); ctx.lineTo(RV.X0 + i * RV.UL, bot); }
+    for (var j = 1; j < rv.W; j++){ ctx.moveTo(RV.X0, top + j * RV.UW); ctx.lineTo(end, top + j * RV.UW); }
+    ctx.stroke(); ctx.restore();
+  }
+  /* 물 알갱이 */
+  ctx.fillStyle = "rgba(29,78,216,.78)";
+  rv.parts.forEach(function(p){ ctx.beginPath(); ctx.arc(p.x, p.y, 1.9, 0, 6.2832); ctx.fill(); });
+  /* 바위 */
+  rv.rocks.forEach(function(k){
+    ctx.beginPath(); ctx.arc(k.x, k.y, k.r, 0, 6.2832);
+    ctx.fillStyle = "#8B6B4A"; ctx.fill();
+    ctx.strokeStyle = "#5E4630"; ctx.lineWidth = .9; ctx.stroke();
+    if (k.r > 3){ ctx.beginPath(); ctx.arc(k.x - k.r * .3, k.y - k.r * .3, k.r * .32, 0, 6.2832); ctx.fillStyle = "rgba(255,255,255,.28)"; ctx.fill(); }
+  });
+  /* 흐르는 방향 */
+  if (Q){
+    ctx.fillStyle = "rgba(29,78,216,.85)";
+    var ay = top - 9; ctx.beginPath(); ctx.moveTo(RV.X0 + 30, ay - 4); ctx.lineTo(RV.X0 + 40, ay); ctx.lineTo(RV.X0 + 30, ay + 4); ctx.fill();
+    ctx.fillRect(RV.X0 + 8, ay - 1, 23, 2);
+  }
+  /* 물 흐름 측정기(= 전류 센서) */
+  var gxm = end - 14;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(gxm, top - 2); ctx.lineTo(gxm, bot + 2); ctx.stroke(); ctx.setLineDash([]);
+  var bw = 96, bx = clamp(gxm - bw / 2, 4, LW - bw - 4), by = top - 40;
+  ctx.fillStyle = C.case; rrect(ctx, bx, by, bw, 26, 4); ctx.fill();
+  ctx.fillStyle = C.lcd; rrect(ctx, bx + 4, by + 4, bw - 8, 18, 3); ctx.fill();
+  label(ctx, (Q ? Math.round(Q) : "거의 0") + " 개/초", bx + bw / 2, by + 14, {size: 12, color: C.lcdOn});
+  ctx.strokeStyle = C.case; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(gxm, by + 26); ctx.lineTo(gxm, top - 2); ctx.stroke();
+  label(ctx, "물 흐름 측정기", bx + bw / 2, by - 9, {size: 11, color: C.graphite, bold: false});
+  /* 부도체: 꽉 막힘 */
+  if (!Q) label(ctx, "바위로 꽉 막혀 물이 거의 지나가지 못해요", (RV.X0 + end) / 2, bot + 18, {size: 12, color: "#9A3412"});
+  /* 길이 표시 */
+  var ly = 226;
+  ctx.strokeStyle = C.graphite; ctx.fillStyle = C.graphite; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(RV.X0, ly); ctx.lineTo(end, ly);
+  ctx.moveTo(RV.X0, ly - 5); ctx.lineTo(RV.X0, ly + 5); ctx.moveTo(end, ly - 5); ctx.lineTo(end, ly + 5); ctx.stroke();
+  label(ctx, M.name + " · 길이 " + rv.L + "배 · 폭 " + rv.W + "배 · 바위 " + rvN(rv.mat, rv.L, rv.W) + "개", (RV.X0 + end) / 2, ly + 15, {size: 12, color: C.ink, bold: false});
+}
+
+/* 배수 말로 나타내기: 2 → "2배", 0.5 → "절반", 0.333 → "3분의 1" */
+function ratioText(r){
+  if (Math.abs(r - 1) < 1e-6) return "그대로";
+  if (Math.abs(r - Math.round(r)) < 1e-6) return Math.round(r) + "배";
+  if (Math.abs(r - 0.5) < 1e-6) return "절반";
+  if (r < 1){ for (var d = 2; d <= 12; d++){ var n = r * d; if (Math.abs(n - Math.round(n)) < 1e-6) return d + "분의 " + Math.round(n); } }
+  return (Math.round(r * 10) / 10) + "배";
+}
+function wireMatch(){
+  if (rv.mat !== "ni") return "";
+  var R = 10 * rv.L / rv.W, name = "";
+  if (rv.L === 2 && rv.W === 1) name = "① 실험의 <b>● 긴 니크롬선</b>";
+  else if (rv.L === 1 && rv.W === 1) name = "① 실험의 <b>▲ 짧은 니크롬선</b>";
+  else if (rv.L === 2 && rv.W === 2) name = "① 실험의 <b>■ 굵은 니크롬선</b>";
+  return "↔ 같은 모양의 니크롬선이라면 저항 약 <b>" + (Math.round(R * 10) / 10) + " Ω</b>" + (name ? " — " + name + "과 같아요." : ".");
+}
+function explain4(){
+  var p = [], cur = {mat: rv.mat, L: rv.L, W: rv.W, H: rv.H}, o = rv.prev, M = RMAT[rv.mat];
+  var Q1 = rvQ(cur.mat, cur.L, cur.W, cur.H), N1 = rvN(cur.mat, cur.L, cur.W);
+  if (o && rv.why !== "start"){
+    var Q0 = rvQ(o.mat, o.L, o.W, o.H), N0 = rvN(o.mat, o.L, o.W);
+    if (rv.why === "L"){
+      p.push('<span class="h">길이를 ' + o.L + '배 → ' + cur.L + '배로</span>');
+      p.push("지나야 할 바위가 " + N0 + "개 → " + N1 + "개로 <b>" + (Q0 ? ratioText(N1 / N0) : iGa(ratioText(N1 / N0))) + "</b>" + (Q0 ? ", 물의 흐름은 " + fq(Q0) + " → " + fq(Q1) + "로 <b>" + iGa(ratioText(Q1 / Q0)) + "</b> 되었어요." : " 되었어요."));
+      p.push("↔ 같은 물질이면 도선이 <b>길수록 저항이 커서</b> 전류가 적게 흐르고, 짧을수록 많이 흘러요.");
+    } else if (rv.why === "W"){
+      p.push('<span class="h">강폭을 ' + o.W + '배 → ' + cur.W + '배로</span>');
+      p.push("바위 수는 " + N0 + "개 → " + N1 + "개로 바뀌었지만 <b>바위의 빽빽한 정도는 그대로</b>예요. 물이 지나갈 길이 " + iGa(ratioText(cur.W / o.W)) + " 되어" + (Q0 ? " 물의 흐름은 " + fq(Q0) + " → " + fq(Q1) + "로 <b>" + iGa(ratioText(Q1 / Q0)) + "</b> 되었어요." : "도 고무 강은 꽉 막혀 있어요."));
+      p.push("↔ 같은 물질이면 도선이 <b>굵을수록 저항이 작아</b> 전류가 많이 흐르고, 가늘수록 적게 흘러요.");
+    } else if (rv.why === "H"){
+      p.push('<span class="h">높이 차이를 ' + o.H + '배 → ' + cur.H + '배로</span>');
+      if (!Q1) p.push("고무 강은 높이 차이를 바꿔도 큰 바위로 꽉 막혀 물이 거의 흐르지 못해요. ↔ <b>부도체</b>는 전압을 높여도 전류가 거의 흐르지 않아요.");
+      else {
+        p.push("바위 수와 방해 정도는 <b>그대로</b>인데, 물을 미는 힘이 달라져 물의 흐름이 " + fq(Q0) + " → " + fq(Q1) + "로 <b>" + iGa(ratioText(Q1 / Q0)) + "</b> 되었어요.");
+        p.push("↔ 저항이 같을 때 <b>전류는 전압에 비례</b>해요(① 실험의 전압–전류 그래프). 전압을 바꿔도 <b>저항은 그대로</b>예요.");
+      }
+    } else if (rv.why === "M"){
+      p.push('<span class="h">강의 종류를 ' + RMAT[o.mat].name + ' → ' + M.name + '으로</span>');
+      if (!Q1) p.push("고무 강은 큰 바위로 꽉 막혀 물이 거의 흐르지 못해요. ↔ 고무·플라스틱·나무 같은 <b>부도체</b>는 저항이 매우 커서 전류가 거의 흐르지 않아요.");
+      else p.push("길이와 폭은 같아도 바위의 <b>수와 크기</b>가 달라 물의 흐름이 " + (Q0 ? fq(Q0) : "거의 0") + " → " + fq(Q1) + "로 달라졌어요. ↔ 도선의 <b>물질</b>에 따라 저항이 달라요." + (rv.mat === "cu" ? " 구리처럼 저항이 작은 물질이 <b>도체</b>예요." : ""));
+    } else {
+      p.push('<span class="h">' + M.name + ' · 길이 ' + cur.L + '배 · 폭 ' + cur.W + '배 · 높이 차이 ' + cur.H + '배</span>');
+      p.push("바위 " + N1 + "개, 물의 흐름 " + fq(Q1) + ".");
+    }
+  } else {
+    p.push('<span class="h">강물로 보는 저항</span>');
+    p.push("강의 종류, 길이, 폭, 높이 차이 중 <b>하나만</b> 바꿔 보고, 바위 수와 물 흐름 측정기 값이 어떻게 달라지는지 비교해요.");
+  }
+  var w = wireMatch(); if (w) p.push(w);
+  $("explain4").innerHTML = p.map(function(t){ return t.indexOf('class="h"') > 0 ? t : "<p>" + t + "</p>"; }).join("");
+}
+/* 받침에 따라 이/가 */
+function iGa(t){
+  if (t === "그대로") return t;
+  var c = t.charAt(t.length - 1), has;
+  if (/[0-9]/.test(c)) has = "136780".indexOf(c) >= 0;
+  else { var code = c.charCodeAt(0) - 0xAC00; has = code >= 0 && code < 11172 && code % 28 !== 0; }
+  return t + (has ? "이" : "가");
+}
+function fq(Q){ return Q ? (Math.round(Q * 10) / 10) + "개/초" : "거의 0"; }
+function rvReadout(){
+  var Q = rvQ(rv.mat, rv.L, rv.W, rv.H), M = RMAT[rv.mat];
+  $("r4-n").textContent = rvN(rv.mat, rv.L, rv.W) + "개";
+  $("r4-d").textContent = "빽빽한 정도: " + M.dens;
+  $("r4-q").textContent = fq(Q);
+  if (!M.m){ $("r4-r").textContent = "매우 큼"; $("r4-rs").textContent = "부도체 — 전류가 거의 흐르지 않음"; }
+  else { var r = rv.L / rv.W; $("r4-r").textContent = r === 1 ? "기준과 같음" : ratioText(r); $("r4-rs").textContent = "같은 종류·길이 1·폭 1 강과 비교 (높이 차이와 상관없음)"; }
+}
+function setRiver(mat, L, W, why, H){
+  rv.prev = {mat: rv.mat, L: rv.L, W: rv.W, H: rv.H};
+  rv.mat = mat; rv.L = L; rv.W = W; rv.why = why; if (H) rv.H = H;
+  document.querySelector('input[name=vh][value="' + rv.H + '"]').checked = true;
+  document.querySelector('input[name=vm][value="' + mat + '"]').checked = true;
+  document.querySelector('input[name=vl][value="' + L + '"]').checked = true;
+  document.querySelector('input[name=vw][value="' + W + '"]').checked = true;
+  buildRocks(); fillParts(); rvReadout(); explain4();
+  if (why === "W") pred4Check(rv.prev.W, W);
+  if (S4.ctx) draw4();
+}
+[].forEach.call(document.querySelectorAll("input[name=vm]"), function(el){ el.addEventListener("change", function(){ setRiver(el.value, rv.L, rv.W, "M"); }); });
+[].forEach.call(document.querySelectorAll("input[name=vl]"), function(el){ el.addEventListener("change", function(){ setRiver(rv.mat, +el.value, rv.W, "L"); }); });
+[].forEach.call(document.querySelectorAll("input[name=vw]"), function(el){ el.addEventListener("change", function(){ setRiver(rv.mat, rv.L, +el.value, "W"); }); });
+[].forEach.call(document.querySelectorAll("input[name=vh]"), function(el){ el.addEventListener("change", function(){ setRiver(rv.mat, rv.L, rv.W, "H", +el.value); }); });
+[].forEach.call(document.querySelectorAll("[data-preset]"), function(b){
+  b.addEventListener("click", function(){
+    var a = b.getAttribute("data-preset").split(","), L = +a[0], W = +a[1];
+    var why = (rv.mat === "ni" && rv.W === W && rv.L !== L) ? "L" : (rv.mat === "ni" && rv.L === L && rv.W !== W) ? "W" : "P";
+    setRiver("ni", L, W, why);
+  });
+});
+$("c-blocks").addEventListener("change", function(){ rv.blocks = this.checked; });
+
+/* 예상하기: 강폭 2배 → 물 흐름? */
+function pred4Check(w0, w1){
+  var sel = document.querySelector("input[name=p4]:checked"), fb = $("pred4-fb");
+  if (!sel || w1 !== 2 * w0 || !RMAT[rv.mat].m || rv.prev.H !== rv.H) return;
+  if (sel.value === "double"){ fb.className = "fbk fb-ok"; fb.textContent = "✔ 예상이 맞았어요! 바위 수는 2배지만 빽빽한 정도는 그대로이고, 물이 지나갈 길이 2배가 되어 물 흐름도 2배예요."; }
+  else { fb.className = "fbk fb-bad"; fb.textContent = "✘ 측정기를 보세요. 바위가 늘었어도 물이 지나갈 길이 2배로 넓어져 물 흐름은 2배가 되었어요. 구간 나눠 보기를 켜면 같은 강 2개가 나란히 놓인 것과 같아요."; }
+}
+[].forEach.call(document.querySelectorAll("input[name=p4]"), function(el){
+  el.addEventListener("change", function(){ var fb = $("pred4-fb"); fb.className = "fbk"; fb.textContent = "좋아요. 이제 강폭을 1배 → 2배로 바꿔 확인해 보세요."; });
+});
+
+/* 강 비교 기록 */
+function buildVTable(){
+  if (!rv.recs.length){ $("vtable").innerHTML = '<p class="kbd-hint" style="margin:0">아직 기록이 없어요. 강을 바꿀 때마다 「● 이 강 기록」을 눌러 표로 비교해 보세요.</p>'; return; }
+  var html = '<table class="data"><tr><th>번호</th><th>강의 종류</th><th>길이</th><th>폭</th><th>높이 차이</th><th>바위 수</th><th>물 흐름</th></tr>';
+  rv.recs.forEach(function(r, i){
+    html += "<tr><td>" + (i + 1) + "</td><td>" + RMAT[r.mat].name + "</td><td>" + r.L + "배</td><td>" + r.W + "배</td><td>" + (r.H || 1) + "배</td><td>" + rvN(r.mat, r.L, r.W) + "개</td><td>" + fq(rvQ(r.mat, r.L, r.W, r.H || 1)) + "</td></tr>";
+  });
+  $("vtable").innerHTML = html + "</table>";
+}
+$("b-vrec").addEventListener("click", function(){
+  if (rv.recs.length >= 12) rv.recs.shift();
+  rv.recs.push({mat: rv.mat, L: rv.L, W: rv.W, H: rv.H}); buildVTable();
+});
+$("b-vclear").addEventListener("click", function(){ rv.recs = []; buildVTable(); });
+
+var QS4 = [
+  ["1. 같은 니크롬 강에서 길이만 2배로 늘리면 바위 수와 물의 흐름은 어떻게 달라지나요? 니크롬선에서는 무엇에 해당하나요?", "바위 수는 <b>2배</b>, 물의 흐름은 <b>절반</b>이 된다. 물이 지나야 할 바위가 2배로 많아졌기 때문이다. 니크롬선도 길이가 2배가 되면 <b>저항이 2배</b>가 되어 같은 전압에서 전류가 절반으로 흐른다."],
+  ["2. 강폭을 2배로 넓히면 바위 수도 2배가 되는데, 물의 흐름은 왜 오히려 2배로 커질까요?", "같은 넓이 안의 바위 수(빽빽한 정도)는 그대로이고, 물이 지나갈 길만 2배로 넓어졌기 때문이다. 폭이 2배인 강은 같은 강 2개를 나란히 놓은 것과 같다. 니크롬선도 <b>굵을수록(자른 면의 넓이가 클수록) 저항이 작아</b> 전류가 많이 흐른다."],
+  ["3. ① 실험에서 ▲ 짧은 니크롬선과 ■ 굵은 니크롬선의 그래프가 겹친 까닭을 강물 모형으로 설명해 보세요.", "짧은 선은 '길이 1·폭 1' 강, 굵은 선은 '길이 2·폭 2' 강과 같다. 길이 2배로 방해가 2배가 되지만 폭 2배로 물이 지나갈 길도 2배가 되어, 두 강의 물 흐름이 똑같다(6개/초). 그래서 두 니크롬선은 <b>저항이 같아</b> 그래프가 겹친다."],
+  ["4. 구리 강과 고무 강을 비교하여 도체와 부도체의 차이를 설명해 보세요.", "구리 강은 바위가 적고 작아 물이 잘 흐른다 → 구리 같은 <b>도체</b>는 저항이 작아 전류가 잘 흐른다. 고무 강은 큰 바위로 꽉 막혀 물이 거의 흐르지 못한다 → 고무·플라스틱·나무 같은 <b>부도체</b>는 저항이 매우 커서 전류가 거의 흐르지 않는다."],
+  ["5. 니크롬 강의 높이 차이를 1배 → 2배로 하면 물의 흐름과 방해 정도(저항)는 각각 어떻게 되나요? 전기 회로에서는 무엇을 뜻하나요?", "물의 흐름은 <b>2배</b>가 되지만 바위 수와 방해 정도는 <b>그대로</b>다. 전기 회로에서 전압을 2배로 하면 전류가 2배가 되고(<b>전류는 전압에 비례</b>), 니크롬선의 저항은 바뀌지 않는다. 저항은 전압이 아니라 도선의 물질·길이·굵기로 정해진다."]
+];
+buildQA("qa-rv", QS4, "v");
+buildRocks(); fillParts(); rvReadout(); explain4(); buildVTable();
+
+/* =========================================================
    탭 · 크기 · 그리기 반복
    ========================================================= */
 var tabs = [].slice.call(document.querySelectorAll(".tb-tabs [role=tab]"));
-var panels = [1, 2, 3, 4].map(function(n){ return $("panel-" + n); });
+var panels = [1, 2, 3, 4, 5].map(function(n){ return $("panel-" + n); });
 var current = 1;
 function selectTab(n, focus){
   current = n;
@@ -1891,6 +2310,7 @@ function resizeAll(){
   if (current === 1){ fitStage(S1); fitStage(G1); }
   if (current === 2) fitStage(G2);
   if (current === 3){ fitStage(S3); fitStage(G3); }
+  if (current === 4){ fitStage(S4); draw4(); }
 }
 var rzT;
 window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(resizeAll, 120); });
@@ -1914,10 +2334,12 @@ function frame(now){
   explT += dt;
   if (explT >= 1){ explT = 0; explain(); }
   if (rs.auto) rAutoTick(dt);
+  if (current === 4) rvTick(dt);
   rs.sampleT += dt;
   if (rs.sampleT >= 0.1){ rs.sampleT = 0; sample3(); }
   if (current === 1){ draw1(); drawGraph(G1, {unit: st.unit, live: true}); }
   else if (current === 2){ drawGraph(G2, {unit: st.unit, fit: $("c-fit").checked, live: false}); }
+  else if (current === 4){ draw4(); }
   else if (current === 3){ draw3(); drawRI(G3, {unit: st.unit, curve: $("c-curve").checked, live: true}); if (st.readT === 0) rReadout(); }
   requestAnimationFrame(frame);
 }
