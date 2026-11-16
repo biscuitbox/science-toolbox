@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>저항의 직렬연결과 병렬연결 가상실험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+/* ============================================================
+   과학 도구상자 · 도구 공통 틀 v1.1
+   - 모든 도구가 같은 머리말·탭·버튼·글꼴·화면 폭을 쓰도록 맞춘 부분입니다.
+   - 도구마다 바꾸는 값은 맨 위 --cat(분야 색) 하나뿐입니다.
+   - 이 블록(공통 틀 시작~끝)은 도구끼리 똑같이 복사해 씁니다.
+     도구만의 디자인은 "공통 틀 끝" 아래에 따로 적습니다.
+   ============================================================ */
+:root {
+  /* 분야 색: 물리 #1D4ED8 · 화학 #B45309 · 생명 #15803D · 지구 #78350F · 메이커 #BE123C · 공통 #57534E · 학급 #6D28D9 */
+  --cat: #1D4ED8;   /* 물리 */
+  --cat-soft: color-mix(in srgb, var(--cat) 9%, var(--sheet));
+
+  --paper:    #F6F2E7;
+  --sheet:    #FFFDF7;
+  --ink:      #24211D;
+  --graphite: #5C564E;
+  --hairline: #D9D1BF;
+  --rule:     rgba(64, 106, 168, 0.11);
+  --focus:    #1D4ED8;
+
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Gowun Batang', 'Pretendard', serif;
+  --radius: 4px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px));
+  background-size: 100% 2rem;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* 화면 폭: 홈페이지와 같은 1200px. 위쪽 여백은 "← 도구상자" 링크 자리 */
+.tb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.25rem 1.5rem 3rem;
+}
+
+/* ----- 머리말: 분야·학년·활동 → 제목 → 한 줄 설명 ----- */
+.tb-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+.tb-emblem {
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-top: .2rem;
+  border: 1.5px solid var(--ink);
+  border-top: 6px solid var(--cat);
+  border-radius: var(--radius);
+  background: var(--cat-soft);
+  color: var(--cat);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--cat) 28%, transparent);
+}
+.tb-emblem svg { width: 2.6rem; height: 2.6rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .9rem;
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.tb-meta .tb-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--cat);
+  font-weight: 700;
+}
+.tb-meta .tb-cat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-title {
+  margin: .15rem 0 .3rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.tb-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--graphite);
+  word-break: keep-all;
+}
+.tb-lead b, .tb-lead strong { color: var(--ink); }
+
+/* ----- 교사용 정보: 학생 화면에서는 접혀 있음 ----- */
+.tb-teacher {
+  margin: 0 0 1.25rem;
+  border: 1.5px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+.tb-teacher > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .8rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  list-style: none;
+}
+.tb-teacher > summary::-webkit-details-marker { display: none; }
+.tb-teacher > summary::before {
+  content: '';
+  width: .55rem; height: .55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .3s var(--ease);
+}
+.tb-teacher[open] > summary::before { transform: rotate(45deg); }
+.tb-teacher > summary .tb-hint { font-weight: 500; color: var(--graphite); font-size: .88rem; }
+.tb-teacher-body { max-width: 62rem; padding: 0 1rem 1rem; font-size: .95rem; word-break: keep-all; }
+.tb-teacher-body ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.tb-teacher-body li { margin-bottom: .4rem; }
+.tb-std {
+  display: inline-block;
+  padding: .05rem .5rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: 3px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
+
+/* ----- 도구 전체에 걸리는 조작(교사용 보기, 인쇄 등) 한 줄 ----- */
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1.2rem;
+  margin: 0 0 1.1rem;
+}
+/* 켜고 끄는 스위치 — 홈페이지의 '교사용 정보' 스위치와 같은 모양 */
+.tb-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--graphite);
+  cursor: pointer;
+  user-select: none;
+}
+.tb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.tb-switch .tb-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 1.5px solid var(--graphite);
+  border-radius: 999px;
+  background: var(--sheet);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-switch .tb-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--graphite);
+  transition: transform .3s var(--ease), background-color .3s var(--ease);
+}
+.tb-switch input:checked + .tb-track { background: var(--ink); border-color: var(--ink); }
+.tb-switch input:checked + .tb-track::after { transform: translateX(16px); background: var(--paper); }
+.tb-switch:has(input:checked) { color: var(--ink); }
+.tb-switch input:focus-visible + .tb-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ----- 화면 바꾸기 탭: 한 덩어리 버튼 묶음 ----- */
+.tb-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--sheet);
+}
+.tb-tabs > button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: .98rem;
+  min-height: 44px;
+  padding: .5rem 1.1rem;
+  border: 0;
+  border-left: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease);
+}
+.tb-tabs > button:first-child { border-left: 0; }
+.tb-tabs > button:hover { background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
+.tb-tabs > button[aria-selected="true"],
+.tb-tabs > button.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+.tb-tabs > button:focus-visible { outline-offset: -4px; }
+
+/* ----- 실험 무대(그림·캔버스가 들어가는 틀) ----- */
+.tb-stage {
+  position: relative;
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--cat) 26%, transparent);
+  overflow: hidden;
+}
+
+/* ----- 조작판(버튼·슬라이더가 모인 곳) ----- */
+.tb-panel {
+  background: var(--sheet);
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.tb-panel-title {
+  margin: 0 0 .7rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ----- 버튼 ----- */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sheet);
+  background: var(--cat);
+  border: 1.5px solid var(--cat);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+.tb-btn:hover { background: color-mix(in srgb, var(--cat) 82%, var(--ink)); }
+.tb-btn.ghost, .tb-btn--ghost {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.tb-btn.ghost:hover, .tb-btn--ghost:hover { background: var(--cat-soft); }
+.tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ----- 안내 상자 ----- */
+.tb-note {
+  margin: 0;
+  padding: .8rem 1rem;
+  background: var(--cat-soft);
+  border-left: 5px solid var(--cat);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: .97rem;
+  word-break: keep-all;
+}
+.tb-note b, .tb-note strong { color: color-mix(in srgb, var(--cat) 70%, var(--ink)); }
+
+/* ----- 출처 ----- */
+.tb-foot {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--graphite);
+}
+
+/* ----- 화면 크기별 ----- */
+@media (max-width: 640px) {
+  .tb-wrap { padding: 3.75rem 1rem 2.5rem; }
+  .tb-head { column-gap: .8rem; }
+  .tb-emblem { width: 3.3rem; height: 3.3rem; border-top-width: 5px; }
+  .tb-emblem svg { width: 2rem; height: 2rem; }
+  /* 휴대폰: 탭을 같은 폭으로 한 줄에 */
+  .tb-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .tb-tabs > button { padding: .4rem .35rem; font-size: .88rem; line-height: 1.3; word-break: keep-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print {
+  body { background: #fff; }
+  .tb-wrap { padding: 0; max-width: none; }
+  .tb-tabs, .tb-teacher, .tb-actions, .toolbox-back-link { display: none !important; }
+  .tb-stage { box-shadow: none; break-inside: avoid; }
+  .tb-emblem { box-shadow: none; }
+}
+/* ===== 공통 틀 끝 ===== */
+[hidden] { display: none !important; }
+
+/* 넓은 화면: 왼쪽은 실험 무대, 오른쪽은 조작판 (다른 가상실험과 같은 틀) */
+.card { display: grid; gap: 1rem; }
+@media (min-width: 980px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) 21.5rem;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .card > .stagewrap { grid-column: 1; grid-row: 1 / span 6; }
+  .card > .side { grid-column: 2; }
+  .card > .wide { grid-column: 1 / -1; }
+}
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+.side { display: grid; gap: .9rem; align-content: start; }
+.controls { display: grid; gap: .8rem; }
+.row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.row .tb-btn { flex: 1 1 auto; }
+.checks { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chk {
+  display: inline-flex; align-items: center; gap: .45rem; min-height: 40px;
+  padding: .35rem .8rem .35rem .6rem; font-size: .93rem;
+  background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: 999px; cursor: pointer;
+}
+.chk:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--cat); }
+.chk:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .5rem; }
+.rd { padding: .45rem .7rem .5rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.rd .k { display: block; font-size: .85rem; color: var(--graphite); }
+.rd .v { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; word-break: keep-all; }
+.rd .s { display: block; font-size: .82rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+
+table.terms { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1.5px solid var(--ink); font-size: .95rem; }
+table.terms th, table.terms td { padding: .55rem .8rem; border-top: 1px solid var(--hairline); text-align: left; vertical-align: top; word-break: keep-all; }
+table.terms tr:first-child th, table.terms tr:first-child td { border-top: 0; }
+table.terms th { width: 8.5em; white-space: nowrap; font-family: var(--font-display); color: var(--cat); background: var(--cat-soft); }
+
+/* ---- 가상실험 공통 부품(다른 가상실험과 같은 모양) ---- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+#cv1 { touch-action: none; }
+#cv1:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.kbd-hint { margin: .35rem .2rem 0; font-size: .85rem; color: var(--graphite); word-break: keep-all; }
+.tb-btn[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"], .tb-btn.ghost[aria-pressed="true"]:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.stagewrap { display: grid; gap: .9rem; min-width: 0; }
+.gtitle { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .8rem; padding: .55rem .9rem; border-bottom: 1.5px solid var(--hairline); font-weight: 700; }
+.gtitle .t { font-family: var(--font-display); font-size: 1.02rem; }
+.gtitle .u { display: inline-flex; gap: .3rem; align-items: center; font-weight: 600; font-size: .88rem; color: var(--graphite); }
+.gtitle select, .side select, .field input { font: inherit; font-size: .95rem; padding: .3rem .5rem; border: 1.5px solid var(--hairline); border-radius: var(--radius); background: var(--sheet); color: var(--ink); }
+
+/* 눌러서 고르는 묶음 */
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1.5px solid var(--ink); border-radius: var(--radius); overflow: hidden; background: var(--sheet); }
+.seg label { position: relative; display: grid; place-items: center; gap: .1rem; min-height: 54px; padding: .35rem .3rem; border-left: 1px solid var(--hairline); text-align: center; font-size: .88rem; line-height: 1.25; cursor: pointer; word-break: keep-all; }
+.seg label:first-child { border-left: 0; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg .mk { font-size: 1rem; line-height: 1; }
+.seg small { display: block; font-size: .74rem; font-weight: 500; opacity: .8; }
+.seg label:has(input:checked) { background: var(--ink); color: var(--paper); font-weight: 700; }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: -4px; }
+.seg label:has(input:disabled) { cursor: not-allowed; opacity: .6; }
+/* 네 가지: 2 × 2 칸 */
+.seg.seg4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg.seg4 label:nth-child(odd) { border-left: 0; }
+.seg.seg4 label:nth-child(n+3) { border-top: 1px solid var(--hairline); }
+
+/* 탭③ 저항–전류 */
+#cv3 { touch-action: none; }
+#cv3:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.ri-wide { display: grid; gap: 1rem; }
+@media (min-width: 980px) { .ri-wide { grid-template-columns: 24rem minmax(0, 1fr); align-items: start; } }
+
+.vrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.vrow input[type=range] { width: 100%; accent-color: var(--cat); min-height: 32px; }
+.vrow .tb-btn { min-width: 44px; padding: .4rem .6rem; }
+.vset { font-weight: 800; font-variant-numeric: tabular-nums; }
+.lab { font-size: .88rem; font-weight: 700; color: var(--graphite); margin: 0 0 .3rem; }
+
+.explain { margin: 0; padding: .75rem .95rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); font-size: .97rem; word-break: keep-all; min-height: 4.5rem; }
+.explain .h { display: block; margin-bottom: .3rem; font-family: var(--font-display); font-weight: 700; color: var(--cat); }
+.explain p { margin: 0 0 .35rem; }
+.explain p:last-child { margin-bottom: 0; }
+.warn { margin: 0; padding: .55rem .8rem; border: 1.5px solid #9A3412; border-radius: var(--radius); background: color-mix(in srgb, #9A3412 7%, var(--sheet)); color: #7C2D12; font-weight: 700; font-size: .93rem; word-break: keep-all; transition: opacity .4s var(--ease); }
+
+/* 예상하기 */
+.pred { margin: 0; padding: .8rem .95rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.pred legend { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; margin-bottom: .45rem; padding: 0; }
+.pred .opts { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+.pred label { display: flex; gap: .5rem; align-items: flex-start; padding: .35rem .55rem; border: 1.5px solid var(--hairline); border-radius: var(--radius); cursor: pointer; font-size: .93rem; word-break: keep-all; }
+.pred label:has(input:checked) { border-color: var(--cat); background: var(--cat-soft); }
+.pred input { margin-top: .25rem; accent-color: var(--cat); }
+.pred .fbk { margin: .55rem 0 0; font-size: .93rem; word-break: keep-all; }
+.fb-ok { color: #15803D; font-weight: 700; }
+.fb-bad { color: #9A3412; font-weight: 700; }
+
+.safe {
+  display: flex; gap: .55rem; align-items: flex-start; margin: 0; padding: .6rem .85rem;
+  border: 1.5px dashed #9A3412; border-radius: var(--radius);
+  background: color-mix(in srgb, #9A3412 6%, var(--sheet)); font-size: .93rem; word-break: keep-all;
+}
+.safe b { color: #9A3412; }
+.safe ul { margin: .2rem 0 0; padding-left: 1.05rem; }
+
+/* 탭② 분석 */
+.ana { display: grid; gap: 1rem; }
+@media (min-width: 980px) { .ana { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; } }
+.dtables { display: grid; gap: .7rem; }
+table.data { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1.5px solid var(--ink); font-size: .93rem; font-variant-numeric: tabular-nums; }
+table.data caption { text-align: left; font-weight: 700; padding: 0 0 .3rem; font-family: var(--font-display); }
+table.data th, table.data td { padding: .38rem .5rem; border: 1px solid var(--hairline); text-align: center; }
+table.data th { background: var(--cat-soft); font-size: .86rem; }
+table.data td.empty { color: var(--graphite); }
+table.data .ratio { color: var(--cat); font-weight: 700; }
+.field { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.field input { width: 7rem; }
+.box { padding: .85rem 1rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.box h3 { margin: 0 0 .5rem; font-family: var(--font-display); font-size: 1.05rem; }
+.box p { margin: 0 0 .5rem; word-break: keep-all; }
+.box p:last-child { margin-bottom: 0; }
+
+.qa { display: grid; gap: .7rem; align-content: start; }
+.q { padding: .75rem .9rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.q .qt { margin: 0 0 .45rem; font-weight: 700; word-break: keep-all; }
+.q textarea { width: 100%; min-height: 4.2rem; font: inherit; font-size: .95rem; padding: .45rem .55rem; border: 1.5px solid var(--hairline); border-radius: var(--radius); background: #fff; color: var(--ink); resize: vertical; }
+.q details { margin-top: .45rem; }
+.q summary { cursor: pointer; font-size: .9rem; font-weight: 700; color: var(--cat); }
+.q .ans { margin: .4rem 0 0; padding: .55rem .75rem; border-left: 4px solid var(--cat); background: var(--cat-soft); font-size: .94rem; word-break: keep-all; }
+.q .need { margin: .35rem 0 0; font-size: .86rem; color: #9A3412; font-weight: 700; }
+
+/* 탭③ 정리 */
+.sum-grid { display: grid; gap: 1rem; }
+@media (min-width: 820px) { .sum-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.law { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.law li { padding: .7rem .85rem; background: var(--sheet); border: 1.5px solid var(--ink); border-top: 4px solid var(--cat); border-radius: var(--radius); }
+.law b { display: block; font-family: var(--font-display); font-size: 1.45rem; color: var(--cat); }
+.law span { font-size: .9rem; color: var(--graphite); word-break: keep-all; }
+.miscon { margin: 0; padding: .8rem 1rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.miscon h3 { margin: 0 0 .5rem; font-family: var(--font-display); font-size: 1.05rem; }
+.miscon ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: .45rem; font-size: .94rem; word-break: keep-all; }
+.miscon .no { color: #9A3412; font-weight: 800; margin-right: .25rem; }
+.miscon .yes { color: #15803D; font-weight: 800; margin: 0 .25rem; }
+.fig { margin: 0; padding: .6rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig figcaption { font-size: .88rem; color: var(--graphite); margin-top: .35rem; word-break: keep-all; }
+
+/* 인쇄 활동지 */
+.printonly { display: none; }
+@media print {
+  body { font-size: 11pt; }
+  .tb-tabs, .tb-teacher, .no-print, .tb-foot, .toolbox-back-link, .card, .tabpanel { display: none !important; }
+  .printonly { display: block; }
+  .tb-head { grid-template-columns: 1fr; border-bottom-width: 1px; }
+  .tb-emblem, .tb-meta { display: none; }
+  .tb-title { font-size: 16pt; }
+  .sheet h2 { font-size: 12pt; margin: 12px 0 6px; border-bottom: 1.5px solid #333; padding-bottom: 3px; }
+  .sheet ol { padding-left: 19px; margin: 0; }
+  .sheet li { margin-bottom: 12px; page-break-inside: avoid; }
+  .sheet .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sheet figure { margin: 0; text-align: center; font-size: 9.5pt; page-break-inside: avoid; }
+  .sheet svg { display: block; width: 100%; height: auto; }
+  .sheet table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .sheet td, .sheet th { border: 1px solid #999; padding: 5px 8px; text-align: center; }
+  .sheet .graphimg { display: block; width: 100%; max-height: 92mm; object-fit: contain; border: 1px solid #999; }
+  .lines { border-bottom: 1px solid #bbb; height: 19px; margin-top: 5px; }
+  .namebar { display: flex; gap: 14px; font-size: 10.5pt; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+  .namebar span { border-bottom: 1px solid #bbb; min-width: 80px; display: inline-block; }
+  .selfcheck td:first-child { text-align: left; }
+  .keep { page-break-inside: avoid; break-inside: avoid; }
+  .pb { page-break-before: always; }
+}
+
+/* ---- 직렬연결·병렬연결 가상실험만의 디자인 ---- */
+.seg.seg2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg.seg5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.seg.seg2 label, .seg.seg5 label { min-height: 46px; }
+.seg.seg5 label { font-size: 1rem; }
+.toggles { display: flex; flex-wrap: wrap; gap: .4rem; }
+.toggles .tb-btn { min-height: 40px; padding: .35rem .7rem; font-size: .9rem; }
+.bulbcards { display: grid; gap: .45rem; }
+.bc {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .15rem .6rem; align-items: center;
+  padding: .45rem .7rem .5rem; background: var(--sheet); border: 1.5px solid var(--ink); border-left: 6px solid #D97706; border-radius: var(--radius);
+}
+.bc.off { border-left-color: var(--graphite); }
+.bc .nm { font-weight: 800; }
+.bc .stt { font-size: .88rem; color: var(--graphite); }
+.bc .val { font-weight: 800; font-variant-numeric: tabular-nums; }
+.bc .bar { grid-column: 1 / -1; height: 10px; border: 1px solid var(--hairline); border-radius: 999px; background: #F3EEE2; overflow: hidden; }
+.bc .bar i { display: block; height: 100%; background: linear-gradient(90deg, #D97706, #FCD34D); transition: width .4s var(--ease); }
+.bc .meas { grid-column: 1 / -1; font-size: .86rem; color: var(--graphite); font-variant-numeric: tabular-nums; word-break: keep-all; }
+.cmp3, .cmp2 { display: grid; gap: 1rem; }
+@media (min-width: 860px) { .cmp3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cmp2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mini { display: grid; gap: .55rem; align-content: start; min-width: 0; }
+.batbar { display: grid; gap: .7rem; margin: 0 0 1rem; }
+@media (min-width: 700px) { .batbar { grid-template-columns: minmax(0, 15rem) minmax(0, 24rem); align-items: end; } }
+.steps { padding: .8rem 1rem; background: var(--sheet); border: 1.5px solid var(--hairline); border-radius: var(--radius); }
+.steps h3 { margin: 0 0 .4rem; font-family: var(--font-display); font-size: 1.05rem; }
+.steps ol { margin: 0; padding-left: 1.3rem; display: grid; gap: .25rem; font-size: .95rem; word-break: keep-all; }
+table.data tr.cur td, table.data tr.cur th { background: var(--cat-soft); font-weight: 800; }
+table.cmpt td { text-align: left; word-break: keep-all; }
+table.cmpt th[scope=row] { text-align: left; white-space: nowrap; }
+.wide2 { display: grid; gap: 1rem; margin-top: 1.25rem; }
+@media (min-width: 980px) { .wide2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.mini canvas { cursor: default; }
+@media print { .sheet .ps-shot { display: block; width: 100%; max-height: 62mm; object-fit: contain; border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<div class="tb-wrap">
+
+  <header class="tb-head">
+    <div class="tb-emblem" aria-hidden="true">
+      <svg viewBox="0 0 48 48"><path d="M6 12h12M30 12h12M42 12v28H28M20 40H6V12"/><path d="M26 34v12"/><path d="M22 37v6" stroke-width="3.2"/><circle cx="24" cy="12" r="6"/><path d="M19.8 7.8l8.4 8.4M28.2 7.8l-8.4 8.4"/></svg>
+    </div>
+    <p class="tb-meta">
+      <span class="tb-cat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2-5.5 4.5-5.5 6.5 0s4.5 5.5 6.5 0 4.5-5.5 7-1"/></svg>물리</span>
+      <span>중2~중3</span><span>시뮬레이션</span>
+    </p>
+    <h1 class="tb-title">저항의 직렬연결과 병렬연결 가상실험</h1>
+    <p class="tb-lead">꼬마전구를 <b>직렬</b>과 <b>병렬</b>로 연결해 전구 1개일 때와 밝기를 비교하고, 전구 하나를 빼 보며 나머지 전구가 어떻게 되는지 관찰합니다. 전지도 <b>직렬·병렬로 5개까지</b> 연결해 볼 수 있어요.</p>
+  </header>
+
+  <details class="tb-teacher no-print">
+    <summary>교사용 정보 <span class="tb-hint">성취기준 [9과14-03], 수준별 활용, 모델 설명</span></summary>
+    <div class="tb-teacher-body">
+    <p style="margin:6px 0"><span class="tb-std">[9과14-03]</span> 저항의 직렬연결과 병렬연결의 특징을 비교하고, 일상생활에서 전기 에너지가 다양한 형태의 에너지로 전환됨을 소비 전력과 관련지어 설명할 수 있다. 성취기준 해설에 따라 <b>합성 저항의 정량 계산과 혼합 연결은 다루지 않으며</b>, 소비 전력은 에너지 전환 관점에서 정성적으로만 다룹니다. 적용 시 고려 사항의 "전기 회로 실험에서 디지털 탐구 도구나 가상 실험을 활용할 수 있다"에 맞춘 도구입니다.</p>
+    <ul>
+      <li><b>탭 구성</b> — ① 실험하기(전구 1개·직렬·병렬, 전구 2~3개, 전지 직렬·병렬 1~5개, 스위치, 전구·전지 빼기) ② 나란히 비교(교과서 과정 3·4처럼 전구 1개·직렬 2개·병렬 2개 회로를 같은 전지에 연결해 나란히 보고, 전구 하나를 빼 보기, 결과 기록표, 결과 정리 질문) ③ 전지의 연결(전구 1개에 전지 직렬 n개 vs 병렬 n개, 밝기와 전지를 쓸 수 있는 시간 비교) ④ 정리하기(직렬·병렬 특징 표, 에너지 전환과 소비 전력, 가정의 전기 배선과 효율적인 사용, 오개념).</li>
+      <li><b>성취수준과 연결</b> — E: 전구에서 전기 에너지가 빛·열 에너지로 전환됨을 말함(④). D: 직렬연결과 병렬연결을 구별함(①). C: 밝기·하나를 끊었을 때의 차이로 특징을 앎(②). B·A: 연결 방법에 따른 특징을 비교해 차이를 이해하고, 가정의 병렬 배선·소비 전력·효율적인 전기 사용과 관련지음(② 질문 5, ④).</li>
+      <li><b>수준별 활용</b> — 하: ②에서 세 회로의 밝기 비교와 하나 빼 보기까지. 중: ①에서 전구를 3개로 늘려 직렬은 더 어두워지고 병렬은 그대로임을 확인. 상: 「전압·전류 값 보기」를 켜고 직렬은 전류가 같고 전압을 나누어 가지며, 병렬은 전압이 같고 전류가 갈라짐을 찾음(합성 저항 값은 보여 주지 않음).</li>
+      <li><b>전지 연결(초등 5~6학년 '전기의 이용' 연계·확장)</b> — 전지를 직렬로 늘리면 전체 전압이 커져 밝아지고, 병렬로 늘리면 밝기는 같지만 전지 하나에서 나오는 전류가 줄어 오래 쓸 수 있음을 ③에서 비교합니다. ①에서 병렬연결한 전지 하나를 빼도 전구가 그대로 켜져 있는 것도 확인할 수 있습니다.</li>
+      <li><b>모델 설명</b> — 전지는 내부 저항이 없는 1.5 V 이상적인 전지, 꼬마전구는 저항이 일정한(10 Ω) 이상적인 전구로 계산합니다. 「밝기」는 같은 전구에서 빛으로 바뀌는 전기 에너지의 비율(전지 1개 + 전구 1개 = 100)로 나타낸 값입니다. 실제 전구는 밝기 차이가 이 값만큼 크게 느껴지지 않을 수 있고, 실제 전지는 내부 저항 때문에 병렬연결한 전구를 늘리면 조금 어두워질 수 있습니다. 전구 하나에 4.5 V가 넘게 걸리면 "실제 꼬마전구라면 필라멘트가 끊어질 수 있다"는 안내가 나옵니다. 「전지를 쓸 수 있는 시간」은 전지 1개 + 전구 1개일 때를 1배로 놓고 전지 하나에서 나오는 전류로 단순하게 어림한 값입니다.</li>
+    </ul>
+    </div>
+  </details>
+
+  <div class="tb-actions no-print">
+    <button class="tb-btn ghost" id="b-save">📷 회로 그림 저장</button>
+    <button class="tb-btn ghost" id="b-print">🖨 활동지 인쇄</button>
+    <label class="tb-switch"><input type="checkbox" id="c-flow" checked><span class="tb-track"></span>전류의 방향 보기</label>
+    <label class="tb-switch"><input type="checkbox" id="c-meas"><span class="tb-track"></span>전압·전류 값 보기</label>
+  </div>
+
+  <div class="tabs tb-tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">① 실험하기</button>
+    <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">② 나란히 비교</button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">③ 전지의 연결</button>
+    <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">④ 정리하기</button>
+  </div>
+
+  <!-- ================= 탭 1 : 실험하기 ================= -->
+  <section class="card tabpanel" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+    <div class="stagewrap">
+      <div>
+        <div class="tb-stage"><canvas id="cv1" aria-label="전지, 스위치, 꼬마전구를 전선으로 연결한 전기 회로. 전구나 전지를 누르면 빼거나 다시 끼울 수 있고, 스위치를 누르면 열고 닫을 수 있습니다."></canvas></div>
+        <p class="kbd-hint no-print">그림 속 <b>전구·전지</b>를 누르면 빼거나 다시 끼우고, <b>스위치</b>를 누르면 열고 닫아요. 키보드로는 오른쪽(휴대폰은 아래) 버튼을 쓰면 돼요.</p>
+        <p class="sr-only" id="cv1-sum" aria-live="polite"></p>
+      </div>
+      <div class="steps">
+        <h3>탐구 순서</h3>
+        <ol>
+          <li><b>전구 1개</b>를 연결하고 스위치를 닫아 밝기를 관찰해요.</li>
+          <li>전구 2개를 <b>직렬연결</b>, <b>병렬연결</b>로 바꿔 전구 1개의 밝기를 1과 비교해요.</li>
+          <li>직렬·병렬 회로에서 <b>전구 하나를 빼고</b> 나머지 전구의 변화를 관찰해요.</li>
+          <li>전지 개수와 연결 방법도 바꿔 보고, ② 나란히 비교에서 결과를 정리해요.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="safe" role="note"><span aria-hidden="true">⚠️</span><div><b>실물 실험 안전 수칙</b>
+        <ul><li>전지의 (+)극과 (−)극을 전선으로 바로 잇지 않아요(합선 — 전선과 전지가 뜨거워져요).</li><li>전지를 병렬로 연결할 때는 같은 종류의 새 전지끼리, 방향을 맞춰요.</li><li>꼬마전구에 정해진 전압보다 큰 전압을 걸지 않아요.</li></ul></div></div>
+
+      <div class="controls">
+        <div>
+          <p class="lab" id="lab-bm">전구 연결</p>
+          <div class="seg" role="radiogroup" aria-labelledby="lab-bm">
+            <label><input type="radio" name="bm" value="single" checked><span class="mk" aria-hidden="true">●</span>전구 1개</label>
+            <label><input type="radio" name="bm" value="series"><span class="mk" aria-hidden="true">●–●</span>직렬연결</label>
+            <label><input type="radio" name="bm" value="parallel"><span class="mk" aria-hidden="true">⫴</span>병렬연결</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-nb">전구 개수 <span style="font-weight:500">(직렬·병렬일 때)</span></p>
+          <div class="seg seg2" role="radiogroup" aria-labelledby="lab-nb">
+            <label><input type="radio" name="nbm" value="2" checked>2개</label>
+            <label><input type="radio" name="nbm" value="3">3개</label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-bt">전지 연결</p>
+          <div class="seg seg2" role="radiogroup" aria-labelledby="lab-bt">
+            <label><input type="radio" name="batm" value="series" checked><span class="mk" aria-hidden="true">▭▭</span>직렬연결<small>한 줄로 이어서</small></label>
+            <label><input type="radio" name="batm" value="parallel"><span class="mk" aria-hidden="true">☰</span>병렬연결<small>나란히 여러 줄로</small></label>
+          </div>
+        </div>
+        <div>
+          <p class="lab" id="lab-nc">전지 개수</p>
+          <div class="seg seg5" role="radiogroup" aria-labelledby="lab-nc">
+            <label><input type="radio" name="nc1" value="1" checked>1</label>
+            <label><input type="radio" name="nc1" value="2">2</label>
+            <label><input type="radio" name="nc1" value="3">3</label>
+            <label><input type="radio" name="nc1" value="4">4</label>
+            <label><input type="radio" name="nc1" value="5">5</label>
+          </div>
+        </div>
+        <div class="row">
+          <button class="tb-btn" id="b-sw" aria-pressed="false">🔌 스위치 닫기</button>
+          <button class="tb-btn ghost" id="b-reset">↺ 모두 다시 끼우기</button>
+        </div>
+        <div>
+          <p class="lab">연결 끊어 보기 <span style="font-weight:500">(누르면 빼고, 한 번 더 누르면 다시 끼워요)</span></p>
+          <div class="toggles" id="cuts"></div>
+        </div>
+      </div>
+
+      <div class="readout" aria-live="off">
+        <div class="rd"><span class="k">회로</span><span class="v" id="r-state">끊어짐</span></div>
+        <div class="rd"><span class="k">같은 전지에 전구 1개만</span><span class="v" id="r-ref">밝기 100</span><span class="s">비교 기준</span></div>
+        <div class="rd" id="rd-v" hidden><span class="k">전지 전체 전압</span><span class="v" id="r-v">1.5 V</span></div>
+        <div class="rd" id="rd-i" hidden><span class="k">전체 전류</span><span class="v" id="r-i">0 mA</span></div>
+      </div>
+      <div class="bulbcards" id="bcards" aria-live="polite"></div>
+
+      <p class="warn" id="warn" role="alert" hidden></p>
+      <div class="explain" id="explain" aria-live="polite"></div>
+
+      <fieldset class="pred">
+        <legend>먼저 예상해 보기 ①</legend>
+        <p style="margin:0 0 .45rem;font-size:.93rem;word-break:keep-all">전구 2개를 <b>직렬연결</b>하면, 전구 1개의 밝기는 전구 1개만 연결했을 때와 비교해 어떨까요?</p>
+        <div class="opts">
+          <label><input type="radio" name="p1" value="bright"> 더 밝다</label>
+          <label><input type="radio" name="p1" value="same"> 같다</label>
+          <label><input type="radio" name="p1" value="dim"> 더 어둡다</label>
+        </div>
+        <p class="fbk" id="p1-fb">하나를 고른 뒤 실험으로 확인해 보세요.</p>
+      </fieldset>
+      <fieldset class="pred">
+        <legend>먼저 예상해 보기 ②</legend>
+        <p style="margin:0 0 .45rem;font-size:.93rem;word-break:keep-all">전구 2개를 <b>병렬연결</b>하면, 전구 1개의 밝기는 전구 1개만 연결했을 때와 비교해 어떨까요?</p>
+        <div class="opts">
+          <label><input type="radio" name="p2" value="bright"> 더 밝다</label>
+          <label><input type="radio" name="p2" value="same"> 같다</label>
+          <label><input type="radio" name="p2" value="dim"> 더 어둡다</label>
+        </div>
+        <p class="fbk" id="p2-fb">하나를 고른 뒤 실험으로 확인해 보세요.</p>
+      </fieldset>
+    </div>
+  </section>
+
+  <!-- ================= 탭 2 : 나란히 비교 ================= -->
+  <section class="tabpanel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+    <p class="tb-note" style="margin-bottom:1rem">같은 전지에 연결한 세 회로를 나란히 놓고 <b>전구 1개의 밝기</b>를 비교해요. 그다음 직렬·병렬 회로에서 <b>전구 B를 빼 보고</b> 나머지 전구가 어떻게 되는지 살펴보세요.</p>
+    <div class="batbar">
+      <div>
+        <p class="lab" id="lab-bt2">전지 연결</p>
+        <div class="seg seg2" role="radiogroup" aria-labelledby="lab-bt2">
+          <label><input type="radio" name="batm2" value="series" checked>직렬연결</label>
+          <label><input type="radio" name="batm2" value="parallel">병렬연결</label>
+        </div>
+      </div>
+      <div>
+        <p class="lab" id="lab-nc2">전지 개수</p>
+        <div class="seg seg5" role="radiogroup" aria-labelledby="lab-nc2">
+          <label><input type="radio" name="nc2" value="1" checked>1</label>
+          <label><input type="radio" name="nc2" value="2">2</label>
+          <label><input type="radio" name="nc2" value="3">3</label>
+          <label><input type="radio" name="nc2" value="4">4</label>
+          <label><input type="radio" name="nc2" value="5">5</label>
+        </div>
+      </div>
+    </div>
+    <div class="cmp3">
+      <div class="mini">
+        <div class="tb-stage"><div class="gtitle"><span class="t">전구 1개</span></div><canvas id="m1" aria-label="전구 1개를 전지에 연결한 회로"></canvas></div>
+        <div class="bulbcards" id="mr1"></div>
+      </div>
+      <div class="mini">
+        <div class="tb-stage"><div class="gtitle"><span class="t">직렬연결한 경우</span></div><canvas id="m2" aria-label="전구 2개를 직렬연결한 회로. 전구를 누르면 빼거나 다시 끼울 수 있습니다."></canvas></div>
+        <button class="tb-btn ghost" id="cut2" aria-pressed="false">✋ 전구 B 빼 보기</button>
+        <div class="bulbcards" id="mr2"></div>
+      </div>
+      <div class="mini">
+        <div class="tb-stage"><div class="gtitle"><span class="t">병렬연결한 경우</span></div><canvas id="m3" aria-label="전구 2개를 병렬연결한 회로. 전구를 누르면 빼거나 다시 끼울 수 있습니다."></canvas></div>
+        <button class="tb-btn ghost" id="cut3" aria-pressed="false">✋ 전구 B 빼 보기</button>
+        <div class="bulbcards" id="mr3"></div>
+      </div>
+    </div>
+    <p class="warn" id="warn2" role="alert" hidden style="margin-top:1rem"></p>
+
+    <div class="wide2">
+      <div style="display:grid;gap:.7rem;align-content:start;min-width:0">
+        <table class="data cmpt" id="t2">
+          <caption>결과 기록표</caption>
+          <thead><tr><th>회로</th><th>전구 1개의 밝기</th><th>전구 1개 회로와 비교</th><th>전구 하나를 빼면 나머지 전구는</th></tr></thead>
+          <tbody id="t2b"></tbody>
+        </table>
+        <p class="tb-note">「전구 하나를 빼면」 칸은 위에서 <b>직접 빼 본 회로</b>만 채워져요.</p>
+      </div>
+      <div class="qa">
+        <h2 class="tb-panel-title" style="margin:0">결과 정리 — 내 생각을 먼저 적어야 예시 답을 볼 수 있어요</h2>
+        <div class="q"><p class="qt">1. 전구 2개를 직렬연결했을 때 전구 1개의 밝기는 전구 1개만 연결했을 때와 비교해 어떤가요?</p><textarea aria-label="1번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">더 어둡다. 전지의 전압을 두 전구가 나누어 가져 전구 하나에 걸리는 전압이 작아지기 때문이다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">2. 전구 2개를 병렬연결했을 때 전구 1개의 밝기는 전구 1개만 연결했을 때와 비교해 어떤가요?</p><textarea aria-label="2번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">같다. 병렬연결하면 각 전구에 전지의 전압이 그대로 걸리기 때문이다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">3. 직렬연결한 회로에서 전구 하나를 빼면 나머지 전구는 어떻게 되나요? 그 까닭은 무엇일까요?</p><textarea aria-label="3번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">꺼진다. 직렬연결은 전류가 흐르는 길이 하나뿐이어서 한 곳이 끊어지면 회로 전체에 전류가 흐르지 않는다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">4. 병렬연결한 회로에서 전구 하나를 빼면 나머지 전구는 어떻게 되나요? 그 까닭은 무엇일까요?</p><textarea aria-label="4번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">계속 켜져 있고 밝기도 변하지 않는다. 병렬연결은 전구마다 전류가 흐르는 길이 따로 있어서 한 길이 끊어져도 다른 길로는 전류가 흐른다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">5. 집 안의 전등과 전기 기구는 직렬과 병렬 중 어떤 방법으로 연결되어 있을까요? 그렇게 생각한 까닭은?</p><textarea aria-label="5번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">병렬연결. 전기 기구 하나를 끄거나 고장 나도 다른 기구는 계속 쓸 수 있고, 모든 기구에 같은 전압이 걸리기 때문이다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 탭 3 : 전지의 연결 ================= -->
+  <section class="tabpanel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+    <p class="tb-note" style="margin-bottom:1rem">전구 1개에 전지를 <b>직렬</b>로 연결할 때와 <b>병렬</b>로 연결할 때를 나란히 비교해요. 전지 개수를 1개부터 5개까지 바꿔 보세요.</p>
+    <div style="max-width:24rem;margin:0 0 1rem">
+      <p class="lab" id="lab-nc3">전지 개수</p>
+      <div class="seg seg5" role="radiogroup" aria-labelledby="lab-nc3">
+        <label><input type="radio" name="nc3" value="1">1</label>
+        <label><input type="radio" name="nc3" value="2" checked>2</label>
+        <label><input type="radio" name="nc3" value="3">3</label>
+        <label><input type="radio" name="nc3" value="4">4</label>
+        <label><input type="radio" name="nc3" value="5">5</label>
+      </div>
+    </div>
+    <div class="cmp2">
+      <div class="mini">
+        <div class="tb-stage"><div class="gtitle"><span class="t">전지를 직렬연결한 경우</span></div><canvas id="n1" aria-label="전지를 직렬연결하고 전구 1개를 연결한 회로"></canvas></div>
+        <div class="bulbcards" id="nr1"></div>
+      </div>
+      <div class="mini">
+        <div class="tb-stage"><div class="gtitle"><span class="t">전지를 병렬연결한 경우</span></div><canvas id="n2" aria-label="전지를 병렬연결하고 전구 1개를 연결한 회로"></canvas></div>
+        <div class="bulbcards" id="nr2"></div>
+      </div>
+    </div>
+    <p class="warn" id="warn3" role="alert" hidden style="margin-top:1rem"></p>
+
+    <div class="wide2">
+      <div style="display:grid;gap:.7rem;align-content:start;min-width:0">
+        <table class="data" id="t3">
+          <caption>전지 개수에 따른 비교 (전구 1개)</caption>
+          <thead>
+            <tr><th rowspan="2">전지 개수</th><th colspan="2">직렬연결</th><th colspan="2">병렬연결</th></tr>
+            <tr><th>전구 밝기</th><th>전지를 쓸 수 있는 시간</th><th>전구 밝기</th><th>전지를 쓸 수 있는 시간</th></tr>
+          </thead>
+          <tbody id="t3b"></tbody>
+        </table>
+        <p class="tb-note">전지 개수를 바꿀 때마다 표가 한 줄씩 채워져요. 「쓸 수 있는 시간」은 전지 1개 + 전구 1개일 때를 1배로 놓고 어림한 값이에요.</p>
+      </div>
+      <div class="qa">
+        <h2 class="tb-panel-title" style="margin:0">결과 정리 — 내 생각을 먼저 적어야 예시 답을 볼 수 있어요</h2>
+        <div class="q"><p class="qt">1. 직렬로 연결한 전지의 개수를 늘리면 전구의 밝기는 어떻게 되나요?</p><textarea aria-label="전지 1번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">밝아진다. 전지를 직렬연결하면 전체 전압이 전지 개수만큼 커져 전구에 더 센 전류가 흐르기 때문이다. 대신 전지가 빨리 닳는다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">2. 병렬로 연결한 전지의 개수를 늘리면 전구의 밝기와 전지를 쓸 수 있는 시간은 어떻게 되나요?</p><textarea aria-label="전지 2번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">밝기는 전지 1개일 때와 같다. 전지 여러 개가 전류를 나누어 보내므로 전지를 더 오래 쓸 수 있다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+        <div class="q"><p class="qt">3. 손전등이나 리모컨에 전지 여러 개를 직렬로 넣는 까닭은 무엇일까요?</p><textarea aria-label="전지 3번 답"></textarea><details><summary>예시 답 보기</summary><p class="ans">전지 1개보다 큰 전압이 필요하기 때문이다. 전지를 직렬로 연결하면 전체 전압이 커진다.</p></details><p class="need" hidden>먼저 내 생각을 5글자 이상 적어 보세요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 탭 4 : 정리하기 ================= -->
+  <section class="tabpanel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+    <div class="sum-grid">
+      <div style="display:grid;gap:.9rem;align-content:start;min-width:0">
+        <h2 class="tb-panel-title" style="margin:0">전구(저항)의 직렬연결과 병렬연결</h2>
+        <table class="data cmpt">
+          <thead><tr><th></th><th>직렬연결</th><th>병렬연결</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">연결 모양</th><td>전구를 한 줄로 차례로 연결</td><td>전구를 나란히, 각각 다른 길로 연결</td></tr>
+            <tr><th scope="row">전류가 지나는 길</th><td>하나뿐</td><td>전구 수만큼 갈라졌다 다시 합쳐짐</td></tr>
+            <tr><th scope="row">전구 하나의 밝기</th><td>전구가 많을수록 어두워짐</td><td>전구 1개일 때와 같음</td></tr>
+            <tr><th scope="row">각 전구의 전류</th><td>모든 전구에 같은 세기로 흐름</td><td>갈라져 흐름. 전지에서 나오는 전체 전류는 커짐</td></tr>
+            <tr><th scope="row">각 전구의 전압</th><td>전지의 전압을 나누어 가짐</td><td>모든 전구에 전지의 전압이 그대로 걸림</td></tr>
+            <tr><th scope="row">하나를 끊으면</th><td>나머지 전구도 모두 꺼짐</td><td>나머지 전구는 그대로 켜져 있음</td></tr>
+            <tr><th scope="row">생활 속 예</th><td>스위치와 전등, 퓨즈와 전기 기구, 일부 장식용 전구</td><td>집 안의 전등·콘센트, 멀티탭, 가로등</td></tr>
+          </tbody>
+        </table>
+        <h2 class="tb-panel-title" style="margin:.4rem 0 0">전지의 직렬연결과 병렬연결</h2>
+        <table class="data cmpt">
+          <thead><tr><th></th><th>직렬연결</th><th>병렬연결</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">전체 전압</th><td>전지 개수만큼 커짐</td><td>전지 1개와 같음</td></tr>
+            <tr><th scope="row">전구 밝기</th><td>전지 1개일 때보다 밝음</td><td>전지 1개일 때와 같음</td></tr>
+            <tr><th scope="row">쓸 수 있는 시간</th><td>짧아짐(전지가 빨리 닳음)</td><td>길어짐(전지가 전류를 나누어 보냄)</td></tr>
+            <tr><th scope="row">생활 속 예</th><td>손전등, 리모컨, 장난감</td><td>오래 써야 하는 전지 묶음(보조 배터리 속 전지 등)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:grid;gap:.9rem;align-content:start">
+        <div class="box">
+          <h3>전기 에너지는 다른 에너지로 바뀌어요</h3>
+          <p>전구에서는 <b>전기 에너지가 빛 에너지와 열 에너지로</b> 바뀝니다. 전구가 밝을수록 같은 시간 동안 더 많은 전기 에너지를 바꾸어 쓰는 것으로, 이렇게 1초 동안 쓰는 전기 에너지를 <b>소비 전력</b>이라고 해요.</p>
+          <p>집 안의 전기 기구는 <b>병렬</b>로 연결되어 있어 모든 기구에 같은 전압이 걸리고, 하나를 꺼도 다른 기구를 쓸 수 있어요. 대신 켜는 기구가 많을수록 전체 전류가 커지므로 <b>멀티탭 하나에 전기 기구를 너무 많이 꽂지 않아야</b> 해요.</p>
+          <p>쓰지 않는 기구는 끄고, 같은 일을 하면서 소비 전력이 작은 기구(예: LED 전등)를 고르면 전기를 효율적으로 쓸 수 있어요.</p>
+        </div>
+        <div class="miscon">
+          <h3>헷갈리기 쉬운 것</h3>
+          <ul>
+            <li><span class="no">✗</span>직렬연결하면 앞의 전구가 전류를 먼저 써서 뒤의 전구가 더 어둡다. <span class="yes">→ ○</span>직렬연결한 같은 전구에는 같은 세기의 전류가 흘러 밝기가 모두 같다.</li>
+            <li><span class="no">✗</span>병렬연결하면 전류가 나뉘어서 전구가 어두워진다. <span class="yes">→ ○</span>전구마다 전지의 전압이 그대로 걸려 밝기는 전구 1개일 때와 같다. 전지가 전류를 더 많이 내보낼 뿐이다.</li>
+            <li><span class="no">✗</span>전지를 많이 연결할수록 무조건 밝아진다. <span class="yes">→ ○</span>병렬연결한 전지는 개수를 늘려도 밝기가 같고, 더 오래 쓸 수 있을 뿐이다.</li>
+            <li><span class="no">✗</span>병렬연결한 전구 하나를 빼면 남은 전구가 더 밝아진다. <span class="yes">→ ○</span>남은 전구에 걸리는 전압은 그대로라 밝기도 그대로다.</li>
+            <li><span class="no">✗</span>집 안의 전기 기구를 많이 켜도 전체 전류는 같다. <span class="yes">→ ○</span>병렬로 연결된 기구를 켤수록 전체 전류가 커진다.</li>
+          </ul>
+        </div>
+        <table class="terms">
+          <tr><th>직렬연결</th><td>전기 기구(저항)를 한 줄로 차례로 연결하는 방법.</td></tr>
+          <tr><th>병렬연결</th><td>전기 기구(저항)를 나란히, 각각 다른 길로 연결하는 방법.</td></tr>
+          <tr><th>꼬마전구</th><td>전류가 흐르는 것을 방해하는 저항 역할을 하며, 전기 에너지를 빛·열 에너지로 바꾼다.</td></tr>
+          <tr><th>스위치</th><td>전류가 흐르는 길을 이어 주거나 끊는 장치.</td></tr>
+          <tr><th>소비 전력</th><td>전기 기구가 1초 동안 쓰는 전기 에너지. 단위는 W(와트).</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 인쇄 활동지 ================= -->
+  <div class="printonly sheet">
+    <div class="namebar"><b>저항의 직렬연결과 병렬연결의 특징 비교하기</b> <span>&nbsp;</span>학년 <span>&nbsp;</span>반 <span>&nbsp;</span>번 이름 <span>&nbsp;</span></div>
+    <p style="margin:0 0 6px;font-size:10pt">목표: 전구(저항)를 직렬연결과 병렬연결했을 때의 특징을 비교할 수 있다.</p>
+    <h2>1. 전구의 연결에 따른 밝기 비교 (같은 전지)</h2>
+    <table>
+      <tr><th style="width:22%"></th><th>전구 1개</th><th>직렬연결 (전구 2개)</th><th>병렬연결 (전구 2개)</th></tr>
+      <tr><th>회로도</th><td id="sc-a"></td><td id="sc-b"></td><td id="sc-c"></td></tr>
+      <tr><th>전구 1개의 밝기<br>(전구 1개 회로와 비교)</th><td>기준</td><td style="height:34px"></td><td></td></tr>
+      <tr><th>전구 하나를 뺄 때<br>나머지 전구</th><td>—</td><td style="height:34px"></td><td></td></tr>
+    </table>
+    <figure style="margin-top:6px"><img class="ps-shot" id="ps-img" alt="가상실험 화면"><figcaption>가상실험 화면(인쇄할 때의 상태)</figcaption></figure>
+    <h2>2. 전지의 연결에 따른 비교 (전구 1개, 전지 2개)</h2>
+    <table>
+      <tr><th style="width:22%"></th><th>회로도</th><th>전구 밝기<br>(전지 1개와 비교)</th><th>전지를 쓸 수 있는 시간<br>(전지 1개와 비교)</th></tr>
+      <tr><th>전지 직렬연결</th><td id="sc-d"></td><td></td><td></td></tr>
+      <tr><th>전지 병렬연결</th><td id="sc-e"></td><td></td><td></td></tr>
+    </table>
+    <div class="keep"><h2>3. 결과 정리</h2>
+    <ol>
+      <li>전구를 직렬연결하거나 병렬연결할 때 전구의 밝기에는 어떤 차이가 있나요?<div class="lines"></div><div class="lines"></div></li>
+      <li>전구 하나를 뺄 때 나머지 전구의 변화가 직렬과 병렬에서 다른 까닭은 무엇일까요?<div class="lines"></div><div class="lines"></div></li>
+      <li>집 안의 전기 기구를 병렬로 연결하는 까닭을 설명해 봅시다.<div class="lines"></div><div class="lines"></div></li>
+      <li>전지를 직렬연결할 때와 병렬연결할 때의 차이를 정리해 봅시다.<div class="lines"></div><div class="lines"></div></li>
+    </ol></div>
+    <div class="keep"><h2>4. 스스로 평가하기</h2>
+    <table class="selfcheck">
+      <tr><th>평가 내용</th><th style="width:13%">잘함</th><th style="width:13%">보통</th><th style="width:13%">노력 필요</th></tr>
+      <tr><td>직렬연결과 병렬연결을 구별할 수 있는가?</td><td></td><td></td><td></td></tr>
+      <tr><td>연결 방법에 따른 밝기와 끊었을 때의 차이를 비교해 설명할 수 있는가?</td><td></td><td></td><td></td></tr>
+      <tr><td>생활 속 전기 기구의 연결 방법과 효율적인 전기 사용을 관련지을 수 있는가?</td><td></td><td></td><td></td></tr>
+    </table></div>
+  </div>
+
+  <footer class="tb-foot">모든 그림은 직접 그린 것입니다. 전지는 1.5 V 이상적인 전지, 꼬마전구는 저항이 일정한 이상적인 전구로 계산한 가상 실험입니다. 교육과정 근거: 2022 개정 과학과 교육과정 [9과14-03]</footer>
+</div>
+
+<script src="../../toolbox-nav.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   공통 도우미
+   ========================================================= */
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+var REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var FONT = "Pretendard, -apple-system, 'Malgun Gothic', sans-serif";
+var C = {
+  ink: "#24211D", graphite: "#5C564E", hair: "#D9D1BF", sheet: "#FFFDF7", cat: "#1D4ED8", current: "#C2410C",
+  wire: "#4B5058", wireLt: "#9AA1AA", holder: "#5B6470", slot: "#3E444D", cell: "#2F3B52", cap: "#C98A3A", metal: "#C9CDD2",
+  socket: "#D8B98C", socketDk: "#8A6239", warn: "#9A3412"
+};
+var LW = 640;
+function $(id){ return document.getElementById(id); }
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+function lerp(a, b, t){ return a + (b - a) * t; }
+function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function stamp(){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+/* 캔버스: 640 × LH 논리 좌표를 화면 폭에 맞춰 늘이고 줄임 */
+function fitStage(S){
+  var w = S.cv.parentNode.clientWidth || LW;
+  S.scale = w / LW;
+  S.h = Math.round(S.LH * S.scale);
+  S.cv.width = Math.round(w * DPR);
+  S.cv.height = Math.round(S.h * DPR);
+  S.cv.style.height = S.h + "px";
+  S.ctx = S.cv.getContext("2d");
+  S.ctx.setTransform(DPR * S.scale, 0, 0, DPR * S.scale, 0, 0);
+  S.tb = Math.max(1, (S.tbk || 0.72) / S.scale);   /* 좁은 화면·작은 그림에서 글자가 너무 작아지지 않게 */
+}
+function pointer(S, ev){ var b = S.cv.getBoundingClientRect(); return {x: (ev.clientX - b.left) / S.scale, y: (ev.clientY - b.top) / S.scale}; }
+
+/* =========================================================
+   회로 계산 (이상적인 전지 1.5 V, 저항이 일정한 전구 10 Ω)
+   - 밝기 = 전구에서 쓰는 전력 ÷ (전지 1개 + 전구 1개일 때의 전력) × 100
+   ========================================================= */
+var E = 1.5, RB = 10, P0 = E * E / RB, I0 = E / RB;
+var LET = ["A", "B", "C"], NUM = ["①", "②", "③", "④", "⑤"];
+function lum(idx){ return idx <= 0 ? 0 : 1 - Math.exp(-0.55 * Math.sqrt(idx / 100)); }   /* 눈에 보이는 밝기(0~1) */
+function fmtIdx(v){ return v < 0.5 ? "0" : String(Math.round(v)); }
+function fmtLife(rel){ if (!(rel > 0)) return "—"; if (rel >= 0.999) return (Math.round(rel * 10) / 10) + "배"; return "1/" + Math.round(1 / rel) + "배"; }
+function mA(I){ return Math.round(I * 1000); }
+
+function solve(c){
+  var i, j, r = {bulbs: [], cells: [], br: {}, I: 0};
+  var nIn = 0; for (i = 0; i < c.nc; i++) if (!c.cellOut[i]) nIn++;
+  r.cellsIn = nIn;
+  r.batOpen = c.batMode === "series" ? nIn < c.nc : nIn === 0;
+  r.Vnom = c.batMode === "series" ? c.nc * E : E;
+  r.Vb = r.batOpen ? 0 : r.Vnom;
+  var bIn = 0; for (i = 0; i < c.nb; i++) if (!c.bulbOut[i]) bIn++;
+  r.bulbsIn = bIn;
+  r.loadOpen = c.bulbMode === "parallel" ? bIn === 0 : bIn < c.nb;
+  r.closed = !!c.sw && !r.batOpen && !r.loadOpen;
+  for (i = 0; i < c.nb; i++){
+    var out = !!c.bulbOut[i], V = 0;
+    if (r.closed && !out) V = c.bulbMode === "parallel" ? r.Vb : r.Vb / c.nb;
+    var I = V / RB;
+    r.bulbs.push({out: out, V: V, I: I, idx: V * V / RB / P0 * 100});
+    if (c.bulbMode === "parallel") r.I += I;
+  }
+  if (c.bulbMode !== "parallel") r.I = r.closed ? r.Vb / (c.nb * RB) : 0;
+  for (i = 0; i < c.nc; i++){
+    var co = !!c.cellOut[i], ci = 0;
+    if (r.closed && !co) ci = c.batMode === "series" ? r.I : r.I / nIn;
+    r.cells.push({out: co, I: ci});
+  }
+  r.ref = r.Vnom * r.Vnom / RB / P0 * 100;   /* 같은 전지에 전구 1개만 연결했을 때의 밝기 */
+  r.br.main = r.I;
+  for (i = 0; i < c.nb; i++){ r.br["bulb:" + i] = r.bulbs[i].I; var s = 0; for (j = i + 1; j < c.nb; j++) s += r.bulbs[j].I; r.br["railT:" + i] = s; }
+  for (i = 0; i < c.nc; i++){ r.br["cell:" + i] = r.cells[i].I; var s2 = 0; for (j = i + 1; j < c.nc; j++) s2 += r.cells[j].I; r.br["railB:" + i] = s2; }
+  return r;
+}
+
+/* =========================================================
+   회로 배치 — 전류가 흐르는 방향으로 전선 점을 나열
+   (+극 → 오른쪽 전선 → 위쪽 전구 → 왼쪽 전선·스위치 → −극)
+   ========================================================= */
+var TOPY = 80, LX = 48, RX = 592, GAPB = 72, GAPC = 44, TB0 = 170, TB1 = 470, BB0 = 230, BB1 = 410, CX = 320;
+function P(x, y){ return {x: x, y: y}; }
+function seg(key, pts){
+  var len = [0];
+  for (var i = 1; i < pts.length; i++) len.push(len[i-1] + Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y));
+  return {key: key, pts: pts, len: len, total: len[len.length - 1]};
+}
+function botOf(c){
+  var down = c.bulbMode === "parallel" ? (c.nb - 1) * GAPB : 0;
+  var up = c.batMode === "parallel" ? (c.nc - 1) * GAPC : 0;
+  return TOPY + Math.max(230, down + up + 66);
+}
+function layout(c, botMin){
+  var L = {segs: [], bulbs: [], cells: [], dots: []}, k, y, BS, BE;
+  var BOT = Math.max(botOf(c), botMin || 0);
+  L.BOT = BOT; L.LH = BOT + 50; L.sw = P(LX, Math.round((TOPY + BOT) / 2));
+  if (c.batMode === "parallel"){
+    BS = P(BB0, BOT); BE = P(BB1, BOT);
+    for (k = 0; k < c.nc; k++){
+      y = BOT - k * GAPC;
+      L.cells.push({x: CX, y: y, k: k});
+      L.segs.push(seg("cell:" + k, [P(BB0, y), P(BB1, y)]));
+      if (k < c.nc - 1){
+        L.segs.push(seg("railB:" + k, [P(BB0, y), P(BB0, y - GAPC)]));
+        L.segs.push(seg("railB:" + k, [P(BB1, y - GAPC), P(BB1, y)]));
+        L.dots.push(P(BB0, y), P(BB1, y));
+      }
+    }
+  } else {
+    for (k = 0; k < c.nc; k++) L.cells.push({x: CX + (k - (c.nc - 1) / 2) * 58, y: BOT, k: k});
+    BS = P(L.cells[0].x - 34, BOT); BE = P(L.cells[c.nc - 1].x + 34, BOT);
+    L.segs.push(seg("main", [BS, BE]));
+    L.holder = {x0: BS.x, x1: BE.x};
+  }
+  if (c.bulbMode === "parallel"){
+    for (k = 0; k < c.nb; k++){
+      y = TOPY + k * GAPB;
+      L.bulbs.push({x: CX, y: y, k: k});
+      L.segs.push(seg("bulb:" + k, [P(TB1, y), P(TB0, y)]));
+      if (k < c.nb - 1){
+        L.segs.push(seg("railT:" + k, [P(TB1, y), P(TB1, y + GAPB)]));
+        L.segs.push(seg("railT:" + k, [P(TB0, y + GAPB), P(TB0, y)]));
+        L.dots.push(P(TB0, y), P(TB1, y));
+      }
+    }
+    L.segs.push(seg("main", [BE, P(RX, BOT), P(RX, TOPY), P(TB1, TOPY)]));
+    L.segs.push(seg("main", [P(TB0, TOPY), P(LX, TOPY), P(LX, BOT), BS]));
+  } else {
+    var xs = c.nb === 1 ? [CX] : (c.nb === 2 ? [255, 385] : [215, 320, 425]);
+    for (k = 0; k < c.nb; k++) L.bulbs.push({x: xs[k], y: TOPY, k: k});
+    L.segs.push(seg("main", [BE, P(RX, BOT), P(RX, TOPY), P(LX, TOPY), P(LX, BOT), BS]));
+  }
+  return L;
+}
+function along(s, d){
+  var L = s.len, i = 1;
+  while (i < L.length - 1 && L[i] < d) i++;
+  var a = s.pts[i-1], b = s.pts[i], t = clamp((d - L[i-1]) / ((L[i] - L[i-1]) || 1), 0, 1);
+  return {x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), ang: Math.atan2(b.y - a.y, b.x - a.x)};
+}
+
+/* =========================================================
+   그리기
+   ========================================================= */
+var show = {flow: true, meas: false};
+function T(S, s, x, y, o){
+  o = o || {};
+  var ctx = S.ctx, size = (o.size || 12) * S.tb;
+  ctx.font = (o.bold === false ? "" : "700 ") + size + "px " + FONT;
+  ctx.textAlign = o.align || "center"; ctx.textBaseline = "middle";
+  if (o.bg){
+    var w = ctx.measureText(s).width + 10 * S.tb, h = size + 7 * S.tb;
+    var x0 = o.align === "left" ? x - 5 * S.tb : (o.align === "right" ? x - w + 5 * S.tb : x - w / 2);
+    rrect(ctx, x0, y - h / 2, w, h, 3); ctx.fillStyle = o.bg; ctx.fill();
+    if (o.border){ ctx.strokeStyle = o.border; ctx.lineWidth = 1; ctx.stroke(); }
+  }
+  ctx.fillStyle = o.color || C.ink; ctx.fillText(s, x, y + 0.5);
+}
+function drawWire(ctx, pts){
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.strokeStyle = C.wire; ctx.lineWidth = 5; ctx.stroke();
+  ctx.strokeStyle = C.wireLt; ctx.lineWidth = 1.6; ctx.stroke();
+}
+var SP = 30;
+function speed(I){ return 42 * clamp(I / I0, 0, 5); }
+function drawArrows(S){
+  if (!show.flow) return;
+  var ctx = S.ctx;
+  ctx.strokeStyle = C.current; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  S.L.segs.forEach(function(s){
+    var I = S.r.br[s.key] || 0;
+    if (I < 1e-5) return;
+    var off = (S.ph[s.key] || 0) % SP;
+    for (var d = off + 6; d < s.total - 4; d += SP){
+      var p = along(s, d);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang);
+      ctx.beginPath(); ctx.moveTo(-4, -4.5); ctx.lineTo(3, 0); ctx.lineTo(-4, 4.5); ctx.stroke();
+      ctx.restore();
+    }
+  });
+}
+/* 전구 몸체: (x, yb)는 소켓 윗면 가운데, L은 밝기(0~1) */
+function bulbBody(ctx, x, yb, L){
+  var cy = yb - 30;
+  if (L > 0.02){
+    var R = 16 + 50 * L, g = ctx.createRadialGradient(x, cy, 3, x, cy, R);
+    g.addColorStop(0, "rgba(255,226,120," + (0.9 * L).toFixed(3) + ")");
+    g.addColorStop(0.45, "rgba(255,200,80," + (0.45 * L).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(255,190,60,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, cy, R, 0, Math.PI * 2); ctx.fill();
+  }
+  /* 꼭지쇠 */
+  rrect(ctx, x - 7, yb - 14, 14, 14, 2); ctx.fillStyle = "#B8BEC6"; ctx.fill();
+  ctx.strokeStyle = "#7A8088"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 7, yb - 9.5); ctx.lineTo(x + 7, yb - 7.5); ctx.moveTo(x - 7, yb - 5); ctx.lineTo(x + 7, yb - 3); ctx.stroke();
+  /* 유리 */
+  ctx.beginPath(); ctx.arc(x, cy, 16, Math.PI * 0.62, Math.PI * 2.38); ctx.lineTo(x + 6.5, yb - 14); ctx.lineTo(x - 6.5, yb - 14); ctx.closePath();
+  var gr = Math.round(lerp(228, 255, L)), gg = Math.round(lerp(234, 240, L)), gb = Math.round(lerp(242, 170, L));
+  ctx.fillStyle = "rgba(" + gr + "," + gg + "," + gb + ",0.92)"; ctx.fill();
+  ctx.strokeStyle = "#7A8088"; ctx.lineWidth = 1.2; ctx.stroke();
+  /* 필라멘트 */
+  var fc = L < 0.02 ? "#6B5B4B" : "rgb(" + Math.round(lerp(210, 255, L)) + "," + Math.round(lerp(80, 250, L)) + "," + Math.round(lerp(20, 215, L)) + ")";
+  ctx.strokeStyle = fc; ctx.lineWidth = 1.6; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(x - 4, yb - 14); ctx.lineTo(x - 4, yb - 28);
+  ctx.lineTo(x - 2.4, yb - 32); ctx.lineTo(x - 0.8, yb - 28); ctx.lineTo(x + 0.8, yb - 32); ctx.lineTo(x + 2.4, yb - 28); ctx.lineTo(x + 4, yb - 32);
+  ctx.lineTo(x + 4, yb - 14); ctx.stroke();
+  /* 반짝임 */
+  ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 2; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(x, cy, 11, Math.PI * 1.15, Math.PI * 1.45); ctx.stroke();
+}
+function drawBulb(S, b, L, out, label){
+  var ctx = S.ctx, x = b.x, y = b.y;
+  rrect(ctx, x - 21, y - 9, 42, 18, 4); ctx.fillStyle = C.socket; ctx.fill();
+  ctx.strokeStyle = C.socketDk; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = "#A9AEB5";
+  ctx.beginPath(); ctx.arc(x - 14, y, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 14, y, 3, 0, Math.PI * 2); ctx.fill();
+  if (out){
+    ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = C.graphite; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.ellipse(x, y - 11, 8, 3.2, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.translate(x + 26, y - 20); ctx.rotate(0.5); ctx.globalAlpha = 0.7; bulbBody(ctx, 0, 0, 0); ctx.restore();
+    T(S, "빠짐", x + 30, y - 4, {size: 10.5, color: C.warn, bg: C.sheet, border: C.hair, align: "left"});
+  } else {
+    bulbBody(ctx, x, y - 9, L);
+  }
+  if (label){
+    var rr = 9 * S.tb;
+    ctx.beginPath(); ctx.arc(x - 31, y - 39, rr, 0, Math.PI * 2); ctx.fillStyle = C.sheet; ctx.fill();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.stroke();
+    T(S, label, x - 31, y - 39, {size: 11});
+  }
+}
+function drawCell(S, cl, out, num, par){
+  var ctx = S.ctx, x = cl.x, y = cl.y;
+  if (par){ rrect(ctx, x - 34, y - 17, 68, 34, 5); ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke(); }
+  rrect(ctx, x - 28, y - 13, 56, 26, 4); ctx.fillStyle = C.slot; ctx.fill();
+  if (out){
+    ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = "#E5E7EB"; ctx.lineWidth = 1.2;
+    rrect(ctx, x - 24, y - 10, 48, 20, 3); ctx.stroke(); ctx.restore();
+    T(S, "빈 칸", x, y, {size: 10, color: "#F3F4F6", bold: false});
+  } else {
+    rrect(ctx, x - 24, y - 10, 40, 20, 3); ctx.fillStyle = C.cell; ctx.fill();
+    rrect(ctx, x + 14, y - 10, 8, 20, 2); ctx.fillStyle = C.cap; ctx.fill();
+    rrect(ctx, x + 22, y - 4.5, 4, 9, 1.5); ctx.fillStyle = C.metal; ctx.fill();
+    if (S.tb < 1.3) T(S, "1.5V", x - 5, y, {size: 9.5, color: "#fff"});
+    T(S, "+", x + 18, y, {size: 10, color: "#3B2A12"});
+  }
+  if (num){
+    if (par) T(S, num, x - 48, y, {size: 11, color: C.graphite, bg: C.sheet});
+    else T(S, num, x, y - 27, {size: 11, color: C.graphite});
+  }
+}
+function drawSwitch(S, closed){
+  var ctx = S.ctx, x = S.L.sw.x, y = S.L.sw.y;
+  rrect(ctx, x - 15, y - 30, 30, 60, 4); ctx.fillStyle = "#EFE6D2"; ctx.fill();
+  ctx.strokeStyle = C.socketDk; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = C.wire; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x, y - 30); ctx.lineTo(x, y - 20); ctx.moveTo(x, y + 20); ctx.lineTo(x, y + 30); ctx.stroke();
+  var ex = closed ? x : x + 21, ey = closed ? y - 20 : y - 9;
+  ctx.strokeStyle = "#6B7280"; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(x, y + 20); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.fillStyle = "#9CA3AF"; ctx.strokeStyle = C.ink; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(x, y - 20, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y + 20, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#B91C1C"; ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI * 2); ctx.fill();
+  T(S, closed ? "스위치 닫힘" : "스위치 열림", x + 26, y + 16, {size: 11, align: "left", bg: C.sheet, border: closed ? C.hair : C.warn, color: closed ? C.ink : C.warn});
+}
+function packText(c, r){
+  var s = c.nc === 1 ? "전지 1개" : "전지 " + c.nc + "개 " + (c.batMode === "series" ? "직렬연결" : "병렬연결");
+  if (r.batOpen) return s + " · 끊어짐";
+  if (show.meas) s += " · 전체 전압 " + r.Vb.toFixed(1) + " V";
+  return s;
+}
+function drawTags(S){
+  var r = S.r, c = S.c, L = S.L;
+  L.bulbs.forEach(function(b, k){
+    var B = r.bulbs[k]; if (B.out) return;
+    var s = B.V.toFixed(2) + " V · " + mA(B.I) + " mA";
+    if (c.bulbMode === "parallel") T(S, s, b.x + 30, b.y - 30, {size: 11, align: "left", bg: C.sheet, border: C.hair, color: C.cat});
+    else T(S, s, b.x, b.y + 24, {size: 11, bg: C.sheet, border: C.hair, color: C.cat});
+  });
+  if (c.batMode === "parallel" && c.nc > 1) L.cells.forEach(function(cl, k){
+    if (r.cells[k].out) return;
+    T(S, mA(r.cells[k].I) + " mA", BB1 + 10, cl.y - 12, {size: 10.5, align: "left", bg: C.sheet, border: C.hair, color: C.cat});
+  });
+  T(S, "전체 전류 " + mA(r.I) + " mA", RX - 12, L.BOT - 34, {size: 11, align: "right", bg: C.sheet, border: C.hair, color: C.cat});
+}
+function drawCircuit(S, o){
+  o = o || {};
+  var ctx = S.ctx, c = S.c, r = S.r, L = S.L;
+  ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, L.LH);
+  L.segs.forEach(function(s){ drawWire(ctx, s.pts); });
+  ctx.fillStyle = C.wire;
+  L.dots.forEach(function(d){ ctx.beginPath(); ctx.arc(d.x, d.y, 4.5, 0, Math.PI * 2); ctx.fill(); });
+  drawArrows(S);
+  if (L.holder){
+    rrect(ctx, L.holder.x0 + 2, L.BOT - 18, L.holder.x1 - L.holder.x0 - 4, 36, 6);
+    ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  L.cells.forEach(function(cl, k){ drawCell(S, cl, r.cells[k].out, c.nc > 1 ? NUM[k] : "", c.batMode === "parallel"); });
+  L.bulbs.forEach(function(b, k){ drawBulb(S, b, S.lum[k] || 0, r.bulbs[k].out, c.nb > 1 ? LET[k] : ""); });
+  if (!o.noSwitch) drawSwitch(S, c.sw);
+  if (show.meas && !o.noTags) drawTags(S);
+  T(S, packText(c, r), CX, L.BOT + 31, {size: 12, color: r.batOpen ? C.warn : C.ink});
+}
+/* 시간에 따라: 전류 화살표 이동, 전구 밝기는 부드럽게(약 0.4초) 바뀜 */
+function tick(S, dt){
+  var r = S.r, k;
+  for (var key in r.br){
+    var I = r.br[key];
+    if (!REDUCE && I > 1e-5) S.ph[key] = ((S.ph[key] || 0) + dt * speed(I)) % SP;
+  }
+  for (k = 0; k < r.bulbs.length; k++){
+    var tgt = lum(r.bulbs[k].idx);
+    if (REDUCE || S.lum[k] == null) S.lum[k] = tgt;
+    else S.lum[k] += (tgt - S.lum[k]) * (1 - Math.exp(-dt / 0.13));
+  }
+}
+function hitTest(S, p, allow){
+  var L = S.L, k;
+  for (k = 0; k < L.bulbs.length; k++){ var b = L.bulbs[k]; if (Math.hypot(p.x - b.x, p.y - (b.y - 24)) < 30) return {t: "b", k: k}; }
+  if (allow === "bulbs") return null;
+  for (k = 0; k < L.cells.length; k++){ var cl = L.cells[k]; if (Math.abs(p.x - cl.x) < 32 && Math.abs(p.y - cl.y) < 18) return {t: "c", k: k}; }
+  if (Math.abs(p.x - L.sw.x) < 26 && Math.abs(p.y - L.sw.y) < 34) return {t: "s"};
+  return null;
+}
+
+/* =========================================================
+   상태
+   ========================================================= */
+var bat = {mode: "series", n: 1};
+var main = {bulbMode: "single", nb: 2, bulbOut: [false, false, false], cellOut: [false, false, false, false, false], sw: false};
+var t3 = {n: 2, seen: {2: true}};
+var obs = {ser: false, par: false};
+function cfgMain(){
+  return {bulbMode: main.bulbMode, nb: main.bulbMode === "single" ? 1 : main.nb, batMode: bat.mode, nc: bat.n,
+          bulbOut: main.bulbOut, cellOut: main.cellOut, sw: main.sw};
+}
+function mkStage(id, o, tbk){ return {cv: $(id), LH: 340, ph: {}, lum: [], o: o || {}, tbk: tbk}; }
+var S1 = mkStage("cv1");
+var M = [
+  mkStage("m1", {bulbMode: "single", nb: 1, bulbOut: [false]}, 0.9),
+  mkStage("m2", {bulbMode: "series", nb: 2, bulbOut: [false, false], seen: false}, 0.9),
+  mkStage("m3", {bulbMode: "parallel", nb: 2, bulbOut: [false, false], seen: false}, 0.9)
+];
+var N = [ mkStage("n1", {batMode: "series"}, 0.9), mkStage("n2", {batMode: "parallel"}, 0.9) ];
+function cfgM(o){ return {bulbMode: o.bulbMode, nb: o.nb, batMode: bat.mode, nc: bat.n, bulbOut: o.bulbOut, cellOut: [], sw: true}; }
+function cfgN(o){ return {bulbMode: "single", nb: 1, batMode: o.batMode, nc: t3.n, bulbOut: [false], cellOut: [], sw: true}; }
+function setStage(S, c, botMin){
+  S.c = c; S.r = solve(c);
+  var L = layout(c, botMin), changed = !S.L || S.L.LH !== L.LH;
+  S.L = L;
+  if (changed){ S.LH = L.LH; fitStage(S); }
+}
+function maxBot(list){ return Math.max.apply(null, list.map(botOf)); }
+
+function updateAll(struct){
+  setStage(S1, cfgMain(), 0);
+  var mc = M.map(function(S){ return cfgM(S.o); }), mb = maxBot(mc);
+  M.forEach(function(S, i){ setStage(S, mc[i], mb); });
+  var nc = N.map(function(S){ return cfgN(S.o); }), nb = maxBot(nc);
+  N.forEach(function(S, i){ setStage(S, nc[i], nb); });
+  if (struct) buildCuts(); else syncCuts();
+  refreshUI();
+}
+
+/* =========================================================
+   화면 글·표 고치기
+   ========================================================= */
+function card(name, B, extra){
+  var off = B.out || B.idx < 0.5;
+  var st = B.out ? "✋ 빠짐" : (off ? "⚫ 꺼짐" : "💡 켜짐");
+  var w = Math.round(lum(B.idx) * 100);
+  var meas = show.meas && !B.out ? '<span class="meas">전압 ' + B.V.toFixed(2) + ' V · 전류 ' + mA(B.I) + ' mA</span>' : '';
+  return '<div class="bc' + (off ? ' off' : '') + '"><span class="nm">' + name + '</span><span class="stt">' + st + '</span><span class="val">밝기 ' + fmtIdx(B.idx) + '</span>' +
+         '<span class="bar" aria-hidden="true"><i style="width:' + w + '%"></i></span>' + meas + (extra || '') + '</div>';
+}
+function bulbName(c, k){ return c.nb > 1 ? "전구 " + LET[k] : "전구"; }
+function compareWord(idx, ref){
+  if (!(ref > 0)) return "—";
+  var q = idx / ref;
+  if (Math.abs(q - 1) < 0.03) return "＝ 같다";
+  return q < 1 ? "▼ 어둡다" : "▲ 밝다";
+}
+function overV(r){ var m = 0; r.bulbs.forEach(function(B){ if (B.V > m) m = B.V; }); return m; }
+function warnText(v){ return "⚠️ 전구 하나에 걸리는 전압이 " + v.toFixed(1) + " V예요. 실제 꼬마전구(보통 2.5 V~3.8 V용)라면 너무 밝게 빛나다가 필라멘트가 끊어질 수 있어요. 가상실험에서만 해 보세요."; }
+function setWarn(el, r){ var v = overV(r); el.hidden = !(v > 4.5); if (v > 4.5) el.textContent = warnText(v); }
+
+function explain1(){
+  var c = S1.c, r = S1.r, s = [];
+  if (!c.sw) s.push("<b>스위치가 열려</b> 있어 전류가 흐를 길이 끊겨 있어요. 스위치를 닫아 보세요.");
+  else if (r.batOpen) s.push(c.batMode === "series" && c.nc > 1 ? "<b>직렬연결한 전지</b> 중 하나를 빼면 전지 묶음 안에서 길이 끊겨 <b>전구가 모두 꺼져요</b>." : "전지를 모두 빼서 전류를 보낼 전지가 없어요.");
+  else if (r.loadOpen){
+    if (c.bulbMode === "parallel") s.push("전구를 모두 빼서 전류가 지나갈 길이 없어요.");
+    else if (c.bulbMode === "single") s.push("전구를 빼면 그 자리에서 길이 끊겨 전류가 흐르지 않아요.");
+    else s.push("<b>직렬연결</b>은 전류가 지나는 길이 하나뿐이에요. 전구 하나를 빼자 그 길이 끊겨 <b>나머지 전구도 모두 꺼졌어요</b>.");
+  } else {
+    if (c.bulbMode === "single") s.push("전구 1개에 전지를 연결해 불이 켜졌어요. 이 밝기를 기준으로 직렬연결·병렬연결과 비교해 보세요.");
+    else if (c.bulbMode === "series") s.push("전구 " + c.nb + "개를 <b>직렬연결</b>하면 전지의 전압을 전구들이 나누어 가져, 전구 하나의 밝기가 전구 1개일 때보다 <b>어두워요</b>. 전구들의 밝기는 서로 같아요.");
+    else {
+      s.push("전구를 <b>병렬연결</b>하면 전구마다 전지의 전압이 그대로 걸려, 전구 하나의 밝기가 전구 1개일 때와 <b>같아요</b>.");
+      if (r.bulbsIn < c.nb) s.push("전구를 빼도 나머지 전구는 자기 길이 그대로 이어져 있어 <b>계속 켜져 있어요</b>.");
+      else s.push("대신 전지에서 나오는 전체 전류는 전구 수만큼 커져요.");
+    }
+    if (c.nc > 1){
+      if (c.batMode === "series") s.push("전지 " + c.nc + "개를 직렬연결해 전체 전압이 전지 1개의 " + c.nc + "배라서 전지 1개일 때보다 밝아요.");
+      else {
+        s.push("전지 " + c.nc + "개를 병렬연결하면 전체 전압은 전지 1개와 같아 밝기는 같아요. 전지들이 전류를 나누어 보내 더 오래 쓸 수 있어요.");
+        if (r.cellsIn < c.nc) s.push("전지 하나를 빼도 남은 전지가 전류를 보내 밝기는 그대로예요.");
+      }
+    }
+  }
+  return s.map(function(t){ return "<p>" + t + "</p>"; }).join("");
+}
+function predFb(name, seen, correct, okMsg, badMsg, how){
+  var sel = document.querySelector('input[name="' + name + '"]:checked'), fb = $(name + "-fb");
+  if (!sel){ fb.innerHTML = "하나를 고른 뒤 실험으로 확인해 보세요."; return; }
+  if (!seen){ fb.innerHTML = "골랐어요. 이제 " + how + " 확인해 보세요."; return; }
+  fb.innerHTML = sel.value === correct ? '<span class="fb-ok">✓ 예상이 맞았어요.</span> ' + okMsg : '<span class="fb-bad">✗ 실험 결과는 예상과 달라요.</span> ' + badMsg;
+}
+function summary1(){
+  var c = S1.c, r = S1.r, s = [];
+  s.push(c.bulbMode === "single" ? "전구 1개" : "전구 " + c.nb + "개 " + (c.bulbMode === "series" ? "직렬연결" : "병렬연결"));
+  s.push(c.nc === 1 ? "전지 1개" : "전지 " + c.nc + "개 " + (c.batMode === "series" ? "직렬연결" : "병렬연결"));
+  s.push(c.sw ? "스위치 닫힘" : "스위치 열림");
+  r.bulbs.forEach(function(B, k){ s.push(bulbName(c, k) + " " + (B.out ? "빠짐" : "밝기 " + fmtIdx(B.idx))); });
+  return s.join(", ") + ".";
+}
+
+function refreshUI(){
+  /* ① */
+  var c = S1.c, r = S1.r;
+  $("bcards").innerHTML = r.bulbs.map(function(B, k){ return card(bulbName(c, k), B); }).join("");
+  $("r-state").textContent = r.closed ? "연결됨" : "끊어짐";
+  $("r-ref").textContent = "밝기 " + fmtIdx(r.ref);
+  $("rd-v").hidden = $("rd-i").hidden = !show.meas;
+  $("r-v").textContent = r.batOpen ? "끊어짐" : r.Vb.toFixed(1) + " V";
+  $("r-i").textContent = mA(r.I) + " mA";
+  $("explain").innerHTML = '<span class="h">관찰한 것</span>' + explain1();
+  setWarn($("warn"), r);
+  var bsw = $("b-sw"); bsw.setAttribute("aria-pressed", main.sw ? "true" : "false"); bsw.textContent = main.sw ? "🔌 스위치 열기" : "🔌 스위치 닫기";
+  $("cv1-sum").textContent = summary1();
+  if (c.nb === 2 && r.closed && r.bulbsIn === 2){ if (c.bulbMode === "series") obs.ser = true; if (c.bulbMode === "parallel") obs.par = true; }
+  predFb("p1", obs.ser, "dim", "직렬연결한 전구는 전지의 전압을 나누어 가져 전구 1개일 때보다 어두워요.", "전구 1개일 때와 나란히 놓고 다시 비교해 보세요. 직렬연결한 전구는 전압을 나누어 가져 더 어두워요.", "전구 2개를 직렬연결하고 스위치를 닫아");
+  predFb("p2", obs.par, "same", "병렬연결한 전구에는 전지의 전압이 그대로 걸려 전구 1개일 때와 밝기가 같아요.", "병렬연결한 전구에는 전지의 전압이 그대로 걸려 전구 1개일 때와 밝기가 같아요.", "전구 2개를 병렬연결하고 스위치를 닫아");
+
+  /* ② */
+  M.forEach(function(S, i){
+    $("mr" + (i + 1)).innerHTML = S.r.bulbs.map(function(B, k){ return card(bulbName(S.c, k), B); }).join("");
+  });
+  [1, 2].forEach(function(i){
+    var S = M[i], b = $("cut" + (i + 1)), out = !!S.o.bulbOut[1];
+    b.setAttribute("aria-pressed", out ? "true" : "false");
+    b.textContent = out ? "↺ 전구 B 다시 끼우기" : "✋ 전구 B 빼 보기";
+  });
+  setWarn($("warn2"), M[0].r);
+  var rows = [["전구 1개", 0], ["직렬연결 (전구 2개)", 1], ["병렬연결 (전구 2개)", 2]].map(function(it){
+    var S = M[it[1]], full = solve(cfgM({bulbMode: S.o.bulbMode, nb: S.o.nb, bulbOut: []}));
+    var idx = full.bulbs[0].idx, after;
+    if (it[1] === 0) after = "전구가 하나뿐이라 회로가 끊어짐";
+    else if (!S.o.seen) after = '<span style="color:var(--graphite)">직접 빼 보세요</span>';
+    else after = it[1] === 1 ? "✗ 모두 꺼진다" : "💡 밝기 그대로 켜져 있다";
+    return '<tr><th scope="row">' + it[0] + '</th><td>' + fmtIdx(idx) + '</td><td>' + (it[1] === 0 ? "기준" : compareWord(idx, full.ref)) + '</td><td>' + after + '</td></tr>';
+  });
+  $("t2b").innerHTML = rows.join("");
+
+  /* ③ */
+  N.forEach(function(S, i){
+    var B = S.r.bulbs[0], cellI = S.r.cells[0] ? S.r.cells[0].I : 0;
+    var extra = '<span class="meas">전지 전체 전압 ' + S.r.Vb.toFixed(1) + ' V · 전지 하나에서 나오는 전류 ' + mA(cellI) + ' mA</span>' +
+                '<span class="meas"><b>전지를 쓸 수 있는 시간: ' + fmtLife(cellI > 0 ? I0 / cellI : 0) + '</b> (전지 1개 + 전구 1개 = 1배)</span>';
+    $("nr" + (i + 1)).innerHTML = card("전구", B, extra);
+  });
+  setWarn($("warn3"), N[0].r);
+  var h = "";
+  for (var n = 1; n <= 5; n++){
+    if (!t3.seen[n]){ h += '<tr><th scope="row">' + n + '개</th><td class="empty" colspan="4">—</td></tr>'; continue; }
+    var rs = solve({bulbMode: "single", nb: 1, batMode: "series", nc: n, bulbOut: [], cellOut: [], sw: true});
+    var rp = solve({bulbMode: "single", nb: 1, batMode: "parallel", nc: n, bulbOut: [], cellOut: [], sw: true});
+    h += '<tr' + (n === t3.n ? ' class="cur"' : '') + '><th scope="row">' + n + '개' + (n === t3.n ? ' ◀' : '') + '</th><td>' + fmtIdx(rs.bulbs[0].idx) + '</td><td>' + fmtLife(I0 / rs.cells[0].I) +
+         '</td><td>' + fmtIdx(rp.bulbs[0].idx) + '</td><td>' + fmtLife(I0 / rp.cells[0].I) + '</td></tr>';
+  }
+  $("t3b").innerHTML = h;
+}
+
+/* 연결 끊어 보기 버튼 */
+function buildCuts(){
+  var c = S1.c, h = "", k;
+  for (k = 0; k < c.nb; k++) h += '<button class="tb-btn ghost" data-cut="b' + k + '" aria-pressed="false"></button>';
+  for (k = 0; k < c.nc; k++) h += '<button class="tb-btn ghost" data-cut="c' + k + '" aria-pressed="false"></button>';
+  $("cuts").innerHTML = h;
+  [].forEach.call($("cuts").querySelectorAll("button"), function(b){
+    b.addEventListener("click", function(){
+      var t = b.getAttribute("data-cut"), k2 = +t.slice(1);
+      if (t[0] === "b") main.bulbOut[k2] = !main.bulbOut[k2]; else main.cellOut[k2] = !main.cellOut[k2];
+      updateAll(false);
+    });
+  });
+  syncCuts();
+}
+function syncCuts(){
+  var c = S1.c;
+  [].forEach.call($("cuts").querySelectorAll("button"), function(b){
+    var t = b.getAttribute("data-cut"), k = +t.slice(1), out, name;
+    if (t[0] === "b"){ out = !!main.bulbOut[k]; name = "💡 " + bulbName(c, k); }
+    else { out = !!main.cellOut[k]; name = "🔋 전지" + (c.nc > 1 ? " " + NUM[k] : ""); }
+    b.setAttribute("aria-pressed", out ? "true" : "false");
+    b.textContent = name + (out ? " 다시 끼우기" : " 빼기");
+  });
+}
+
+/* =========================================================
+   조작 연결
+   ========================================================= */
+function setRadio(name, v){ [].forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function(i){ i.checked = String(i.value) === String(v); }); }
+function syncRadios(){
+  setRadio("bm", main.bulbMode); setRadio("nbm", main.nb);
+  setRadio("batm", bat.mode); setRadio("batm2", bat.mode);
+  setRadio("nc1", bat.n); setRadio("nc2", bat.n); setRadio("nc3", t3.n);
+  [].forEach.call(document.querySelectorAll('input[name="nbm"]'), function(i){ i.disabled = main.bulbMode === "single"; });
+}
+function onRadio(name, fn){
+  [].forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function(i){
+    i.addEventListener("change", function(){ if (i.checked) fn(i.value); });
+  });
+}
+function setBat(mode, n){ bat.mode = mode; bat.n = n; main.cellOut = [false, false, false, false, false]; syncRadios(); updateAll(true); }
+onRadio("bm", function(v){ main.bulbMode = v; main.bulbOut = [false, false, false]; syncRadios(); updateAll(true); });
+onRadio("nbm", function(v){ main.nb = +v; main.bulbOut = [false, false, false]; updateAll(true); });
+onRadio("batm", function(v){ setBat(v, bat.n); });
+onRadio("batm2", function(v){ setBat(v, bat.n); });
+onRadio("nc1", function(v){ setBat(bat.mode, +v); });
+onRadio("nc2", function(v){ setBat(bat.mode, +v); });
+onRadio("nc3", function(v){ t3.n = +v; t3.seen[t3.n] = true; updateAll(false); });
+["p1", "p2"].forEach(function(n){ onRadio(n, function(){ refreshUI(); }); });
+$("b-sw").addEventListener("click", function(){ main.sw = !main.sw; updateAll(false); });
+$("b-reset").addEventListener("click", function(){ main.bulbOut = [false, false, false]; main.cellOut = [false, false, false, false, false]; updateAll(false); });
+$("c-flow").addEventListener("change", function(){ show.flow = this.checked; });
+$("c-meas").addEventListener("change", function(){ show.meas = this.checked; refreshUI(); });
+[1, 2].forEach(function(i){
+  $("cut" + (i + 1)).addEventListener("click", function(){
+    var o = M[i].o; o.bulbOut[1] = !o.bulbOut[1]; if (o.bulbOut[1]) o.seen = true; updateAll(false);
+  });
+});
+
+/* 그림을 눌러 조작 */
+S1.cv.addEventListener("click", function(ev){
+  var h = hitTest(S1, pointer(S1, ev));
+  if (!h) return;
+  if (h.t === "b") main.bulbOut[h.k] = !main.bulbOut[h.k];
+  else if (h.t === "c") main.cellOut[h.k] = !main.cellOut[h.k];
+  else main.sw = !main.sw;
+  updateAll(false);
+});
+S1.cv.addEventListener("mousemove", function(ev){ S1.cv.style.cursor = hitTest(S1, pointer(S1, ev)) ? "pointer" : "default"; });
+[1, 2].forEach(function(i){
+  var S = M[i];
+  S.cv.addEventListener("click", function(ev){
+    var h = hitTest(S, pointer(S, ev), "bulbs");
+    if (!h) return;
+    S.o.bulbOut[h.k] = !S.o.bulbOut[h.k];
+    if (S.o.bulbOut[h.k]) S.o.seen = true;
+    updateAll(false);
+  });
+  S.cv.addEventListener("mousemove", function(ev){ S.cv.style.cursor = hitTest(S, pointer(S, ev), "bulbs") ? "pointer" : "default"; });
+});
+
+/* 결과 정리: 내 생각을 5글자 이상 적어야 예시 답이 열림 */
+[].forEach.call(document.querySelectorAll(".q"), function(q){
+  var ta = q.querySelector("textarea"), d = q.querySelector("details"), sm = q.querySelector("summary"), need = q.querySelector(".need");
+  sm.addEventListener("click", function(e){
+    if (!d.open && ta.value.trim().length < 5){ e.preventDefault(); need.hidden = false; ta.focus(); }
+  });
+  ta.addEventListener("input", function(){ if (ta.value.trim().length >= 5) need.hidden = true; });
+});
+
+/* =========================================================
+   저장 · 인쇄
+   ========================================================= */
+function renderPNG(list){
+  var sc = 1.5, head = 40, bm = maxBot(list.map(function(it){ return it.c; })), maxLH = 0;
+  var Ls = list.map(function(it){ var L = layout(it.c, bm); maxLH = Math.max(maxLH, L.LH); return L; });
+  var cv = document.createElement("canvas");
+  cv.width = Math.round(LW * list.length * sc); cv.height = Math.round((maxLH + head) * sc);
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  list.forEach(function(it, i){
+    var S = {ctx: ctx, tb: 1, c: it.c, r: solve(it.c), L: Ls[i], ph: {}, lum: []};
+    S.r.bulbs.forEach(function(B, k){ S.lum[k] = lum(B.idx); });
+    ctx.setTransform(sc, 0, 0, sc, i * LW * sc, 0);
+    T(S, it.title, LW / 2, head / 2 + 2, {size: 16});
+    ctx.setTransform(sc, 0, 0, sc, i * LW * sc, head * sc);
+    drawCircuit(S, {noSwitch: it.noSwitch});
+    if (i > 0){ ctx.setTransform(sc, 0, 0, sc, i * LW * sc, 0); ctx.fillStyle = "#D9D1BF"; ctx.fillRect(0, 0, 1.5, maxLH + head); }
+  });
+  return cv.toDataURL("image/png");
+}
+function cmpList(){ return M.map(function(S, i){ return {c: S.c, title: ["전구 1개", "직렬연결한 경우", "병렬연결한 경우"][i], noSwitch: true}; }); }
+$("b-save").addEventListener("click", function(){
+  var a = document.createElement("a"), url, nm;
+  if (current === 2){ url = renderPNG(cmpList()); nm = "직렬병렬_나란히비교_"; }
+  else if (current === 3){ url = renderPNG(N.map(function(S, i){ return {c: S.c, title: i ? "전지 병렬연결" : "전지 직렬연결", noSwitch: true}; })); nm = "전지의연결_"; }
+  else { url = renderPNG([{c: S1.c, title: summary1().split(", ").slice(0, 2).join(" · ")}]); nm = "직렬병렬_회로_"; }
+  a.download = nm + stamp() + ".png"; a.href = url; a.click();
+});
+/* 활동지 회로도(기호) */
+function schem(bm, nb, bt, nc){
+  var s = "", top = 26, bot = 120, lx = 16, rx = 184;
+  function ln(x1, y1, x2, y2, w){ s += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#222" stroke-width="' + (w || 1.6) + '" stroke-linecap="round"/>'; }
+  function bulb(x, y){ s += '<circle cx="' + x + '" cy="' + y + '" r="9" fill="#fff" stroke="#222" stroke-width="1.6"/>'; ln(x - 6.4, y - 6.4, x + 6.4, y + 6.4); ln(x - 6.4, y + 6.4, x + 6.4, y - 6.4); }
+  function cell(x, y){ s += '<rect x="' + (x - 6) + '" y="' + (y - 10) + '" width="12" height="20" fill="#fff"/>'; ln(x + 3, y - 10, x + 3, y + 10); ln(x - 3, y - 5, x - 3, y + 5, 3.4); }
+  var k;
+  ln(lx, top, lx, bot); ln(rx, top, rx, bot);
+  if (bm === "parallel"){
+    ln(lx, top, 60, top); ln(140, top, rx, top);
+    for (k = 0; k < nb; k++){ ln(60, top + k * 30, 140, top + k * 30); bulb(100, top + k * 30); }
+    ln(60, top, 60, top + (nb - 1) * 30); ln(140, top, 140, top + (nb - 1) * 30);
+  } else {
+    ln(lx, top, rx, top);
+    var xs = nb === 1 ? [100] : [70, 130];
+    xs.forEach(function(x){ bulb(x, top); });
+  }
+  if (bt === "parallel"){
+    ln(lx, bot, 75, bot); ln(125, bot, rx, bot);
+    for (k = 0; k < nc; k++){ ln(75, bot - k * 26, 125, bot - k * 26); cell(100, bot - k * 26); }
+    ln(75, bot, 75, bot - (nc - 1) * 26); ln(125, bot, 125, bot - (nc - 1) * 26);
+  } else {
+    ln(lx, bot, rx, bot);
+    for (k = 0; k < nc; k++) cell(100 + (k - (nc - 1) / 2) * 22, bot);
+  }
+  return '<svg viewBox="0 0 200 140" style="max-width:150px;margin:auto">' + s + '</svg>';
+}
+$("sc-a").innerHTML = schem("single", 1, "series", 1);
+$("sc-b").innerHTML = schem("series", 2, "series", 1);
+$("sc-c").innerHTML = schem("parallel", 2, "series", 1);
+$("sc-d").innerHTML = schem("single", 1, "series", 2);
+$("sc-e").innerHTML = schem("single", 1, "parallel", 2);
+function beforePrint(){ $("ps-img").src = renderPNG(cmpList()); }
+window.addEventListener("beforeprint", beforePrint);
+$("b-print").addEventListener("click", function(){ beforePrint(); setTimeout(function(){ window.print(); }, 80); });
+
+/* =========================================================
+   탭 · 크기 · 그리기 반복
+   ========================================================= */
+var tabs = [].slice.call(document.querySelectorAll(".tb-tabs [role=tab]"));
+var panels = [1, 2, 3, 4].map(function(n){ return $("panel-" + n); });
+var current = 1;
+function selectTab(n, focus){
+  current = n;
+  tabs.forEach(function(t, i){
+    var on = (i + 1) === n;
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+    if (on && focus) t.focus();
+  });
+  panels.forEach(function(p, i){ p.hidden = (i + 1) !== n; });
+  resizeAll();
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){ selectTab(i + 1); });
+  t.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
+      e.preventDefault();
+      var n = i + (e.key === "ArrowRight" ? 1 : -1);
+      if (n < 0) n = tabs.length - 1;
+      if (n >= tabs.length) n = 0;
+      selectTab(n + 1, true);
+    }
+  });
+});
+function resizeAll(){
+  if (current === 1) fitStage(S1);
+  if (current === 2) M.forEach(fitStage);
+  if (current === 3) N.forEach(fitStage);
+}
+var rzT;
+window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(resizeAll, 120); });
+
+var last = 0;
+function frame(now){
+  var dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
+  if (current === 1){ tick(S1, dt); drawCircuit(S1); }
+  else if (current === 2) M.forEach(function(S){ tick(S, dt); drawCircuit(S, {noSwitch: true, noTags: true}); });
+  else if (current === 3) N.forEach(function(S){ tick(S, dt); drawCircuit(S, {noSwitch: true, noTags: true}); });
+  requestAnimationFrame(frame);
+}
+syncRadios();
+updateAll(true);
+resizeAll();
+requestAnimationFrame(frame);
+
+/* 확인용(검증): 주소 끝에 ?debug 를 붙였을 때만 콘솔에서 window.__sp 로 상태를 볼 수 있음 */
+if (/[?&]debug\b/.test(location.search)) window.__sp = {main: main, bat: bat, t3: t3, M: M, N: N, S1: S1, solve: solve, selectTab: selectTab, updateAll: updateAll, setBat: setBat};
+})();
+</script>
+</body>
+</html>
