@@ -926,7 +926,7 @@ function pointer(S, ev){ var b = S.cv.getBoundingClientRect(); return {x: (ev.cl
    ========================================================= */
 var E = 1.5, RB = 10, P0 = E * E / RB, I0 = E / RB;
 var LET = ["A", "B", "C"], NUM = ["①", "②", "③", "④", "⑤"];
-function lum(idx){ return idx <= 0 ? 0 : 1 - Math.exp(-0.55 * Math.sqrt(idx / 100)); }   /* 눈에 보이는 밝기(0~1) */
+function lum(idx){ return idx <= 0 ? 0 : 1 - Math.exp(-0.8 * Math.pow(idx / 100, 0.7)); }   /* 눈에 보이는 밝기(0~1) */
 function fmtIdx(v){ return v < 0.5 ? "0" : String(Math.round(v)); }
 function fmtLife(rel){ if (!(rel > 0)) return "—"; if (rel >= 0.999) return (Math.round(rel * 10) / 10) + "배"; return "1/" + Math.round(1 / rel) + "배"; }
 function mA(I){ return Math.round(I * 1000); }
@@ -1031,6 +1031,10 @@ function along(s, d){
    그리기
    ========================================================= */
 var show = {flow: true, meas: false};
+/* 회로 바탕 색: 화면은 어두운 바탕(전구 빛이 잘 보이게), 인쇄는 밝은 바탕(잉크 절약) */
+var DARK  = {bg: "#1B2029", wire: "#9AA3AE", wireLt: "#E3E7EB", edge: "#8C949E", text: "#F1EFE8", muted: "#B9B4A9", warn: "#FDBA74", cur: "#FB923C"};
+var LIGHT = {bg: "#FFFDF7", wire: "#4B5058", wireLt: "#9AA1AA", edge: "#24211D", text: "#24211D", muted: "#5C564E", warn: "#9A3412", cur: "#C2410C"};
+var PAL = DARK;
 function T(S, s, x, y, o){
   o = o || {};
   var ctx = S.ctx, size = (o.size || 12) * S.tb;
@@ -1042,21 +1046,21 @@ function T(S, s, x, y, o){
     rrect(ctx, x0, y - h / 2, w, h, 3); ctx.fillStyle = o.bg; ctx.fill();
     if (o.border){ ctx.strokeStyle = o.border; ctx.lineWidth = 1; ctx.stroke(); }
   }
-  ctx.fillStyle = o.color || C.ink; ctx.fillText(s, x, y + 0.5);
+  ctx.fillStyle = o.color || (o.bg ? C.ink : PAL.text); ctx.fillText(s, x, y + 0.5);
 }
 function drawWire(ctx, pts){
   ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
   for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
   ctx.lineJoin = "round"; ctx.lineCap = "round";
-  ctx.strokeStyle = C.wire; ctx.lineWidth = 5; ctx.stroke();
-  ctx.strokeStyle = C.wireLt; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.strokeStyle = PAL.wire; ctx.lineWidth = 5; ctx.stroke();
+  ctx.strokeStyle = PAL.wireLt; ctx.lineWidth = 1.6; ctx.stroke();
 }
 var SP = 30;
 function speed(I){ return 42 * clamp(I / I0, 0, 5); }
 function drawArrows(S){
   if (!show.flow) return;
   var ctx = S.ctx;
-  ctx.strokeStyle = C.current; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.strokeStyle = PAL.cur; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
   S.L.segs.forEach(function(s){
     var I = S.r.br[s.key] || 0;
     if (I < 1e-5) return;
@@ -1073,9 +1077,9 @@ function drawArrows(S){
 function bulbBody(ctx, x, yb, L){
   var cy = yb - 30;
   if (L > 0.02){
-    var R = 16 + 50 * L, g = ctx.createRadialGradient(x, cy, 3, x, cy, R);
-    g.addColorStop(0, "rgba(255,226,120," + (0.9 * L).toFixed(3) + ")");
-    g.addColorStop(0.45, "rgba(255,200,80," + (0.45 * L).toFixed(3) + ")");
+    var R = 16 + 62 * L, a = Math.min(1, 1.5 * L), g = ctx.createRadialGradient(x, cy, 3, x, cy, R);
+    g.addColorStop(0, "rgba(255,230,130," + a.toFixed(3) + ")");
+    g.addColorStop(0.4, "rgba(255,200,80," + (0.55 * a).toFixed(3) + ")");
     g.addColorStop(1, "rgba(255,190,60,0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, cy, R, 0, Math.PI * 2); ctx.fill();
   }
@@ -1085,8 +1089,10 @@ function bulbBody(ctx, x, yb, L){
   ctx.beginPath(); ctx.moveTo(x - 7, yb - 9.5); ctx.lineTo(x + 7, yb - 7.5); ctx.moveTo(x - 7, yb - 5); ctx.lineTo(x + 7, yb - 3); ctx.stroke();
   /* 유리 */
   ctx.beginPath(); ctx.arc(x, cy, 16, Math.PI * 0.62, Math.PI * 2.38); ctx.lineTo(x + 6.5, yb - 14); ctx.lineTo(x - 6.5, yb - 14); ctx.closePath();
-  var gr = Math.round(lerp(228, 255, L)), gg = Math.round(lerp(234, 240, L)), gb = Math.round(lerp(242, 170, L));
-  ctx.fillStyle = "rgba(" + gr + "," + gg + "," + gb + ",0.92)"; ctx.fill();
+  /* 꺼진 유리는 어둡게(어두운 바탕에서 켜진 전구와 대비), 밝을수록 따뜻한 노란색 */
+  var Lg = Math.min(1, 1.3 * L), dk = PAL === DARK;
+  var gr = Math.round(lerp(dk ? 96 : 228, 255, Lg)), gg = Math.round(lerp(dk ? 106 : 234, 242, Lg)), gb = Math.round(lerp(dk ? 120 : 242, 175, Lg));
+  ctx.fillStyle = "rgba(" + gr + "," + gg + "," + gb + "," + (dk ? (0.55 + 0.4 * Lg) : 0.92).toFixed(2) + ")"; ctx.fill();
   ctx.strokeStyle = "#7A8088"; ctx.lineWidth = 1.2; ctx.stroke();
   /* 필라멘트 */
   var fc = L < 0.02 ? "#6B5B4B" : "rgb(" + Math.round(lerp(210, 255, L)) + "," + Math.round(lerp(80, 250, L)) + "," + Math.round(lerp(20, 215, L)) + ")";
@@ -1106,7 +1112,7 @@ function drawBulb(S, b, L, out, label){
   ctx.beginPath(); ctx.arc(x - 14, y, 3, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.arc(x + 14, y, 3, 0, Math.PI * 2); ctx.fill();
   if (out){
-    ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = C.graphite; ctx.lineWidth = 1.2;
+    ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = PAL.muted; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.ellipse(x, y - 11, 8, 3.2, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
     ctx.save(); ctx.translate(x + 26, y - 20); ctx.rotate(0.5); ctx.globalAlpha = 0.7; bulbBody(ctx, 0, 0, 0); ctx.restore();
     T(S, "빠짐", x + 30, y - 4, {size: 10.5, color: C.warn, bg: C.sheet, border: C.hair, align: "left"});
@@ -1117,12 +1123,12 @@ function drawBulb(S, b, L, out, label){
     var rr = 9 * S.tb;
     ctx.beginPath(); ctx.arc(x - 31, y - 39, rr, 0, Math.PI * 2); ctx.fillStyle = C.sheet; ctx.fill();
     ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.stroke();
-    T(S, label, x - 31, y - 39, {size: 11});
+    T(S, label, x - 31, y - 39, {size: 11, color: C.ink});
   }
 }
 function drawCell(S, cl, out, num, par){
   var ctx = S.ctx, x = cl.x, y = cl.y;
-  if (par){ rrect(ctx, x - 34, y - 17, 68, 34, 5); ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke(); }
+  if (par){ rrect(ctx, x - 34, y - 17, 68, 34, 5); ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = PAL.edge; ctx.lineWidth = 1.2; ctx.stroke(); }
   rrect(ctx, x - 28, y - 13, 56, 26, 4); ctx.fillStyle = C.slot; ctx.fill();
   if (out){
     ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = "#E5E7EB"; ctx.lineWidth = 1.2;
@@ -1137,7 +1143,7 @@ function drawCell(S, cl, out, num, par){
   }
   if (num){
     if (par) T(S, num, x - 48, y, {size: 11, color: C.graphite, bg: C.sheet});
-    else T(S, num, x, y - 27, {size: 11, color: C.graphite});
+    else T(S, num, x, y - 27, {size: 11, color: PAL.muted});
   }
 }
 function drawSwitch(S, closed){
@@ -1178,20 +1184,21 @@ function drawTags(S){
 function drawCircuit(S, o){
   o = o || {};
   var ctx = S.ctx, c = S.c, r = S.r, L = S.L;
-  ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, LW, L.LH);
+  PAL = o.light ? LIGHT : DARK;
+  ctx.fillStyle = PAL.bg; ctx.fillRect(0, 0, LW, L.LH);
   L.segs.forEach(function(s){ drawWire(ctx, s.pts); });
-  ctx.fillStyle = C.wire;
+  ctx.fillStyle = PAL.wire;
   L.dots.forEach(function(d){ ctx.beginPath(); ctx.arc(d.x, d.y, 4.5, 0, Math.PI * 2); ctx.fill(); });
   drawArrows(S);
   if (L.holder){
     rrect(ctx, L.holder.x0 + 2, L.BOT - 18, L.holder.x1 - L.holder.x0 - 4, 36, 6);
-    ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.fillStyle = C.holder; ctx.fill(); ctx.strokeStyle = PAL.edge; ctx.lineWidth = 1.2; ctx.stroke();
   }
   L.cells.forEach(function(cl, k){ drawCell(S, cl, r.cells[k].out, c.nc > 1 ? NUM[k] : "", c.batMode === "parallel"); });
   L.bulbs.forEach(function(b, k){ drawBulb(S, b, S.lum[k] || 0, r.bulbs[k].out, c.nb > 1 ? LET[k] : ""); });
   if (!o.noSwitch) drawSwitch(S, c.sw);
   if (show.meas && !o.noTags) drawTags(S);
-  T(S, packText(c, r), CX, L.BOT + 31, {size: 12, color: r.batOpen ? C.warn : C.ink});
+  T(S, packText(c, r), CX, L.BOT + 31, {size: 12, color: r.batOpen ? PAL.warn : PAL.text});
 }
 /* 시간에 따라: 전류 화살표 이동, 전구 밝기는 부드럽게(약 0.4초) 바뀜 */
 function tick(S, dt){
@@ -1467,20 +1474,21 @@ S1.cv.addEventListener("mousemove", function(ev){ S1.cv.style.cursor = hitTest(S
 /* =========================================================
    저장 · 인쇄
    ========================================================= */
-function renderPNG(list){
+function renderPNG(list, light){
   var sc = 1.5, head = 40, bm = maxBot(list.map(function(it){ return it.c; })), maxLH = 0;
   var Ls = list.map(function(it){ var L = layout(it.c, bm); maxLH = Math.max(maxLH, L.LH); return L; });
   var cv = document.createElement("canvas");
   cv.width = Math.round(LW * list.length * sc); cv.height = Math.round((maxLH + head) * sc);
   var ctx = cv.getContext("2d");
-  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = light ? "#fff" : DARK.bg; ctx.fillRect(0, 0, cv.width, cv.height);
   list.forEach(function(it, i){
     var S = {ctx: ctx, tb: 1, c: it.c, r: solve(it.c), L: Ls[i], ph: {}, lum: []};
     S.r.bulbs.forEach(function(B, k){ S.lum[k] = lum(B.idx); });
     ctx.setTransform(sc, 0, 0, sc, i * LW * sc, 0);
+    PAL = light ? LIGHT : DARK;
     T(S, it.title, LW / 2, head / 2 + 2, {size: 16});
     ctx.setTransform(sc, 0, 0, sc, i * LW * sc, head * sc);
-    drawCircuit(S, {noSwitch: it.noSwitch});
+    drawCircuit(S, {noSwitch: it.noSwitch, light: light});
     if (i > 0){ ctx.setTransform(sc, 0, 0, sc, i * LW * sc, 0); ctx.fillStyle = "#D9D1BF"; ctx.fillRect(0, 0, 1.5, maxLH + head); }
   });
   return cv.toDataURL("image/png");
@@ -1525,7 +1533,7 @@ $("sc-b").innerHTML = schem("series", 2, "series", 1);
 $("sc-c").innerHTML = schem("parallel", 2, "series", 1);
 $("sc-d").innerHTML = schem("single", 1, "series", 2);
 $("sc-e").innerHTML = schem("single", 1, "parallel", 2);
-function beforePrint(){ $("ps-img").src = renderPNG(cmpList()); }
+function beforePrint(){ $("ps-img").src = renderPNG(cmpList(), true); }
 window.addEventListener("beforeprint", beforePrint);
 $("b-print").addEventListener("click", function(){ beforePrint(); setTimeout(function(){ window.print(); }, 80); });
 
