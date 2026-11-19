@@ -92,6 +92,21 @@
     "achievementStandard": ["9과14-03"]
     },
     {
+    "id": "electric-energy-lab",
+    "name": "전기 에너지의 전환과 소비 전력 가상실험",
+    "description": "전기 기구를 켜서 에너지 전환과 소비 전력을 비교하고, 전구의 에너지 효율과 대기 전력까지 탐구",
+    "category": "physics",
+    "path": "physics/electric-energy-lab/",
+    "tags": ["전기와 자기", "전기 에너지", "에너지 전환", "소비 전력", "와트", "줄", "전기 기구", "에너지 효율", "LED", "대기 전력", "에너지 소비 효율 등급", "에너지 절약", "지구 온난화", "오개념"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1~2차시",
+    "materials": ["태블릿 또는 노트북", "교실 TV 또는 프로젝터", "인쇄한 활동지(선택)", "전력 측정 콘센트(실물 확인용, 선택)"],
+    "achievementStandard": ["9과14-03"]
+    },
+    {
     "id": "coil-magnetic-field",
     "name": "코일 주위의 자기장 가상실험",
     "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",
