@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ESP32 RC카 만들기</title>
+<meta name="description" content="ESP32와 TT모터로 만드는 4륜 RC카와 조종기를 3D 모델로 단계별 조립하고, 코드 업로드·스마트폰 조종·카메라까지 따라 하는 학생용 설명서">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 밸런싱 로봇 설명서와 같은 틀: 왼쪽 3D 무대 고정, 오른쪽 단계 카드. 아래로 참고 자료 */
+:root {
+  --bg: #EDF0F2; --surface: #FFFFFF; --stage: #DFE5EA; --ink: #1A222A; --muted: #56626E;
+  --line: #CBD3DA; --accent: #D2622A; --accent-soft: #F6DCCB; --accent-ink: #FFFFFF; --edge: #24303B;
+  --ok: #2E8B57; --warn: #B4471B; --info: #2F6FB4; --info-soft: #DDE9F6;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+  /* 그림(SVG) 색 */
+  --w-red: #D9443A; --w-black: #2A2D31; --w-yellow: #D9A81E; --w-blue: #2F72D8; --w-green: #2F9A55;
+  --w-orange: #E6812E; --w-purple: #8E5BD0; --w-white: #9AA3AD;
+  --b-l298: #C7352B; --b-esp: #1F3B70; --b-sonar: #2F7BD8; --b-batt: #3E4A57; --b-mod: #1D6F42; --b-tp: #2E4FA8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161B; --surface: #192028; --stage: #0D1217; --ink: #E5EAEE; --muted: #97A3AE;
+    --line: #2A3540; --accent: #EE8A4E; --accent-soft: #3A2518; --accent-ink: #160C05; --edge: #04070A;
+    --ok: #5CC28A; --warn: #F08A5C; --info: #6FA8E8; --info-soft: #18283A; --w-black: #C9CED4; --w-white: #8A939C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161B; --surface: #192028; --stage: #0D1217; --ink: #E5EAEE; --muted: #97A3AE;
+  --line: #2A3540; --accent: #EE8A4E; --accent-soft: #3A2518; --accent-ink: #160C05; --edge: #04070A;
+  --ok: #5CC28A; --warn: #F08A5C; --info: #6FA8E8; --info-soft: #18283A; --w-black: #C9CED4; --w-white: #8A939C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-body); font-size: 15px; line-height: 1.65; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+code { background: var(--accent-soft); color: var(--ink); padding: 0.05em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img, svg { max-width: 100%; }
+
+/* 머리말 */
+header.top { padding-block: 28px 18px; }
+.toolbox-back-link ~ header.top { padding-top: 60px; }
+.top-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+.kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; letter-spacing: -0.01em; margin-top: 6px; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { max-width: 64ch; color: var(--muted); margin: 10px 0 0; }
+.specs { display: grid; grid-template-columns: repeat(3, auto); gap: 4px 18px; font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.specs b { display: block; color: var(--ink); font-weight: 500; font-size: 15px; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.toc a { text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 12px; font-size: 13px; }
+.toc a:hover { border-color: var(--accent); }
+.toc a b { font-family: var(--font-mono); color: var(--accent); font-weight: 500; margin-right: 4px; }
+
+/* 3D 무대 + 단계 패널 */
+.guide { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; padding-bottom: 36px; }
+.stage-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.stage { position: relative; background: var(--stage); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; height: min(72vh, 640px); min-height: 360px; touch-action: none; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.stage-note { position: absolute; left: 12px; bottom: 10px; right: 12px; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); pointer-events: none; }
+.stage-status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; text-align: center; padding: 24px; }
+.tip3d { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 3px 8px; border-radius: 5px; white-space: nowrap; transform: translate(-50%, -140%); }
+.stage-tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
+.chip-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; cursor: pointer; }
+.chip-btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.explode { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.explode input { flex: 1; accent-color: var(--accent); }
+
+.panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.model-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.model-tabs button { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-weight: 700; text-align: left; line-height: 1.3; }
+.model-tabs button small { display: block; font-weight: 400; font-size: 12px; }
+.model-tabs button[aria-selected="true"] { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 -3px 0 var(--accent); }
+.steps-nav { display: grid; gap: 4px; }
+.steps-nav button { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 7px; padding: 6px 0 4px; cursor: pointer; font-family: var(--font-mono); font-size: 13px; line-height: 1.2; min-width: 0; }
+.steps-nav button small { display: block; font-family: var(--font-body); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
+.steps-nav button.done { color: var(--ink); }
+.steps-nav button[aria-current="step"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px 20px; }
+.step-no { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; }
+.card h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.2; margin: 4px 0 8px; }
+.card h3 { font-size: 17px; margin: 0 0 6px; }
+.card p { margin: 0 0 10px; }
+.card ol, .card ul { margin: 6px 0 4px; padding-left: 1.3em; display: grid; gap: 6px; }
+.card ol li::marker { font-family: var(--font-mono); color: var(--accent); }
+.callout { margin-top: 12px; border-left: 3px solid var(--warn); padding: 6px 0 6px 12px; font-size: 14px; }
+.callout strong { color: var(--warn); }
+.callout.tip { border-left-color: var(--info); }
+.callout.tip strong { color: var(--info); }
+.parts-h { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 6px; }
+.parts { display: flex; flex-wrap: wrap; gap: 6px; }
+.parts button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 6px; padding: 2px 9px; font-size: 13px; cursor: pointer; }
+.parts button .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.parts button:hover, .parts button:focus-visible { border-color: var(--accent); }
+.step-actions { display: flex; gap: 8px; }
+.step-actions button { flex: 1; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 500; }
+.step-actions .next { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.step-actions button:disabled { opacity: 0.4; cursor: default; }
+
+/* 참고 섹션 */
+section.ref { border-top: 1px solid var(--line); padding-block: 34px; scroll-margin-top: 12px; }
+.ref-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin-bottom: 16px; }
+.ref h2 { font-family: var(--font-display); font-weight: 400; font-size: 28px; }
+.ref h2 .n { font-family: var(--font-mono); font-size: 16px; color: var(--accent); margin-right: 8px; vertical-align: 4px; }
+.ref h3.sub-h { font-size: 17px; margin: 22px 0 10px; }
+.ref .sub { color: var(--muted); max-width: 66ch; margin: 4px 0 0; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: 0.04em; color: var(--muted); font-weight: 500; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.figure { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin: 0; }
+.figure svg { display: block; width: 100%; height: auto; }
+.figure figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+/* 코드 올리기 단계 */
+.howto { display: grid; gap: 14px; counter-reset: ht; }
+.ht { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; align-items: center; }
+.ht h3 { font-size: 18px; margin: 0 0 6px; display: flex; gap: 10px; align-items: baseline; }
+.ht h3::before { counter-increment: ht; content: counter(ht); font-family: var(--font-mono); font-size: 13px; color: var(--accent-ink); background: var(--accent); border-radius: 6px; padding: 1px 8px; }
+.ht p { margin: 0 0 8px; }
+.ht ol, .ht ul { margin: 4px 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.ht .art { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.ht .art svg { display: block; width: 100%; height: auto; }
+.copy { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
+.copy code { flex: 1; padding: 6px 8px; font-size: 12.5px; }
+.copy button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
+.idtbl td { font-family: var(--font-mono); text-align: center; }
+
+.glossary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px; margin: 0; }
+.glossary div { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.glossary dt { font-weight: 700; }
+.glossary dt span { font-family: var(--font-mono); font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 6px; }
+.glossary dd { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+.loop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.loop div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; font-size: 14px; }
+.loop b { display: block; margin-bottom: 2px; }
+.safety { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.safety div { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: var(--r); padding: 12px 14px; font-size: 14px; }
+.safety b { display: block; margin-bottom: 2px; }
+.dl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; }
+.dl a.btn { display: inline-block; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 700; border-radius: 8px; padding: 10px 16px; }
+.dl a.btn.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.dl ul { margin: 0; padding-left: 1.1em; font-size: 13.5px; color: var(--muted); columns: 2; column-gap: 28px; flex: 1 1 280px; min-width: 0; }
+.dl li { overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 12.5px; }
+footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var(--muted); font-size: 13px; }
+
+/* SVG 공통 */
+.sv-box { fill: var(--surface); stroke: var(--edge); stroke-width: 1.5; }
+.sv-soft { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.sv-t { fill: var(--ink); font-family: var(--font-body); font-size: 13px; }
+.sv-tb { fill: var(--ink); font-family: var(--font-body); font-size: 14px; font-weight: 700; }
+.sv-tw { fill: #FFFFFF; font-family: var(--font-body); font-size: 14px; font-weight: 700; }
+.sv-tws { fill: #FFFFFF; font-family: var(--font-mono); font-size: 11px; }
+.sv-tm { fill: var(--muted); font-family: var(--font-body); font-size: 12px; }
+.sv-pin { fill: var(--ink); font-family: var(--font-mono); font-size: 11.5px; }
+.sv-hi { fill: none; stroke: var(--accent); stroke-width: 3; }
+.sv-hif { fill: var(--accent); }
+.sv-acc { fill: var(--accent); font-family: var(--font-body); font-size: 13px; font-weight: 700; }
+.w { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.w.r { stroke: var(--w-red); } .w.k { stroke: var(--w-black); } .w.y { stroke: var(--w-yellow); } .w.b { stroke: var(--w-blue); }
+.w.g { stroke: var(--w-green); } .w.o { stroke: var(--w-orange); } .w.p { stroke: var(--w-purple); } .w.s { stroke: var(--w-white); }
+.dotj { fill: var(--ink); }
+.wh { fill: none; stroke: var(--surface); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 960px) {
+  .guide { grid-template-columns: minmax(0, 1fr); }
+  .stage-col { position: static; }
+  .stage { height: min(58vh, 520px); }
+  .glossary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ht { grid-template-columns: minmax(0, 1fr); }
+  .cols3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .cols, .glossary, .safety { grid-template-columns: minmax(0, 1fr); }
+  .steps-nav button small { display: none; }
+  .specs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dl ul { columns: 1; }
+  .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <div class="top-row">
+    <div>
+      <div class="kicker">메이커 프로젝트 · 3D 조립 설명서</div>
+      <h1>ESP32 <em>TT모터 RC카</em> 만들기</h1>
+      <p class="lead">노란 TT모터 4개로 달리는 무선 RC카와 조이스틱 조종기를 만들어요. 3D 모델을 돌려 보며 단계별로 조립하고, 코드를 올린 뒤 조종기·스마트폰으로 운전해요. 초음파·라인센서·카메라를 더 달 수도 있어요.</p>
+      <nav class="toc" aria-label="차례">
+        <a href="#build"><b>1</b>3D 조립</a>
+        <a href="#parts"><b>2</b>준비물</a>
+        <a href="#print"><b>3</b>3D 출력</a>
+        <a href="#wiring"><b>4</b>배선</a>
+        <a href="#upload"><b>5</b>코드 올리기</a>
+        <a href="#test"><b>6</b>첫 시험</a>
+        <a href="#phone"><b>7</b>폰·카메라</a>
+        <a href="#trouble"><b>8</b>문제 해결</a>
+        <a href="#safety"><b>9</b>안전</a>
+        <a href="#teacher"><b>10</b>선생님용</a>
+        <a href="#download"><b>11</b>파일 받기</a>
+      </nav>
+    </div>
+    <div class="specs" aria-label="완성 크기">
+      <div><b>210</b>길이 mm</div>
+      <div><b>160</b>폭 mm</div>
+      <div><b>92</b>높이 mm</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ================================================================ 3D 조립 -->
+  <div class="guide" id="build">
+    <div class="stage-col">
+      <div class="stage" id="stage">
+        <div class="stage-status" id="stage-status">3D 모델을 불러오는 중…</div>
+        <div class="stage-tools">
+          <button class="chip-btn" id="btn-replay" type="button">다시 보기</button>
+          <button class="chip-btn" id="btn-rotate" type="button" aria-pressed="false">자동 회전</button>
+        </div>
+        <div class="stage-note" id="stage-note">끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리거나 누르면 이름 · 왼쪽/오른쪽은 차 기준</div>
+      </div>
+      <label class="explode" id="explode-row" for="explode">분해 정도
+        <input type="range" id="explode" min="0" max="100" value="0">
+      </label>
+    </div>
+
+    <div class="panel">
+      <div class="model-tabs" role="tablist" aria-label="만들 것">
+        <button type="button" role="tab" id="tab-car" data-model="car" aria-selected="true">RC카<small>9단계 · 차량</small></button>
+        <button type="button" role="tab" id="tab-ctrl" data-model="ctrl" aria-selected="false">조종기<small>5단계 · 조이스틱 2개</small></button>
+      </div>
+      <nav class="steps-nav" id="steps-nav" aria-label="조립 단계"></nav>
+      <article class="card" id="step-card" aria-live="polite"></article>
+      <div class="step-actions">
+        <button type="button" id="btn-prev">← 이전 단계</button>
+        <button type="button" id="btn-next" class="next">다음 단계 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ 원리 -->
+  <section class="ref" id="how">
+    <div class="ref-head">
+      <div>
+        <h2>RC카가 움직이는 원리</h2>
+        <p class="sub">조종기와 차에 ESP32가 하나씩 들어 있어요. 둘은 와이파이 칩으로 공유기 없이 직접 신호를 주고받아요(ESP-NOW). 1초에 50번 스틱 값을 보내고, 0.5초 동안 신호가 없으면 차는 스스로 멈춰요.</p>
+      </div>
+    </div>
+    <div class="loop">
+      <div><b>1 · 읽기</b>조종기 ESP32가 조이스틱의 가변저항 전압(0~3.3V)을 0~4095 숫자로 읽어요.</div>
+      <div><b>2 · 보내기</b>전진 값과 방향 값을 −255~255로 바꿔 ESP-NOW로 방송해요. 같은 CAR_ID 차만 받아요.</div>
+      <div><b>3 · 계산하기</b>차 ESP32가 왼쪽 = 전진+방향, 오른쪽 = 전진−방향으로 바퀴 속도를 정해요(탱크식 조향).</div>
+      <div><b>4 · 돌리기</b>L298N이 ESP32의 약한 신호(PWM)를 받아 배터리의 큰 전류로 모터를 돌려요.</div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 준비물 -->
+  <section class="ref" id="parts">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">2</span>준비물</h2>
+        <p class="sub">한 팀(차 1대 + 조종기 1개) 기준이에요. 회색 줄은 확장용이라 없어도 기본 주행은 돼요.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>RC카 전자부품</th><th>개수</th><th>쓰는 곳</th></tr></thead>
+          <tbody>
+            <tr><td>ESP32 DevKit V1 (30핀)</td><td class="num">1</td><td>차 두뇌</td></tr>
+            <tr><td>TT 기어모터 (노란색) + 65mm 바퀴</td><td class="num">4</td><td>구동</td></tr>
+            <tr><td>L298N 모터 드라이버 (빨간 모듈)</td><td class="num">1</td><td>모터 전류 공급</td></tr>
+            <tr><td>18650 2구 홀더 + 보호회로 18650 배터리</td><td class="num">1+2</td><td>전원 7.4V</td></tr>
+            <tr><td>KCD11 미니 로커 스위치 (19×13mm 구멍)</td><td class="num">1</td><td>전원 켜기</td></tr>
+            <tr><td>HC-SR04 초음파 센서 + 저항 1kΩ·2kΩ</td><td class="num">1</td><td>충돌 방지·회피 모드</td></tr>
+            <tr><td>능동 부저, 5mm LED 2개 + 220Ω 2개</td><td class="num">—</td><td>경적·전조등</td></tr>
+            <tr style="color:var(--muted)"><td>TCRT5000 라인센서 모듈 (1채널)</td><td class="num">3</td><td>라인트레이싱 (선택)</td></tr>
+            <tr style="color:var(--muted)"><td>SG90 서보</td><td class="num">1</td><td>초음파 둘러보기 (선택)</td></tr>
+            <tr style="color:var(--muted)"><td>ESP32-CAM + ESP32-CAM-MB + 5V 강압 모듈</td><td class="num">1</td><td>실시간 영상 (선택)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>조종기 전자부품</th><th>개수</th><th>쓰는 곳</th></tr></thead>
+          <tbody>
+            <tr><td>ESP32 DevKit V1 (30핀)</td><td class="num">1</td><td>조종기 두뇌</td></tr>
+            <tr><td>KY-023 조이스틱 모듈</td><td class="num">2</td><td>전진·후진 / 방향</td></tr>
+            <tr><td>PBS-110 7mm 푸시버튼</td><td class="num">2</td><td>모드 / 속도</td></tr>
+            <tr><td>5mm LED + 220Ω</td><td class="num">1</td><td>연결 표시</td></tr>
+            <tr><td>18650 1구 홀더 + 보호회로 18650</td><td class="num">1</td><td>전원</td></tr>
+            <tr><td>TP4056 충전 모듈 (USB-C, 보호회로 있는 것)</td><td class="num">1</td><td>충전</td></tr>
+            <tr><td>MT3608 승압 모듈</td><td class="num">1</td><td>3.7V → 5V</td></tr>
+            <tr><td>KCD11 미니 로커 스위치</td><td class="num">1</td><td>전원</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="cols" style="margin-top:20px">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>볼트·소모품</th><th>개수</th><th>쓰는 곳</th></tr></thead>
+          <tbody>
+            <tr><td>M3×30 볼트 + 너트</td><td class="num">12</td><td>모터 8 · 조종기 케이스 4</td></tr>
+            <tr><td>M3×8 볼트</td><td class="num">6</td><td>상판 → 기둥</td></tr>
+            <tr><td>M3×16 볼트 + 너트</td><td class="num">2</td><td>범퍼 + 하판 + 라인 브래킷</td></tr>
+            <tr><td>M3×10 볼트 + 너트</td><td class="num">10</td><td>받침 → 상판, 라인 브래킷</td></tr>
+            <tr><td>M3×6 볼트 + M3 와셔</td><td class="num">20</td><td>보드 모서리 고정</td></tr>
+            <tr><td>암-암 점퍼선 20cm (40가닥 1묶음)</td><td class="num">1</td><td>신호선</td></tr>
+            <tr><td>전선 (빨강·검정 22AWG), 열수축 튜브</td><td class="num">—</td><td>전원·모터선</td></tr>
+            <tr><td>벨크로 끈 20mm, 케이블타이, 양면 폼테이프</td><td class="num">—</td><td>배터리·모듈 고정</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>공구</th><th>쓰는 곳</th></tr></thead>
+          <tbody>
+            <tr><td>십자 드라이버 (작은 것), 육각렌치 2.5mm</td><td>볼트</td></tr>
+            <tr><td>롱노즈 플라이어</td><td>너트 잡기</td></tr>
+            <tr><td>니퍼, 와이어 스트리퍼</td><td>전선 자르고 벗기기</td></tr>
+            <tr><td>인두기 · 납 (선생님과 함께)</td><td>모터·스위치·버튼 선</td></tr>
+            <tr><td>멀티미터</td><td>MT3608·강압 모듈 5V 맞추기, 단락 확인</td></tr>
+            <tr><td>글루건</td><td>초음파·LED·TP4056 고정</td></tr>
+            <tr><td>USB 데이터 케이블 (Micro-USB 또는 USB-C, 보드에 맞게)</td><td>코드 올리기</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 3D 출력 -->
+  <section class="ref" id="print">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">3</span>3D 출력</h2>
+        <p class="sub">STL은 출력 방향으로 눕혀 두었어요. 뱀부랩 H2S 판에 모두 들어가요. PLA 또는 PETG, 레이어 0.2mm, 벽 3겹, 채움 20~25%, 서포트 없음.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>파일</th><th>개수</th><th>메모</th></tr></thead>
+          <tbody>
+            <tr><td class="num">car_01_chassis_bottom</td><td class="num">1</td><td>하판 200×100 · 출력 약 3시간</td></tr>
+            <tr><td class="num">car_02_deck_top</td><td class="num">1</td><td>상판 · 약 2시간</td></tr>
+            <tr><td class="num">car_03_bumper_front</td><td class="num">1</td><td>앞범퍼</td></tr>
+            <tr><td class="num">car_04_line_sensor_bracket</td><td class="num">1</td><td>라인센서용 (선택)</td></tr>
+            <tr><td class="num">car_05_esp32_riser</td><td class="num">1</td><td>ESP32 받침</td></tr>
+            <tr><td class="num">car_06_l298n_riser</td><td class="num">1</td><td>L298N 받침</td></tr>
+            <tr><td class="num">car_07 ~ 09</td><td class="num">—</td><td>서보 마운트 · 초음파 브래킷 · 모듈판 (선택)</td></tr>
+            <tr><td class="num">car_10 · 11 cam</td><td class="num">1+1</td><td>카메라 받침·홀더 (선택, 홀더는 브림 켜기)</td></tr>
+            <tr><td class="num">ctrl_01_top_shell</td><td class="num">1</td><td>조종기 위 케이스 (윗면이 판에 닿게)</td></tr>
+            <tr><td class="num">ctrl_02_bottom_shell</td><td class="num">1</td><td>조종기 아래 케이스</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>먼저 하판 하나만 출력해 보세요</h3>
+        <ol>
+          <li>TT모터는 회사마다 볼트 구멍 위치가 조금씩 달라요. 하판을 먼저 뽑아 모터를 대 보고, 볼트가 들어가는지 확인해요.</li>
+          <li>모터 볼트 자리는 앞뒤로 ±3mm 긴 구멍이라 조금 달라도 맞출 수 있어요.</li>
+          <li>너무 많이 다르면 <code>cad/params.py</code>의 <code>TT_HOLE_D1</code>·<code>TT_HOLE_D2</code>(축 중심에서 구멍까지 거리)를 재서 고친 뒤 <code>python build_all.py</code>로 다시 만들어요.</li>
+          <li>반 전체가 만들 때는 하판·상판(4~5시간)을 미리 출력해 두고, 작은 부품은 수업 중에 출력하면 시간이 맞아요.</li>
+        </ol>
+        <div class="callout tip"><strong>멀티컬러</strong> · 상판의 격자 구멍 둘레나 범퍼를 다른 색으로 뽑으면 팀마다 구분하기 좋아요.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 배선 -->
+  <section class="ref" id="wiring">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">4</span>배선</h2>
+        <p class="sub">선 색은 그림과 똑같이 맞추면 나중에 찾기 쉬워요. 빨강은 +, 검정은 GND(−)예요. 배선하는 동안 배터리는 홀더에서 빼 두세요.</p>
+      </div>
+    </div>
+
+    <figure class="figure">
+      <svg viewBox="0 0 960 600" role="img" aria-labelledby="wcar-t">
+        <title id="wcar-t">RC카 배선도: 배터리, 스위치, L298N, 모터 4개, ESP32, 초음파 센서, 부저, 전조등</title>
+        <text x="560" y="40" class="sv-tb">RC카 배선</text>
+        <text x="560" y="62" class="sv-tm">빨강 = +, 검정 = GND. 모든 GND는 하나로 이어져요.</text>
+        <!-- 왼쪽 모터 (위) -->
+        <rect x="40" y="56" width="92" height="48" rx="8" fill="#F2C230"/><text x="86" y="85" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">앞 왼쪽</text>
+        <rect x="160" y="56" width="92" height="48" rx="8" fill="#F2C230"/><text x="206" y="85" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">뒤 왼쪽</text>
+        <text x="262" y="22" class="sv-tm">왼쪽 모터 2개는 나란히</text>
+        <path class="w r" d="M390 146 V32 H70 V56 M190 32 V56"/>
+        <path class="w k" d="M350 146 V128 H102 V104 M222 128 V104"/>
+        <!-- 오른쪽 모터 (아래) -->
+        <rect x="40" y="494" width="92" height="48" rx="8" fill="#F2C230"/><text x="86" y="523" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">앞 오른쪽</text>
+        <rect x="160" y="494" width="92" height="48" rx="8" fill="#F2C230"/><text x="206" y="523" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">뒤 오른쪽</text>
+        <text x="262" y="590" class="sv-tm">오른쪽 모터 2개도 나란히</text>
+        <path class="w k" d="M350 446 V470 H102 V494 M222 470 V494"/>
+        <path class="w r" d="M390 446 V566 H70 V542 M190 566 V542"/>
+        <!-- 배터리·스위치 -->
+        <rect x="20" y="250" width="150" height="80" rx="8" fill="var(--b-batt)"/>
+        <text x="95" y="283" text-anchor="middle" class="sv-tw">18650 × 2</text>
+        <text x="95" y="303" text-anchor="middle" class="sv-tws">7.4V (가득 8.4V)</text>
+        <text x="36" y="268" class="sv-tws">+</text><text x="148" y="268" class="sv-tws">−</text>
+        <rect x="200" y="186" width="62" height="36" rx="6" class="sv-box"/><rect x="212" y="194" width="38" height="20" rx="3" fill="var(--w-black)"/>
+        <text x="231" y="176" text-anchor="middle" class="sv-tm">전원 스위치</text>
+        <path class="w r" d="M40 250 V204 H200 M262 204 H282 V298 H300"/>
+        <path class="w k" d="M150 250 V240 H272 V322 H300"/>
+        <!-- L298N -->
+        <rect x="300" y="146" width="200" height="300" rx="10" fill="var(--b-l298)"/>
+        <rect x="330" y="146" width="80" height="22" rx="3" fill="#2E7DCF"/>
+        <text x="350" y="182" text-anchor="middle" class="sv-tws">OUT1</text><text x="390" y="182" text-anchor="middle" class="sv-tws">OUT2</text>
+        <rect x="330" y="424" width="80" height="22" rx="3" fill="#2E7DCF"/>
+        <text x="350" y="418" text-anchor="middle" class="sv-tws">OUT3</text><text x="390" y="418" text-anchor="middle" class="sv-tws">OUT4</text>
+        <rect x="345" y="210" width="90" height="70" rx="4" fill="#2F3338"/>
+        <text x="390" y="243" text-anchor="middle" class="sv-tw">L298N</text><text x="390" y="263" text-anchor="middle" class="sv-tws">방열판</text>
+        <rect x="300" y="286" width="18" height="50" rx="2" fill="#2E7DCF"/>
+        <text x="324" y="302" class="sv-tws">12V</text><text x="324" y="326" class="sv-tws">GND</text>
+        <rect x="486" y="168" width="14" height="150" rx="2" fill="#111"/>
+        <g class="sv-tws" text-anchor="end">
+          <text x="480" y="184">ENA</text><text x="480" y="209">IN1</text><text x="480" y="234">IN2</text>
+          <text x="480" y="259">IN3</text><text x="480" y="284">IN4</text><text x="480" y="309">ENB</text>
+          <text x="480" y="384">5V*</text><text x="480" y="408">GND*</text>
+        </g>
+        <rect x="486" y="368" width="14" height="46" rx="2" fill="#2E7DCF"/>
+        <text x="330" y="356" class="sv-tws">ENA·ENB 점퍼 빼기</text>
+        <text x="330" y="372" class="sv-tws">5V 점퍼는 그대로</text>
+        <!-- ESP32 -->
+        <rect x="640" y="120" width="150" height="350" rx="10" fill="var(--b-esp)"/>
+        <rect x="680" y="320" width="70" height="44" rx="4" fill="#9AA3AD"/><text x="715" y="347" text-anchor="middle" class="sv-tb" style="fill:#1A222A">ESP32</text>
+        <rect x="697" y="452" width="36" height="18" rx="2" fill="#C0C6CC"/><text x="715" y="490" text-anchor="middle" class="sv-tm">USB</text>
+        <g class="sv-tws">
+          <text x="648" y="184">25</text><text x="648" y="209">26</text><text x="648" y="234">27</text>
+          <text x="648" y="259">33</text><text x="648" y="284">32</text><text x="648" y="309">13</text>
+          <text x="648" y="384">VIN</text><text x="648" y="408">GND</text>
+        </g>
+        <g class="sv-tws" text-anchor="end">
+          <text x="782" y="194">18</text><text x="782" y="220">19</text><text x="782" y="304">GND</text><text x="782" y="330">VIN</text>
+          <text x="782" y="388">4</text><text x="782" y="414">17</text>
+        </g>
+        <path class="w y" d="M500 180 H640"/><path class="w o" d="M500 205 H640"/><path class="w b" d="M500 230 H640"/>
+        <path class="w g" d="M500 255 H640"/><path class="w p" d="M500 280 H640"/><path class="w s" d="M500 305 H640"/>
+        <path class="w r" d="M500 380 H640"/><path class="w k" d="M500 404 H640"/>
+        <text x="506" y="440" class="sv-tm">* L298N 전원 단자대의</text><text x="506" y="456" class="sv-tm">5V·GND 칸에서 연결</text>
+        <!-- HC-SR04 -->
+        <rect x="850" y="170" width="100" height="174" rx="8" fill="var(--b-sonar)"/>
+        <circle cx="922" cy="222" r="20" fill="#C9D3DD"/><circle cx="922" cy="292" r="20" fill="#C9D3DD"/>
+        <text x="900" y="362" text-anchor="middle" class="sv-tm">HC-SR04</text>
+        <g class="sv-tws"><text x="856" y="194">TRIG</text><text x="856" y="220">ECHO</text><text x="856" y="304">GND</text><text x="856" y="330">VCC</text></g>
+        <path class="w y" d="M790 190 H850"/>
+        <path class="w g" d="M790 216 H812 M840 216 H850"/>
+        <rect x="812" y="209" width="28" height="14" rx="3" fill="var(--surface)" stroke="var(--edge)"/>
+        <text x="826" y="204" text-anchor="middle" class="sv-pin">1k</text>
+        <path class="w g" d="M800 216 V244 M800 274 V300"/>
+        <rect x="794" y="244" width="12" height="30" rx="3" fill="var(--surface)" stroke="var(--edge)"/>
+        <text x="812" y="264" class="sv-pin">2k</text>
+        <circle class="dotj" cx="800" cy="216" r="3.5"/><circle class="dotj" cx="800" cy="300" r="3.5"/>
+        <path class="w k" d="M790 300 H850"/>
+        <path class="w r" d="M790 326 H850"/>
+        <text x="800" y="460" class="sv-acc">ECHO는 5V라서</text>
+        <text x="800" y="478" class="sv-acc">1k·2k로 낮춰 19번에</text>
+        <!-- 부저, LED -->
+        <rect x="850" y="372" width="100" height="26" rx="13" class="sv-box"/><text x="900" y="390" text-anchor="middle" class="sv-pin">부저 +</text>
+        <rect x="850" y="402" width="100" height="26" rx="13" class="sv-box"/><text x="900" y="420" text-anchor="middle" class="sv-pin">LED×2 · 220Ω</text>
+        <path class="w o" d="M790 384 H850"/><path class="w b" d="M790 410 H850"/>
+      </svg>
+      <figcaption>왼쪽 모터 2개는 OUT1·OUT2에, 오른쪽 모터 2개는 OUT3·OUT4에 나란히(병렬) 연결해요. 부저 −와 LED −는 GND에. 라인센서(선택)는 OUT을 34·35·39번, VCC는 3.3V에. 서보(선택) 신호는 23번.</figcaption>
+    </figure>
+
+    <div class="cols" style="margin-top:20px">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>RC카 연결</th><th>ESP32 핀</th><th>선 색</th></tr></thead>
+          <tbody>
+            <tr><td>배터리 + → 스위치 → L298N 12V</td><td class="num">—</td><td><span class="sw" style="background:var(--w-red)"></span>빨강</td></tr>
+            <tr><td>배터리 − → L298N GND</td><td class="num">GND</td><td><span class="sw" style="background:var(--w-black)"></span>검정</td></tr>
+            <tr><td>L298N 5V 출력</td><td class="num">VIN</td><td><span class="sw" style="background:var(--w-red)"></span>빨강</td></tr>
+            <tr><td>L298N ENA · IN1 · IN2</td><td class="num">25 · 26 · 27</td><td>노랑 · 주황 · 파랑</td></tr>
+            <tr><td>L298N IN3 · IN4 · ENB</td><td class="num">33 · 32 · 13</td><td>초록 · 보라 · 흰색</td></tr>
+            <tr><td>왼쪽 모터 2개 / 오른쪽 모터 2개</td><td class="num">OUT1·2 / OUT3·4</td><td>빨강·검정</td></tr>
+            <tr><td>HC-SR04 VCC · TRIG · ECHO · GND</td><td class="num">5V · 18 · 19 · GND</td><td>ECHO는 1k·2k 분압</td></tr>
+            <tr><td>부저 + / 전조등 LED</td><td class="num">4 / 17</td><td>LED마다 220Ω</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>조종기 연결</th><th>ESP32 핀</th><th>메모</th></tr></thead>
+          <tbody>
+            <tr><td>18650 → TP4056 B+ / B−</td><td class="num">—</td><td>충전 모듈</td></tr>
+            <tr><td>TP4056 OUT+ → 스위치 → MT3608 IN+</td><td class="num">—</td><td>OUT− → MT3608 IN−</td></tr>
+            <tr><td>MT3608 OUT+ (5.0V) / OUT−</td><td class="num">VIN / GND</td><td><b>연결 전에 5.0V로 조정</b></td></tr>
+            <tr><td>조이스틱 2개 +5V · GND</td><td class="num">3V3 · GND</td><td><b>5V가 아니라 3.3V!</b></td></tr>
+            <tr><td>왼쪽 스틱 VRy / SW</td><td class="num">34 / 25</td><td>전진·후진 / 경적</td></tr>
+            <tr><td>오른쪽 스틱 VRx / SW</td><td class="num">32 / 26</td><td>방향 / 전조등</td></tr>
+            <tr><td>버튼 A / 버튼 B (다른 다리는 GND)</td><td class="num">27 / 14</td><td>모드 / 속도</td></tr>
+            <tr><td>LED (+ 220Ω, −는 GND)</td><td class="num">4</td><td>연결 표시</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <figure class="figure" style="margin-top:20px">
+      <svg viewBox="0 0 960 430" role="img" aria-labelledby="wctl-t">
+        <title id="wctl-t">조종기 배선도: 18650, TP4056, 스위치, MT3608, ESP32, 조이스틱 2개, 버튼 2개, LED</title>
+        <text x="20" y="30" class="sv-tb">조종기 배선</text>
+        <!-- 전원 사슬 -->
+        <rect x="20" y="50" width="130" height="80" rx="8" fill="var(--b-batt)"/>
+        <text x="80" y="88" text-anchor="middle" class="sv-tw">18650</text><text x="80" y="108" text-anchor="middle" class="sv-tws">3.7V</text>
+        <text x="140" y="79" text-anchor="end" class="sv-tws">+</text><text x="140" y="116" text-anchor="end" class="sv-tws">−</text>
+        <rect x="200" y="50" width="130" height="80" rx="6" fill="var(--b-tp)"/>
+        <text x="265" y="95" text-anchor="middle" class="sv-tw">TP4056</text>
+        <text x="206" y="79" class="sv-tws">B+</text><text x="206" y="116" class="sv-tws">B−</text>
+        <text x="324" y="79" text-anchor="end" class="sv-tws">OUT+</text><text x="324" y="116" text-anchor="end" class="sv-tws">OUT−</text>
+        <text x="265" y="148" text-anchor="middle" class="sv-tm">USB-C로 충전</text>
+        <rect x="370" y="58" width="60" height="34" rx="6" class="sv-box"/><rect x="382" y="65" width="36" height="20" rx="3" fill="var(--w-black)"/>
+        <text x="400" y="48" text-anchor="middle" class="sv-tm">스위치</text>
+        <rect x="470" y="50" width="130" height="80" rx="6" fill="var(--b-mod)"/>
+        <text x="535" y="95" text-anchor="middle" class="sv-tw">MT3608</text>
+        <text x="476" y="79" class="sv-tws">IN+</text><text x="476" y="116" class="sv-tws">IN−</text>
+        <text x="594" y="79" text-anchor="end" class="sv-tws">OUT+</text><text x="594" y="116" text-anchor="end" class="sv-tws">OUT−</text>
+        <text x="535" y="148" text-anchor="middle" class="sv-acc">먼저 5.0V로 조정</text>
+        <path class="w r" d="M150 75 H200"/><path class="w k" d="M150 112 H200"/>
+        <path class="w r" d="M330 75 H370 M430 75 H470"/>
+        <path class="w k" d="M330 112 H470"/>
+        <path class="w r" d="M600 75 H660"/><path class="w k" d="M600 112 H660"/>
+        <!-- ESP32 -->
+        <rect x="660" y="40" width="280" height="130" rx="10" fill="var(--b-esp)"/>
+        <rect x="760" y="56" width="90" height="56" rx="4" fill="#9AA3AD"/><text x="805" y="90" text-anchor="middle" class="sv-tb" style="fill:#1A222A">ESP32</text>
+        <text x="668" y="79" class="sv-tws">VIN</text><text x="668" y="116" class="sv-tws">GND</text>
+        <g class="sv-tws" text-anchor="middle">
+          <text x="680" y="162">3V3</text><text x="707" y="162">GND</text><text x="732" y="162">34</text><text x="757" y="162">25</text>
+          <text x="782" y="162">32</text><text x="807" y="162">26</text><text x="842" y="162">27</text><text x="872" y="162">14</text><text x="902" y="162">4</text>
+        </g>
+        <!-- 조이스틱·버튼·LED -->
+        <rect x="300" y="300" width="130" height="90" rx="8" fill="#2A2D31"/><circle cx="365" cy="352" r="22" fill="#4A4F57"/><circle cx="365" cy="352" r="11" fill="#1A1C1F"/>
+        <g class="sv-tws" text-anchor="middle"><text x="315" y="316">+5V</text><text x="340" y="316">GND</text><text x="375" y="316">VRy</text><text x="405" y="316">SW</text></g>
+        <text x="365" y="408" text-anchor="middle" class="sv-tm">왼쪽 조이스틱</text>
+        <rect x="460" y="300" width="130" height="90" rx="8" fill="#2A2D31"/><circle cx="525" cy="352" r="22" fill="#4A4F57"/><circle cx="525" cy="352" r="11" fill="#1A1C1F"/>
+        <g class="sv-tws" text-anchor="middle"><text x="475" y="316">+5V</text><text x="500" y="316">GND</text><text x="535" y="316">VRx</text><text x="565" y="316">SW</text></g>
+        <text x="525" y="408" text-anchor="middle" class="sv-tm">오른쪽 조이스틱</text>
+        <circle cx="650" cy="335" r="20" fill="#C23B30"/><text x="650" y="341" text-anchor="middle" class="sv-tw">A</text>
+        <circle cx="720" cy="335" r="20" fill="#C23B30"/><text x="720" y="341" text-anchor="middle" class="sv-tw">B</text>
+        <circle cx="790" cy="335" r="13" fill="#F4E04D"/><text x="810" y="340" class="sv-tm">LED·220Ω</text>
+        <path class="w k" d="M650 355 V392 H790 V348 M720 355 V392 M790 392 H850"/>
+        <path d="M850 384 V400 M840 400 H860 M844 406 H856 M848 412 H852" stroke="var(--ink)" stroke-width="2" fill="none"/>
+        <text x="866" y="404" class="sv-tm">GND</text>
+        <path class="w s" d="M902 170 V278 H790 V322"/>
+        <path class="w b" d="M872 170 V267 H720 V315"/>
+        <path class="w o" d="M842 170 V256 H650 V315"/>
+        <path class="w g" d="M807 170 V245 H565 V300"/>
+        <path class="w y" d="M782 170 V234 H535 V300"/>
+        <path class="w g" d="M757 170 V223 H405 V300"/>
+        <path class="w y" d="M732 170 V212 H375 V300"/>
+        <path class="w k" d="M707 170 V201 H340 V300 M500 201 V300"/>
+        <path class="w r" d="M680 170 V190 H315 V300 M475 190 V300"/>
+        <text x="20" y="300" class="sv-acc">조이스틱 +5V 핀은</text>
+        <text x="20" y="320" class="sv-acc">ESP32 3V3에 (두 개 모두)</text>
+        <text x="20" y="346" class="sv-tm">VRx(왼쪽)·VRy(오른쪽) 핀은</text>
+        <text x="20" y="364" class="sv-tm">쓰지 않아요</text>
+      </svg>
+      <figcaption>MT3608은 배터리 전압(3.0~4.2V)을 5V로 올려 ESP32 VIN에 넣어요. 선이 겹치는 곳은 이어진 게 아니라 위로 지나가는 거예요(이어진 곳은 점으로 표시).</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================================================================ 코드 올리기 -->
+  <section class="ref" id="upload">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">5</span>코드 올리기</h2>
+        <p class="sub">컴퓨터에 아두이노 IDE를 설치하고, 차 ESP32에는 <code>rc_car</code>, 조종기 ESP32에는 <code>rc_controller</code>를 올려요. 따로 설치할 라이브러리는 없어요. 그림은 아두이노 IDE 2 화면을 단순하게 그린 예시예요.</p>
+      </div>
+    </div>
+    <div class="howto">
+
+      <div class="ht">
+        <div>
+          <h3>아두이노 IDE 설치하고 ESP32 보드 추가하기</h3>
+          <ol>
+            <li><a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">arduino.cc/en/software</a>에서 Arduino IDE 2를 받아 설치해요.</li>
+            <li><b>파일 → 기본 설정</b>을 열고 <b>추가 보드 관리자 URL</b> 칸에 아래 주소를 붙여 넣고 확인을 눌러요.</li>
+          </ol>
+          <div class="copy"><code id="board-url">https://espressif.github.io/arduino-esp32/package_esp32_index.json</code><button type="button" data-copy="board-url">복사</button></div>
+          <ol start="3">
+            <li>왼쪽 두 번째 아이콘(보드 매니저)을 누르고 <code>esp32</code>를 검색해요.</li>
+            <li><b>esp32 by Espressif Systems</b>의 <b>설치</b>를 눌러요. 처음 한 번만 하면 되고 5~10분 걸려요.</li>
+          </ol>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 300" role="img" aria-label="보드 매니저에서 esp32 by Espressif Systems 설치 버튼을 누르는 그림">
+            <rect x="1" y="1" width="518" height="298" rx="8" class="sv-box"/>
+            <rect x="1" y="1" width="518" height="30" rx="8" fill="#008184"/><text x="14" y="21" class="sv-tw" style="font-size:12px">rc_car | Arduino IDE 2</text>
+            <rect x="1" y="31" width="44" height="268" fill="var(--bg)" stroke="var(--line)"/>
+            <rect x="11" y="44" width="24" height="24" rx="4" class="sv-soft"/>
+            <rect x="9" y="80" width="28" height="28" rx="5" class="sv-hif"/><text x="23" y="99" text-anchor="middle" class="sv-tw" style="font-size:13px">▦</text>
+            <rect x="11" y="120" width="24" height="24" rx="4" class="sv-soft"/>
+            <text x="58" y="56" class="sv-tb" style="font-size:13px">보드 매니저</text>
+            <rect x="58" y="66" width="200" height="26" rx="4" class="sv-soft"/><text x="68" y="84" class="sv-pin">esp32</text>
+            <rect x="58" y="104" width="230" height="110" rx="6" class="sv-box"/>
+            <text x="70" y="128" class="sv-tb" style="font-size:13px">esp32</text>
+            <text x="70" y="146" class="sv-tm">by Espressif Systems</text>
+            <text x="70" y="166" class="sv-tm">3.x.x ▾</text>
+            <rect x="196" y="176" width="78" height="28" rx="5" class="sv-hif"/><text x="235" y="195" text-anchor="middle" class="sv-tw" style="font-size:13px">설치</text>
+            <rect x="192" y="172" width="86" height="36" rx="7" class="sv-hi"/>
+            <rect x="58" y="222" width="230" height="60" rx="6" class="sv-soft"/><text x="70" y="246" class="sv-tm">Arduino ESP32 Boards</text><text x="70" y="264" class="sv-tm">by Arduino (이건 아니에요)</text>
+            <rect x="300" y="44" width="208" height="244" rx="4" fill="var(--bg)"/>
+            <text x="312" y="70" class="sv-tb" style="font-size:12px">기본 설정 → 추가 보드 관리자 URL</text>
+            <rect x="312" y="80" width="186" height="40" rx="4" class="sv-box"/><text x="318" y="98" class="sv-pin" style="font-size:9.5px">https://espressif.github.io/</text><text x="318" y="112" class="sv-pin" style="font-size:9.5px">arduino-esp32/package_esp32…</text>
+            <rect x="309" y="77" width="192" height="46" rx="6" class="sv-hi"/>
+            <text x="312" y="150" class="sv-tm">① 주소 넣기 → ② 보드 매니저</text>
+            <text x="312" y="170" class="sv-tm">→ ③ esp32 검색 → ④ 설치</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>USB 드라이버 확인하기</h3>
+          <p>ESP32를 USB 데이터 케이블로 컴퓨터에 꽂아요. 보드의 USB 옆 칩 글자를 보고 필요하면 드라이버를 설치해요.</p>
+          <ul>
+            <li><b>CP2102</b> (네모난 칩, CP210x): <a href="https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener">Silicon Labs CP210x 드라이버</a></li>
+            <li><b>CH340 / CH9102</b>: <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" rel="noopener">WCH CH341SER 드라이버</a></li>
+          </ul>
+          <div class="callout"><strong>포트가 안 보이면</strong> · 충전 전용 케이블이 아닌지 먼저 확인하세요. 학생들이 가장 많이 막히는 곳이에요. 데이터 케이블에 색 테이프로 표시해 두면 좋아요.</div>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 220" role="img" aria-label="ESP32 보드의 USB 포트, USB 칩, BOOT 버튼, EN 버튼 위치">
+            <rect x="60" y="50" width="400" height="120" rx="8" fill="var(--b-esp)"/>
+            <g fill="#C9A227">
+              <rect x="80" y="52" width="360" height="8" rx="2"/><rect x="80" y="160" width="360" height="8" rx="2"/>
+            </g>
+            <rect x="250" y="75" width="150" height="70" rx="4" fill="#9AA3AD"/><text x="325" y="115" text-anchor="middle" class="sv-tb" style="fill:#1A222A">ESP32-WROOM</text>
+            <rect x="40" y="92" width="40" height="36" rx="3" fill="#C0C6CC"/><text x="60" y="190" text-anchor="middle" class="sv-tm">USB</text>
+            <rect x="110" y="88" width="34" height="34" rx="3" fill="#111"/><text x="127" y="140" text-anchor="middle" class="sv-tws">CP2102</text>
+            <rect x="106" y="84" width="42" height="42" rx="5" class="sv-hi"/>
+            <rect x="170" y="70" width="22" height="18" rx="3" fill="#ddd"/><text x="181" y="64" text-anchor="middle" class="sv-tws">EN</text>
+            <rect x="170" y="132" width="22" height="18" rx="3" fill="#ddd"/><text x="181" y="163" text-anchor="middle" class="sv-tws">BOOT</text>
+            <text x="127" y="34" text-anchor="middle" class="sv-acc">이 칩 글자 확인</text>
+            <path d="M127 40 V78" stroke="var(--accent)" stroke-width="2" marker-end="url(#ar)"/>
+            <defs><marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="var(--accent)"/></marker></defs>
+            <text x="300" y="205" text-anchor="middle" class="sv-tm">BOOT·EN 버튼은 5단계에서 써요</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>코드 열고 우리 팀 번호 정하기</h3>
+          <ol>
+            <li>받은 zip을 풀고 <code>code/rc_car/rc_car.ino</code>를 더블클릭해 열어요. 폴더 이름과 파일 이름이 같아야 열려요.</li>
+            <li>위쪽 탭에서 <b>config.h</b>를 눌러요.</li>
+            <li><code>#define CAR_ID 1</code>의 숫자를 <b>선생님이 정해 준 팀 번호</b>로 바꿔요. 조종기 코드의 <code>CAR_ID</code>도 같은 번호여야 해요.</li>
+            <li><code>WIFI_CHANNEL</code>도 정해 준 채널로 바꿔요 (차와 조종기가 같게).</li>
+            <li>센서를 안 달았으면 그 줄의 <code>1</code>을 <code>0</code>으로 바꿔요. 예: 초음파가 없으면 <code>USE_ULTRASONIC 0</code>.</li>
+          </ol>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 250" role="img" aria-label="config.h 탭에서 CAR_ID 숫자를 바꾸는 그림">
+            <rect x="1" y="1" width="518" height="248" rx="8" class="sv-box"/>
+            <rect x="1" y="1" width="518" height="30" rx="8" fill="#008184"/>
+            <rect x="12" y="36" width="96" height="26" rx="4" class="sv-soft"/><text x="60" y="54" text-anchor="middle" class="sv-pin">rc_car.ino</text>
+            <rect x="112" y="36" width="80" height="26" rx="4" class="sv-hif"/><text x="152" y="54" text-anchor="middle" class="sv-tw" style="font-size:12px;font-family:var(--font-mono)">config.h</text>
+            <rect x="196" y="36" width="104" height="26" rx="4" class="sv-soft"/><text x="248" y="54" text-anchor="middle" class="sv-pin">phone_link.h</text>
+            <rect x="304" y="36" width="80" height="26" rx="4" class="sv-soft"/><text x="344" y="54" text-anchor="middle" class="sv-pin">webapp.h</text>
+            <g class="sv-pin">
+              <text x="20" y="92" style="fill:var(--muted)">  7  // ---------- 페어링 ----------</text>
+              <text x="20" y="116">  9  #define CAR_ID        <tspan style="fill:var(--accent);font-weight:700">3</tspan></text>
+              <text x="20" y="140"> 10  #define WIFI_CHANNEL  <tspan style="fill:var(--accent);font-weight:700">6</tspan></text>
+              <text x="20" y="168" style="fill:var(--muted)"> 22  // ---------- 확장 모듈 ON/OFF ----------</text>
+              <text x="20" y="192"> 23  #define USE_ULTRASONIC  1</text>
+              <text x="20" y="216"> 25  #define USE_LINE_SENSOR <tspan style="fill:var(--accent);font-weight:700">0</tspan></text>
+            </g>
+            <rect x="14" y="100" width="300" height="48" rx="6" class="sv-hi"/>
+            <text x="330" y="122" class="sv-acc">팀 번호·채널로</text>
+            <text x="330" y="140" class="sv-tm">조종기도 똑같이</text>
+            <text x="330" y="212" class="sv-tm">안 단 센서는 0</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>보드와 포트 고르기</h3>
+          <ol>
+            <li>위쪽 보드 선택 칸을 누르고 <b>다른 보드와 포트 선택</b>을 눌러요.</li>
+            <li>보드에 <code>ESP32 Dev Module</code>을 검색해 고르고, 포트는 USB를 꽂을 때 새로 생기는 <b>COM 번호</b>(맥은 <code>/dev/cu.usbserial…</code>)를 골라요.</li>
+            <li>어떤 포트인지 모르겠으면 USB를 뺐다 꽂아 보고 사라졌다 생기는 것을 골라요.</li>
+          </ol>
+          <div class="callout tip"><strong>업로드가 자꾸 실패하면</strong> · 도구 → Upload Speed를 <code>115200</code>으로 낮춰 보세요.</div>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 200" role="img" aria-label="툴바에서 ESP32 Dev Module과 COM 포트를 고르는 그림">
+            <rect x="1" y="1" width="518" height="198" rx="8" class="sv-box"/>
+            <rect x="1" y="1" width="518" height="30" rx="8" fill="#008184"/>
+            <circle cx="30" cy="58" r="15" fill="#008184"/><text x="30" y="64" text-anchor="middle" class="sv-tw">✓</text>
+            <circle cx="66" cy="58" r="15" fill="#008184"/><text x="66" y="64" text-anchor="middle" class="sv-tw">→</text>
+            <rect x="96" y="42" width="250" height="32" rx="5" class="sv-soft"/>
+            <text x="108" y="63" class="sv-pin">ESP32 Dev Module · COM5  ▾</text>
+            <rect x="92" y="38" width="258" height="40" rx="7" class="sv-hi"/>
+            <rect x="96" y="86" width="300" height="100" rx="6" class="sv-box"/>
+            <text x="108" y="108" class="sv-tm">보드</text><text x="250" y="108" class="sv-tm">포트</text>
+            <rect x="104" y="116" width="130" height="24" rx="4" class="sv-hif"/><text x="112" y="133" class="sv-tw" style="font-size:11px;font-family:var(--font-mono)">ESP32 Dev Module</text>
+            <rect x="246" y="116" width="140" height="24" rx="4" class="sv-hif"/><text x="254" y="133" class="sv-tw" style="font-size:11px;font-family:var(--font-mono)">COM5 (USB)</text>
+            <text x="112" y="160" class="sv-pin" style="fill:var(--muted)">ESP32-WROOM-DA…</text>
+            <text x="254" y="160" class="sv-pin" style="fill:var(--muted)">COM1</text>
+            <text x="410" y="120" class="sv-tm">새로 생긴</text><text x="410" y="138" class="sv-tm">COM 번호</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>업로드하기</h3>
+          <ol>
+            <li>오른쪽 화살표(→) <b>업로드</b> 버튼을 눌러요. 처음에는 컴파일에 1~2분 걸려요.</li>
+            <li>아래 출력 창에 <code>Connecting........</code>이 나오면 <b>BOOT 버튼을 누르고 있다가</b> <code>Writing at…</code>이 보이면 떼요. 보드에 따라 안 눌러도 될 때가 있어요.</li>
+            <li><code>Hard resetting via RTS pin…</code>이 나오면 끝이에요. EN 버튼을 한 번 눌러 다시 시작해요.</li>
+          </ol>
+          <div class="callout"><strong>주의</strong> · 업로드할 때는 차의 전원 스위치를 꺼 두세요. USB와 배터리를 동시에 연결하면 바퀴가 갑자기 돌 수 있어요.</div>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 250" role="img" aria-label="업로드 버튼을 누르고 Connecting이 나오면 BOOT 버튼을 누르는 그림">
+            <rect x="1" y="1" width="330" height="248" rx="8" class="sv-box"/>
+            <rect x="1" y="1" width="330" height="30" rx="8" fill="#008184"/>
+            <circle cx="30" cy="58" r="15" fill="#008184"/><text x="30" y="64" text-anchor="middle" class="sv-tw">✓</text>
+            <circle cx="66" cy="58" r="15" class="sv-hif"/><text x="66" y="64" text-anchor="middle" class="sv-tw">→</text>
+            <circle cx="66" cy="58" r="20" class="sv-hi"/>
+            <text x="94" y="63" class="sv-acc">업로드</text>
+            <rect x="12" y="92" width="306" height="146" rx="5" fill="#1B1F24"/>
+            <g style="font-family:var(--font-mono);font-size:11px">
+              <text x="22" y="114" fill="#9AA3AD">Sketch uses 990691 bytes (75%)…</text>
+              <text x="22" y="134" fill="#9AA3AD">esptool.py v4.x</text>
+              <text x="22" y="156" fill="#FFCF5C">Connecting........_____</text>
+              <text x="22" y="178" fill="#9AA3AD">Writing at 0x00010000... (12 %)</text>
+              <text x="22" y="200" fill="#9AA3AD">Writing at 0x000e4000... (100 %)</text>
+              <text x="22" y="222" fill="#7FD49B">Hard resetting via RTS pin...</text>
+            </g>
+            <rect x="16" y="142" width="200" height="20" rx="4" class="sv-hi"/>
+            <!-- 보드 -->
+            <rect x="350" y="70" width="160" height="110" rx="8" fill="var(--b-esp)"/>
+            <rect x="420" y="90" width="76" height="60" rx="3" fill="#9AA3AD"/>
+            <rect x="338" y="108" width="24" height="30" rx="3" fill="#C0C6CC"/>
+            <rect x="374" y="80" width="22" height="16" rx="3" fill="#ddd"/><text x="385" y="62" text-anchor="middle" class="sv-tm">EN</text>
+            <rect x="374" y="150" width="22" height="16" rx="3" fill="#ddd"/>
+            <circle cx="385" cy="158" r="16" class="sv-hi"/>
+            <text x="385" y="200" text-anchor="middle" class="sv-acc">BOOT</text>
+            <text x="430" y="210" class="sv-tm">Connecting…</text><text x="430" y="228" class="sv-tm">나오면 꾹</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>시리얼 모니터로 확인하기</h3>
+          <ol>
+            <li>오른쪽 위 돋보기 모양 <b>시리얼 모니터</b>를 열고 속도를 <code>115200 baud</code>로 맞춰요.</li>
+            <li>EN 버튼을 누르면 <code>RC카 준비 완료 CAR_ID=3</code>처럼 나와요. 팀 번호가 맞는지 확인해요.</li>
+            <li>조종기도 같은 방법으로 <code>code/rc_controller</code>를 올려요. 조종기를 켜면 차 쪽 모니터에 <code>[LINK] 조종기 연결됨</code>이 나와요.</li>
+          </ol>
+          <div class="callout tip"><strong>글자가 깨져 보이면</strong> · 모니터 속도가 115200인지 확인하세요.</div>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 200" role="img" aria-label="시리얼 모니터에 RC카 준비 완료 메시지가 나오는 그림">
+            <rect x="1" y="1" width="518" height="198" rx="8" class="sv-box"/>
+            <rect x="12" y="12" width="496" height="28" rx="4" class="sv-soft"/>
+            <text x="22" y="31" class="sv-tb" style="font-size:12px">시리얼 모니터</text>
+            <rect x="380" y="16" width="120" height="20" rx="4" class="sv-hif"/><text x="440" y="31" text-anchor="middle" class="sv-tw" style="font-size:11px;font-family:var(--font-mono)">115200 baud ▾</text>
+            <rect x="12" y="48" width="496" height="140" rx="4" fill="#1B1F24"/>
+            <g style="font-family:var(--font-mono);font-size:11.5px">
+              <text x="22" y="72" fill="#9AA3AD">[PHONE] 와이파이 "RC-CAR-3" → http://192.168.4.1</text>
+              <text x="22" y="96" fill="#7FD49B">RC카 준비 완료  CAR_ID=3  채널=6</text>
+              <text x="22" y="120" fill="#9AA3AD">MAC=24:6F:28:xx:xx:xx</text>
+              <text x="22" y="144" fill="#FFCF5C">[LINK] 조종기 연결됨</text>
+              <text x="22" y="168" fill="#9AA3AD">[MODE] 장애물 회피</text>
+            </g>
+            <rect x="16" y="80" width="280" height="22" rx="4" class="sv-hi"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ht">
+        <div>
+          <h3>ESP32-CAM 올리기 (카메라를 달 때만)</h3>
+          <ol>
+            <li>ESP32-CAM을 <b>ESP32-CAM-MB</b>(USB 보드)에 핀 방향을 맞춰 꽂고 USB로 연결해요.</li>
+            <li>보드는 <code>AI Thinker ESP32-CAM</code>, 도구 → PSRAM은 <b>Enabled</b>.</li>
+            <li><code>code/rc_cam/config.h</code>의 <code>CAR_ID</code>를 차와 같게 하고 업로드해요.</li>
+            <li><code>Connecting…</code>에서 멈추면 MB 보드의 <b>IO0</b> 버튼을 누른 채 <b>RST</b>를 한 번 눌렀다 떼요.</li>
+            <li>업로드가 끝나면 RST를 눌러요. 시리얼 모니터에 <code>[CAM] 연결 480x320 15.0 fps</code>가 나오면 성공이에요.</li>
+          </ol>
+        </div>
+        <div class="art">
+          <svg viewBox="0 0 520 220" role="img" aria-label="ESP32-CAM을 ESP32-CAM-MB에 꽂고 IO0와 RST 버튼을 쓰는 그림">
+            <rect x="150" y="20" width="200" height="180" rx="8" fill="#2A2F36"/>
+            <rect x="175" y="40" width="150" height="120" rx="6" fill="#1F2328"/>
+            <rect x="225" y="60" width="50" height="50" rx="4" fill="#444"/><circle cx="250" cy="85" r="16" fill="#111"/><circle cx="250" cy="85" r="7" fill="#355"/>
+            <text x="250" y="140" text-anchor="middle" class="sv-tws">ESP32-CAM</text>
+            <rect x="150" y="160" width="200" height="40" rx="6" fill="#1D6F42"/>
+            <text x="250" y="186" text-anchor="middle" class="sv-tws">ESP32-CAM-MB</text>
+            <rect x="350" y="168" width="26" height="24" rx="3" fill="#C0C6CC"/><text x="390" y="186" class="sv-tm">USB</text>
+            <rect x="166" y="170" width="20" height="14" rx="3" fill="#ddd"/><circle cx="176" cy="177" r="14" class="sv-hi"/>
+            <text x="120" y="182" text-anchor="end" class="sv-acc">IO0</text>
+            <rect x="314" y="170" width="20" height="14" rx="3" fill="#ddd"/>
+            <text x="324" y="214" text-anchor="middle" class="sv-tm">RST</text>
+            <text x="372" y="60" class="sv-tm">Connecting…에서</text>
+            <text x="372" y="80" class="sv-tm">멈추면 IO0 누른 채</text>
+            <text x="372" y="100" class="sv-tm">RST 한 번</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-h">스마트폰 조종 화면을 고치고 싶을 때</h3>
+    <p class="sub">조종 화면은 <code>code/rc_car/web/index.html</code>이 원본이에요. 고친 뒤 <code>python web/make_webapp_h.py</code>를 실행하면 <code>webapp.h</code>가 새로 만들어지고, 다시 업로드하면 반영돼요. 컴퓨터 브라우저로 index.html을 열면 미리보기 화면이 보여요.</p>
+  </section>
+
+  <!-- ================================================================ 첫 시험 -->
+  <section class="ref" id="test">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">6</span>첫 시험</h2>
+        <p class="sub">처음 전원을 넣을 때는 차를 상자나 컵 위에 올려 바퀴가 바닥에 닿지 않게 해요.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>순서</h3>
+        <ol>
+          <li>스위치 OFF 상태에서 멀티미터로 L298N <b>12V와 GND 사이가 0Ω(합선)이 아닌지</b> 확인해요.</li>
+          <li>18650을 + 방향을 확인하며 넣고 차 스위치를 켜요. ESP32 파란 LED가 깜빡이면 조종기를 기다리는 중이에요.</li>
+          <li>조종기를 <b>스틱에서 손을 뗀 채로</b> 켜요(가운데 값 자동 맞춤). 부저가 두 번 울리고 조종기 LED가 켜지면 연결됐어요.</li>
+          <li>왼쪽 스틱을 살짝 위로 밀어 네 바퀴가 모두 <b>앞으로</b> 도는지 봐요.</li>
+          <li>오른쪽 스틱을 오른쪽으로 밀면 왼쪽 바퀴는 앞으로, 오른쪽 바퀴는 뒤로 돌아야 해요.</li>
+          <li>조종기를 끄면 0.5초 안에 바퀴가 멈추는지 확인해요(안전 정지).</li>
+          <li>손을 초음파 센서 앞 10cm에 대고 전진하면 멈추고 부저가 울려야 해요.</li>
+        </ol>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>이렇게 되면</th><th>이렇게 고쳐요</th></tr></thead>
+          <tbody>
+            <tr><td>왼쪽 바퀴만 거꾸로 돈다</td><td><code>LEFT_REVERSE 1</code> (또는 OUT1·OUT2 선 바꾸기)</td></tr>
+            <tr><td>오른쪽 바퀴만 거꾸로 돈다</td><td><code>RIGHT_REVERSE 1</code></td></tr>
+            <tr><td>바퀴 하나만 반대로 돈다</td><td>그 모터의 빨강·검정 선만 바꿔 끼우기</td></tr>
+            <tr><td>스틱을 위로 밀면 후진</td><td>조종기 <code>INVERT_THROTTLE</code> 0↔1</td></tr>
+            <tr><td>오른쪽으로 밀면 왼쪽으로 돈다</td><td>조종기 <code>INVERT_STEER</code> 0↔1</td></tr>
+            <tr><td>천천히 밀면 안 움직인다</td><td><code>MOTOR_MIN_PWM</code> 90 → 110</td></tr>
+            <tr><td>너무 빠르다 / 너무 느리다</td><td>조종기 B 버튼(1→2→3), 또는 <code>SPEED_L1~L3</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <h3 class="sub-h">조종 방법</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>조종기</th><th>동작</th><th>알림</th></tr></thead>
+        <tbody>
+          <tr><td>왼쪽 스틱 위/아래</td><td>전진 / 후진</td><td>—</td></tr>
+          <tr><td>오른쪽 스틱 좌/우</td><td>방향 (멈춘 채로 밀면 제자리 회전)</td><td>—</td></tr>
+          <tr><td>왼쪽 스틱 누르기 / 오른쪽 스틱 누르기</td><td>경적 (누르는 동안) / 전조등 켜기·끄기</td><td>—</td></tr>
+          <tr><td>A 버튼</td><td>모드: 수동 → 장애물 회피 → 라인트레이싱</td><td>부저 1·2·3번</td></tr>
+          <tr><td>B 버튼</td><td>속도 단계 1 → 2 → 3</td><td>조종기 LED 깜빡임 횟수</td></tr>
+          <tr><td>조종기 LED</td><td>켜짐 = 연결됨 · 빠르게 깜빡 = 차 신호 없음</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================================================================ 폰·카메라 -->
+  <section class="ref" id="phone">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">7</span>스마트폰 조종 · 카메라</h2>
+        <p class="sub">차 ESP32가 직접 와이파이를 열고 조종 화면을 보내 줘요. 앱 설치나 인터넷 없이 폰 브라우저만 있으면 돼요(아이폰·안드로이드).</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>폰으로 조종하기</h3>
+        <ol>
+          <li>차를 켜면 와이파이 <code>RC-CAR-팀번호</code>(비밀번호 <code>12345678</code>)가 생겨요.</li>
+          <li>폰에서 연결하면 조종 화면이 자동으로 떠요. 안 뜨면 브라우저 주소창에 <code>192.168.4.1</code>.</li>
+          <li>폰을 가로로 들고, 화면 아무 곳에 엄지를 대면 원형 조이스틱이 나타나요. 왼쪽 엄지는 전진·후진, 오른쪽 엄지는 방향.</li>
+          <li>톱니바퀴에서 스틱 1개(한 손), 좌우 바꾸기(왼손잡이)를 고를 수 있어요.</li>
+          <li>조종기와 폰을 같이 켜 두면, 운전하던 쪽이 1초 동안 스틱을 놓을 때 다른 쪽이 넘겨받아요.</li>
+        </ol>
+        <div class="callout tip"><strong>아이폰</strong> · 연결 후 뜨는 작은 창에서 바로 조종해도 되고, "취소 → 인터넷 연결 없이 사용"을 고른 뒤 사파리에서 192.168.4.1로 들어가도 돼요. <strong>안드로이드</strong> · "인터넷 없음" 알림이 뜨면 "연결 유지".</div>
+      </div>
+      <div class="card">
+        <h3>카메라로 실시간 화면 보기 (선택)</h3>
+        <ol>
+          <li>9단계처럼 상판 맨 앞에 카메라 받침과 홀더를 달고, ESP32-CAM 뒷면을 폼테이프로 붙여요.</li>
+          <li>카메라 전원은 <b>5V 강압 모듈</b>로 따로 줘요. 강압 모듈 출력을 멀티미터로 5.0V에 맞춘 뒤 ESP32-CAM 5V·GND에 연결해요.</li>
+          <li>ESP32-CAM 코드를 올리면 차 와이파이에 스스로 접속해요(뒷면 빨간 LED가 켜짐).</li>
+          <li>폰 조종 화면 뒤에 영상이 꽉 차게 깔려요. 위쪽 카메라 버튼으로 켜고 끄고, 톱니바퀴에서 화질·위아래 뒤집기를 바꿔요.</li>
+          <li>전조등 버튼을 누르면 카메라 플래시도 함께 켜져요.</li>
+        </ol>
+        <div class="callout"><strong>주의</strong> · L298N의 5V로 ESP32와 카메라를 함께 돌리면 전류가 모자라 재부팅돼요. 영상은 한 번에 폰 1대만 볼 수 있어요.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 문제 해결 -->
+  <section class="ref" id="trouble">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">8</span>문제 해결</h2>
+        <p class="sub">대부분은 전원(배터리 충전·GND 연결)이나 번호(CAR_ID·채널)가 원인이에요. 위에서부터 차례로 확인해요.</p>
+      </div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>증상</th><th>확인할 것</th></tr></thead>
+        <tbody>
+          <tr><td>업로드할 때 포트가 안 보인다</td><td>데이터 케이블인지, USB 드라이버(CP210x / CH340) 설치했는지</td></tr>
+          <tr><td><code>Failed to connect to ESP32</code></td><td>Connecting… 때 BOOT 누르기, Upload Speed 115200, 차 전원 스위치 끄기</td></tr>
+          <tr><td>조종기와 연결이 안 된다</td><td>두 코드의 <code>CAR_ID</code>·<code>WIFI_CHANNEL</code>이 같은지, 시리얼 모니터에 [LINK]가 나오는지</td></tr>
+          <tr><td>출발할 때 ESP32가 재부팅된다</td><td>배터리 충전, L298N 12V 단자에 470~1000µF 콘덴서, <code>RAMP_STEP</code> 줄이기</td></tr>
+          <tr><td>모터가 하나도 안 돈다</td><td>ENA·ENB 점퍼를 빼고 25·13번에 연결했는지, ESP32 GND와 L298N GND가 이어졌는지</td></tr>
+          <tr><td>스틱을 안 건드려도 조금씩 움직인다</td><td>조종기를 손 뗀 채로 다시 켜기, 조종기 <code>DEADZONE</code> 올리기</td></tr>
+          <tr><td>조이스틱 값이 이상하다</td><td>조이스틱 +5V 핀을 ESP32 <b>3V3</b>에 연결했는지</td></tr>
+          <tr><td>초음파 거리가 0이나 400만 나온다</td><td>ECHO 분압 저항 연결, VCC가 5V인지, 센서가 범퍼 구멍에 바로 끼워졌는지</td></tr>
+          <tr><td>라인트레이싱이 반대로 반응한다</td><td><code>LINE_BLACK</code>을 HIGH ↔ LOW, 센서 가변저항으로 감도 맞추기</td></tr>
+          <tr><td>폰에서 와이파이가 안 보인다</td><td><code>USE_PHONE 1</code>인지, 시리얼 모니터에 <code>[PHONE] 와이파이</code>가 나오는지</td></tr>
+          <tr><td>폰 화면에 "차량 응답 없음"</td><td>페이지 새로고침, 차와 폰 거리(10~20m 안)</td></tr>
+          <tr><td>폰에 "카메라 응답 없음"</td><td>ESP32-CAM 빨간 LED, CAR_ID·비밀번호, 5V 전원</td></tr>
+          <tr><td>여러 팀 차가 서로 간섭한다</td><td>팀마다 다른 CAR_ID, 채널을 1·6·11로 나누기 (아래 선생님용 표)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================================================================ 안전 -->
+  <section class="ref" id="safety">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">9</span>안전 수칙</h2>
+        <p class="sub">18650 리튬 배터리는 작지만 에너지가 커요. 아래 내용은 만들기 전에 함께 읽어요.</p>
+      </div>
+    </div>
+    <div class="safety">
+      <div><b>보호회로 배터리만 쓰기</b>보호회로(PCB)가 있는 18650을 쓰고, 찌그러지거나 비닐이 벗겨진 배터리는 쓰지 않아요.</div>
+      <div><b>+와 −를 절대 맞대지 않기</b>배터리 양 끝을 쇠붙이(볼트·드라이버)로 동시에 건드리면 순식간에 뜨거워져요. 배선 중에는 배터리를 빼 두어요.</div>
+      <div><b>극성 두 번 확인</b>홀더의 + 표시와 배터리 + 끝을 맞추고, L298N 12V·GND에 빨강·검정이 맞는지 확인한 뒤 스위치를 켜요.</div>
+      <div><b>충전은 지켜보는 곳에서</b>18650 전용 충전기나 TP4056으로, 사람이 있는 곳에서 충전해요. 뜨거워지거나 냄새가 나면 바로 빼요.</div>
+      <div><b>납땜은 선생님과 함께</b>인두 끝은 350℃ 이상이에요. 인두 받침에 두고, 환기하고, 납땜 후에는 손을 씻어요.</div>
+      <div><b>바퀴 띄우고 시험</b>처음 시험과 코드 수정 후에는 바퀴를 띄운 채 확인하고, 사람 발 쪽으로 달리지 않아요.</div>
+      <div><b>L298N 방열판은 뜨거워요</b>오래 달린 뒤에는 방열판을 만지지 말고 식혀요.</div>
+      <div><b>다 쓰면 스위치 OFF</b>쓰지 않을 때는 스위치를 끄고, 오래 보관할 때는 배터리를 빼 두어요.</div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 선생님용 -->
+  <section class="ref" id="teacher">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">10</span>선생님용</h2>
+        <p class="sub">반 전체가 함께 만들 때 미리 정해 두면 좋은 것들이에요.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div>
+        <h3 class="sub-h" style="margin-top:0">팀 번호·채널 배정표</h3>
+        <div class="tbl">
+          <table class="idtbl">
+            <thead><tr><th>팀</th><th>CAR_ID</th><th>WIFI_CHANNEL</th><th>와이파이 이름</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>1</td><td>1</td><td>RC-CAR-1</td></tr>
+              <tr><td>2</td><td>2</td><td>6</td><td>RC-CAR-2</td></tr>
+              <tr><td>3</td><td>3</td><td>11</td><td>RC-CAR-3</td></tr>
+              <tr><td>4</td><td>4</td><td>1</td><td>RC-CAR-4</td></tr>
+              <tr><td>5</td><td>5</td><td>6</td><td>RC-CAR-5</td></tr>
+              <tr><td>6</td><td>6</td><td>11</td><td>RC-CAR-6</td></tr>
+              <tr><td>…</td><td>팀 번호</td><td>1 → 6 → 11 반복</td><td>RC-CAR-팀번호</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="sub" style="margin-top:10px">차·조종기·ESP32-CAM 세 곳의 <code>CAR_ID</code>와 채널이 모두 같아야 해요. 보드 뒷면에 네임펜으로 팀 번호를 적어 두면 섞이지 않아요. 차마다 QR 라벨(zip 안 <code>qr_labels.pdf</code>)을 붙이면 폰 연결이 쉬워요.</p>
+      </div>
+      <div>
+        <h3 class="sub-h" style="margin-top:0">수업 흐름 (예시 8차시)</h3>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>차시</th><th>활동</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td>원리 알기(ESP-NOW·L298N·PWM), 부품 확인, 모터 선 납땜</td></tr>
+              <tr><td class="num">2</td><td>1~3단계: 모터·바퀴·배터리</td></tr>
+              <tr><td class="num">3</td><td>4~7단계: 범퍼·상판·L298N·ESP32</td></tr>
+              <tr><td class="num">4</td><td>8단계 배선, 멀티미터로 점검</td></tr>
+              <tr><td class="num">5</td><td>코드 올리기, 바퀴 띄우고 첫 시험</td></tr>
+              <tr><td class="num">6</td><td>조종기 1~5단계, MT3608 5V 조정</td></tr>
+              <tr><td class="num">7</td><td>주행 미션(라바콘 코스, 주차), 폰 조종</td></tr>
+              <tr><td class="num">8</td><td>확장: 장애물 회피·라인트레이싱·카메라, 발표</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="cols3" style="margin-top:20px">
+      <div class="card"><h3>미리 해 두면 좋은 일</h3><ul>
+        <li>하판·상판, 조종기 케이스는 수업 전에 출력</li>
+        <li>TT모터에 선을 미리 납땜하거나 납땜된 모터 구입</li>
+        <li>18650 충전, 데이터 USB 케이블 표시</li>
+        <li>컴퓨터실 PC에 IDE·ESP32 보드·USB 드라이버 미리 설치</li>
+        <li>MT3608·강압 모듈을 5.0V로 미리 맞춰 나눠 주기</li>
+      </ul></div>
+      <div class="card"><h3>시간이 부족할 때</h3><ul>
+        <li>조종기 대신 <b>스마트폰 조종</b>만으로 시작 (조종기는 나중에)</li>
+        <li>라인센서·카메라는 빼고 기본 주행만</li>
+        <li>코드는 config.h만 고치고 올리기</li>
+      </ul></div>
+      <div class="card"><h3>탐구 질문 예시</h3><ul>
+        <li>탱크식 조향에서 왼쪽·오른쪽 바퀴 속도 차이와 회전 반경의 관계는?</li>
+        <li>PWM 값과 실제 속도는 비례할까? (<code>MOTOR_MIN_PWM</code>이 필요한 까닭)</li>
+        <li>초음파가 거리를 재는 원리 (소리의 속력 340m/s)</li>
+        <li>신호가 끊기면 멈추게 한 까닭 (안전 설계)</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ================================================================ 용어 -->
+  <section class="ref" id="terms">
+    <div class="ref-head">
+      <div>
+        <h2>알아 두면 좋은 용어</h2>
+        <p class="sub">조립과 코드 설명에 나오는 말들이에요.</p>
+      </div>
+    </div>
+    <dl class="glossary">
+      <div><dt>ESP32<span>microcontroller</span></dt><dd>와이파이와 블루투스가 들어 있는 작은 컴퓨터 칩. 차와 조종기에 하나씩 들어가요.</dd></div>
+      <div><dt>ESP-NOW<span>wireless</span></dt><dd>공유기 없이 ESP32끼리 바로 짧은 신호를 주고받는 방법. 빠르고 연결이 간단해요.</dd></div>
+      <div><dt>모터 드라이버<span>L298N</span></dt><dd>ESP32의 약한 신호로 모터에 큰 전류를 흘려 주는 장치. 방향과 속도를 바꿔요.</dd></div>
+      <div><dt>H-브리지<span>H-bridge</span></dt><dd>스위치 4개로 모터에 흐르는 전류 방향을 바꿔 앞뒤로 돌리는 회로. IN1·IN2로 고르고요.</dd></div>
+      <div><dt>PWM<span>pulse width modulation</span></dt><dd>전기를 아주 빠르게 켰다 껐다 하며, 켜진 시간의 비율로 모터 속도를 조절하는 방법이에요.</dd></div>
+      <div><dt>탱크식 조향<span>differential drive</span></dt><dd>앞바퀴를 꺾지 않고 왼쪽·오른쪽 바퀴 속도를 다르게 해서 방향을 바꾸는 방식이에요.</dd></div>
+      <div><dt>조이스틱<span>KY-023</span></dt><dd>가변저항 2개로 스틱 위치를 전압으로 바꾸는 부품. 누르면 버튼도 돼요.</dd></div>
+      <div><dt>ADC<span>analog → digital</span></dt><dd>전압을 숫자로 바꾸는 장치. ESP32는 0~3.3V를 0~4095로 읽어요.</dd></div>
+      <div><dt>데드존<span>dead zone</span></dt><dd>스틱이 가운데 근처에서 살짝 흔들려도 0으로 보는 범위예요.</dd></div>
+      <div><dt>페일세이프<span>failsafe</span></dt><dd>신호가 끊기는 등 문제가 생기면 자동으로 안전한 상태(정지)로 가는 설계예요.</dd></div>
+      <div><dt>초음파 센서<span>HC-SR04</span></dt><dd>초음파를 쏘고 돌아오는 시간을 재서 거리를 구해요. 거리(cm) = 시간(µs) ÷ 58.</dd></div>
+      <div><dt>전압 분배<span>voltage divider</span></dt><dd>저항 두 개로 전압을 나눠 낮추는 방법. 5V ECHO 신호를 3.3V로 낮춰 ESP32를 보호해요.</dd></div>
+      <div><dt>승압 · 강압<span>boost · buck</span></dt><dd>전압을 올리거나(MT3608) 내리는(MP1584) 모듈. 출력은 가변저항으로 맞춰요.</dd></div>
+      <div><dt>GND 공통<span>common ground</span></dt><dd>여러 모듈의 GND를 하나로 이어야 신호의 기준 전압이 같아져요. 안 이으면 오작동해요.</dd></div>
+      <div><dt>18650<span>Li-ion cell</span></dt><dd>지름 18mm, 길이 65mm 리튬이온 배터리. 1개 3.7V, 가득 차면 4.2V예요.</dd></div>
+      <div><dt>장공<span>slot hole</span></dt><dd>길쭉한 구멍. 볼트 위치가 조금 달라도 맞출 수 있게 해요.</dd></div>
+      <div><dt>캡티브 포털<span>captive portal</span></dt><dd>와이파이에 연결하면 웹페이지가 자동으로 뜨게 하는 방식. 폰 조종 화면이 이렇게 떠요.</dd></div>
+      <div><dt>MJPEG<span>motion JPEG</span></dt><dd>사진(JPEG)을 빠르게 이어서 보내는 영상 방식. ESP32-CAM이 이렇게 보내요.</dd></div>
+    </dl>
+  </section>
+
+  <!-- ================================================================ 파일 받기 -->
+  <section class="ref" id="download">
+    <div class="ref-head">
+      <div>
+        <h2><span class="n">11</span>파일 받기</h2>
+        <p class="sub">출력용 STL, 퓨전360에서 고칠 수 있는 STEP, 아두이노 코드 3종, QR 라벨, 설명서를 zip 하나로 묶었어요.</p>
+      </div>
+    </div>
+    <div class="dl">
+      <a class="btn" href="rc_car_esp32.zip" download>zip 받기 (STL + STEP + 코드)</a>
+      <ul>
+        <li>models/stl · car_01~11, ctrl_01~02</li>
+        <li>models/step · 부품별 + 조립본 2개</li>
+        <li>code/rc_car · 차량 (폰 조종 화면 포함)</li>
+        <li>code/rc_controller · 조종기</li>
+        <li>code/rc_cam · ESP32-CAM (선택)</li>
+        <li>code/rc_car/web/qr_labels.pdf · 차량 QR 1~10번</li>
+        <li>cad/*.py · 치수 바꿔 다시 만들기</li>
+        <li>README.md · 글로 된 설명서</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">ESP32 DevKit V1 · TT 기어모터 ×4 · L298N · 18650 ×2 · HC-SR04 · KY-023 ×2 · ESP32-CAM (선택) · 뱀부랩 H2S 기준 출력</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  "use strict";
+  // ---------- 단계 내용 ----------
+  var STEPS = {
+    car: [
+      { short: "완성", title: "완성 모습", lead: "아래층(하판)에는 모터 4개와 배터리, 위층(상판)에는 L298N과 ESP32가 올라가요. 앞범퍼에는 초음파 센서가 들어가고, 그 아래에 라인센서를 달 수 있어요.",
+        list: ["아래 슬라이더로 부품을 펼쳐 보면 쌓인 순서를 볼 수 있어요.", "바닥의 주황 화살표가 차의 앞쪽이에요. 왼쪽·오른쪽은 차 뒤에서 앞을 보고 섰을 때 기준이에요.", "‘1단계부터 시작’을 누르면 부품이 하나씩 제자리로 들어가요. 위 탭에서 조종기 조립도 볼 수 있어요."],
+        cam: [250, 190, 300], target: [0, 45, 10] },
+      { short: "모터", title: "하판에 모터 4개 달기", lead: "모터는 하판에 세운 벽의 바깥쪽(바퀴 쪽)에 붙여요. 바퀴 축은 차의 앞뒤 끝 쪽을, 둥근 모터 몸통은 차 가운데를 향해요.",
+        list: ["모터 두 단자에 빨강·검정 선(20cm)을 먼저 납땜해 두세요. 4개 모두 같은 방향(빨강이 위)으로 하면 나중에 편해요.", "하판을 평평한 면이 아래로 오게 놓고, 모터를 벽 바깥쪽에 대요.", "M3×30 볼트를 바깥(바퀴 쪽)에서 모터 구멍과 벽의 긴 구멍을 함께 지나게 넣고, 안쪽에서 너트로 조여요. 모터 하나에 2개씩이에요.", "옆에서 보고 네 축이 한 높이에 나란한지 확인한 뒤 단단히 조여요."],
+        warn: "볼트를 너무 세게 조이면 노란 모터 케이스가 깨져요. 모터가 흔들리지 않을 만큼만 조여요. 모터 단자는 약해서 선을 잡아당기지 않아요.",
+        cam: [210, 170, 210], target: [0, 18, 0] },
+      { short: "바퀴", title: "바퀴 끼우기", lead: "모터 축의 평평한 두 면과 바퀴 구멍 모양을 맞춰 꾹 눌러 끼워요.",
+        list: ["바퀴를 끼울 때는 모터 반대편을 손으로 받쳐 모터에 힘이 덜 가게 해요.", "바퀴와 차체 사이에 2~3mm 틈이 남을 때까지 밀어 넣어요.", "손으로 바퀴를 돌려 봐서 차체에 닿거나 걸리는 곳이 없는지 확인해요."],
+        cam: [280, 80, 150], target: [0, 25, 0] },
+      { short: "배터리", title: "배터리 홀더 달기", lead: "18650 2구 홀더를 하판 가운데에 놓고 벨크로 끈 2개로 묶어요. 무게가 가운데 있어야 잘 달려요.",
+        list: ["벨크로 끈을 하판의 길쭉한 구멍 4개에 아래에서 통과시켜 두어요.", "홀더 선이 뒤쪽(스위치 쪽)으로 나오게 홀더를 놓아요.", "끈 2개로 홀더를 단단히 감아요."],
+        warn: "배터리는 아직 넣지 마세요. 배선이 모두 끝나고 스위치가 OFF인지 확인한 다음에 넣어요.",
+        cam: [190, 220, 120], target: [0, 25, 0] },
+      { short: "범퍼", title: "앞범퍼와 센서 달기", lead: "초음파 센서와 전조등 LED를 범퍼에 먼저 끼우고, 범퍼를 하판 코 위에 고정해요. 라인센서 브래킷은 같은 볼트로 아래에 함께 물려요.",
+        list: ["HC-SR04를 범퍼 뒤에서 넣어 두 원통을 큰 구멍에 끼워요. 핀이 위로 오게 하고, 헐거우면 글루건 한 점으로 고정해요.", "5mm LED 2개를 양쪽 작은 구멍에 뒤에서 끼워요(긴 다리 +).", "범퍼를 하판 앞쪽 위에, 라인 브래킷(선택)을 하판 아래에 대고 앞쪽 M3×16 볼트 2개로 셋을 함께 고정해요.", "브래킷 뒤쪽 구멍 2개는 M3×10으로 하판에만 고정해요.", "라인센서(선택) 3개는 브래킷 끝의 긴 구멍에 센서가 바닥을 보게 달아요. 바닥과 5~10mm 떨어지게 해요."],
+        cam: [140, 70, 330], target: [0, 20, 95] },
+      { short: "상판", title: "상판과 전원 스위치", lead: "상판을 올리기 전에 아래층 선을 모두 위로 빼 두는 것이 중요해요.",
+        list: ["모터 선을 가까운 상판 긴 구멍(앞뒤 양옆 4곳)으로 빼요. 배터리 선은 뒤쪽 가운데 긴 구멍, 초음파 선은 앞쪽 가운데 긴 구멍으로 빼요.", "로커 스위치 두 다리에 빨강 선을 납땜해요(배터리 + 쪽 1개, L298N 12V 쪽 1개).", "상판을 기둥 6개 위에 올리고 M3×8 볼트로 조여요. 기둥에 바로 조여 들어가요.", "스위치를 상판 뒤쪽 네모 구멍에 위에서 ‘딸깍’ 소리가 나게 눌러 끼워요."],
+        warn: "상판을 덮은 뒤에는 아래층 작업이 어려워요. 바퀴가 잘 돌고 선이 모두 위로 나왔는지 확인하고 덮으세요.",
+        cam: [190, 240, -230], target: [0, 50, -30] },
+      { short: "L298N", title: "L298N 올리기", lead: "L298N 받침을 상판 뒤쪽 가운데에 고정하고 보드를 올려요. 방열판이 위, 전원 단자대(12V·GND·5V)가 뒤쪽을 향해요.",
+        list: ["받침을 상판 격자 구멍에 맞춰 M3×10 볼트와 너트 4개로 고정해요.", "보드에서 ENA·ENB 점퍼(작은 검은 캡 2개)를 빼서 보관해요. 5V 점퍼는 그대로 둬요.", "보드를 받침 기둥 4개 위에 올리고, 모서리마다 와셔를 걸쳐 M3×6 볼트로 눌러 고정해요."],
+        warn: "ENA·ENB 점퍼를 빼지 않고 ESP32 핀을 연결하면 ESP32가 망가질 수 있어요.",
+        cam: [190, 210, -150], target: [0, 60, -25] },
+      { short: "ESP32", title: "ESP32 올리기", lead: "ESP32 받침을 상판 앞쪽에 고정하고, ESP32를 핀이 아래로 오게 올려요. USB 포트는 뒤쪽(L298N 쪽)을 향해요.",
+        list: ["받침을 상판 앞쪽 격자에 M3×10 볼트와 너트 4개로 고정해요.", "ESP32 핀에 암-암 점퍼선을 미리 꽂아 두면 나중에 편해요(받침 높이 22mm가 점퍼선 자리예요).", "ESP32를 기둥 4개 위에 올리고 모서리마다 와셔 + M3×6 볼트로 눌러 고정해요."],
+        cam: [190, 200, 240], target: [0, 70, 55] },
+      { short: "배선", title: "배선하기", lead: "아래 ‘배선’ 그림과 표를 보며 연결해요. 굵은 선이 전원, 가는 선이 신호예요.",
+        list: ["배터리 + → 스위치 → L298N 12V, 배터리 − → L298N GND. 나사 단자는 드라이버로 꽉 조여요.", "왼쪽 모터 2개 → OUT1·OUT2(나란히), 오른쪽 모터 2개 → OUT3·OUT4.", "L298N ENA·IN1·IN2·IN3·IN4·ENB → ESP32 25·26·27·33·32·13.", "L298N 5V → ESP32 VIN, L298N GND → ESP32 GND (GND 공통).", "HC-SR04 VCC → 5V, TRIG → 18, ECHO → 1k·2k 분압 → 19, GND → GND.", "남는 선은 케이블타이로 정리해 바퀴에 닿지 않게 해요."],
+        warn: "배선하는 동안 배터리는 빼 두세요. 배터리를 넣기 전에 멀티미터로 12V와 GND 사이가 합선(0Ω)이 아닌지 확인해요.",
+        cam: [230, 250, 160], target: [0, 50, 5] },
+      { short: "카메라", title: "카메라 달기 (선택)", lead: "ESP32-CAM으로 폰 화면에 실시간 영상을 볼 수 있어요. 받침은 상판 맨 앞 줄에 달고, 카메라 전원은 강압 모듈로 따로 줘요.",
+        list: ["카메라 받침을 상판 맨 앞 줄 격자 구멍 중 가운데에서 좌우 20mm 떨어진 2개에 M3×8 + 너트로 고정해요.", "홀더 등판에 양면 폼테이프를 붙이고, ESP32-CAM을 카메라가 앞을 보게, 아래 모서리를 턱에 올려 붙여요.", "홀더를 받침 귀 사이에 끼우고 M3×16 볼트 + 나일론 너트로 연결해요. 각도를 맞추고 너트를 조여 고정해요.", "강압 모듈 출력을 멀티미터로 5.0V에 맞춘 뒤 상판에 폼테이프로 붙이고, 입력은 스위치 뒤 배터리 +·−에, 출력은 ESP32-CAM 5V·GND에 연결해요."],
+        warn: "ESP32-CAM 코드는 따로 올려요(‘코드 올리기’ 7번). 카메라 리본 케이블은 꺾지 않게 조심해요.",
+        cam: [150, 150, 320], target: [0, 85, 90] }
+    ],
+    ctrl: [
+      { short: "완성", title: "조종기 완성 모습", lead: "위 케이스에는 조이스틱 2개·버튼 2개·LED, 아래 케이스에는 ESP32와 배터리·충전 모듈이 들어가요. 뒷면에 USB 구멍 2개와 전원 스위치가 있어요.",
+        list: ["슬라이더로 펼쳐 보면 위·아래 케이스 사이에 무엇이 들어가는지 보여요.", "손잡이 쪽이 내 쪽이에요. 왼손 스틱은 전진·후진, 오른손 스틱은 방향이에요."],
+        cam: [0, 250, 260], target: [0, 15, 0] },
+      { short: "ESP32", title: "아래 케이스에 ESP32 달기", lead: "ESP32를 핀이 아래로 오게 기둥 4개 위에 올려요. USB 포트가 뒷벽의 네모 구멍을 향해야 케이스를 닫은 뒤에도 코드를 올릴 수 있어요.",
+        list: ["ESP32 핀에 암-암 점퍼선을 먼저 꽂아 두어요(조이스틱 8개, 버튼 2개, LED 1개, 전원 2개).", "ESP32를 기둥 위에 올리고 모서리마다 와셔 + M3×6 볼트로 눌러 고정해요.", "USB 케이블을 뒷벽 구멍으로 꽂아 보고 걸리지 않는지 확인해요."],
+        cam: [150, 230, 120], target: [0, 10, -10] },
+      { short: "전원", title: "배터리·충전·승압 모듈", lead: "18650 → TP4056(충전) → 스위치 → MT3608(5V로 올림) → ESP32 순서로 전기가 흘러요.",
+        list: ["MT3608을 먼저 배터리에 임시로 연결하고, 멀티미터를 보며 파란 가변저항 나사를 돌려 출력을 5.0V로 맞춰요(반시계 방향이 대부분 내려가요).", "TP4056을 USB-C가 뒷벽 둥근 구멍에 맞게 왼쪽 뒤 칸에 넣고 글루건으로 고정해요.", "MT3608을 오른쪽 뒤 칸에 넣어요.", "18650 홀더를 가운데 받침 사이에 놓고 바닥 구멍으로 케이블타이를 통과시켜 묶어요.", "로커 스위치를 뒷벽 네모 구멍에 바깥에서 눌러 끼워요."],
+        warn: "MT3608을 5V로 맞추기 전에 ESP32에 연결하면 ESP32가 망가질 수 있어요. 처음 출력은 5V보다 훨씬 높을 수 있어요.",
+        cam: [150, 230, -220], target: [0, 10, -20] },
+      { short: "스틱", title: "위 케이스에 조이스틱·버튼·LED", lead: "위 케이스를 뒤집어 놓고 안쪽에서 달아요. 3D에서는 위 케이스를 반투명하게 보여 줘요.",
+        list: ["조이스틱을 기둥 4개 위에 올려요. 핀이 손잡이 쪽(내 쪽)을 향하고 스틱이 둥근 구멍 가운데로 나와야 해요.", "모서리마다 와셔 + M3×6 볼트로 눌러 고정해요.", "푸시버튼 2개를 바깥에서 구멍에 끼우고 안쪽에서 너트를 조여요. 왼쪽이 A(모드), 오른쪽이 B(속도)예요.", "LED를 가운데 작은 구멍에 안에서 끼우고 글루건으로 고정해요."],
+        cam: [200, 150, 220], target: [0, 25, 5] },
+      { short: "배선", title: "조종기 배선", lead: "아래 ‘배선’의 조종기 그림을 보며 연결해요. 조이스틱 전원은 5V가 아니라 3.3V예요.",
+        list: ["18650 → TP4056 B+·B−, TP4056 OUT+ → 스위치 → MT3608 IN+, TP4056 OUT− → MT3608 IN−.", "MT3608 OUT+ → ESP32 VIN, OUT− → ESP32 GND.", "조이스틱 2개의 +5V → ESP32 3V3, GND → GND.", "왼쪽 VRy → 34, SW → 25 / 오른쪽 VRx → 32, SW → 26.", "버튼 A → 27, B → 14, LED(+220Ω) → 4. 버튼·LED의 다른 다리는 GND."],
+        warn: "TP4056의 B+·B−와 OUT+·OUT−를 헷갈리지 마세요. 배터리는 B+·B−에 연결해요.",
+        cam: [170, 250, 170], target: [0, 15, 0] },
+      { short: "닫기", title: "케이스 닫기", lead: "선이 끼지 않게 정리한 뒤 위 케이스를 덮고 아래에서 볼트 4개로 조여요.",
+        list: ["선을 ESP32 옆 빈 곳으로 모으고 조이스틱 아래에 눌리지 않게 해요.", "위 케이스를 아래 케이스의 맞춤 턱에 맞춰 덮어요.", "아래쪽 구멍 4개에서 M3×30 볼트를 넣어 위 케이스 기둥에 조여요.", "스위치를 켜면 LED가 깜빡이다가, 차가 켜져 있으면 켜진 채로 있어요."],
+        cam: [-210, 170, 250], target: [0, 20, 0] }
+    ]
+  };
+
+  var stageEl = document.getElementById("stage");
+  var statusEl = document.getElementById("stage-status");
+  var noteEl = document.getElementById("stage-note");
+  var navEl = document.getElementById("steps-nav");
+  var cardEl = document.getElementById("step-card");
+  var prevBtn = document.getElementById("btn-prev");
+  var nextBtn = document.getElementById("btn-next");
+  var explodeRow = document.getElementById("explode-row");
+  var explodeEl = document.getElementById("explode");
+  var rotateBtn = document.getElementById("btn-rotate");
+  var replayBtn = document.getElementById("btn-replay");
+  var tabs = document.querySelectorAll(".model-tabs button");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var DATA = null, viewer = null;
+  var model = "car", current = 0;
+
+  function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+
+  // ---------- 단계 패널 ----------
+  function buildNav() {
+    navEl.innerHTML = "";
+    var steps = STEPS[model];
+    navEl.style.gridTemplateColumns = "repeat(" + steps.length + ", minmax(0, 1fr))";
+    steps.forEach(function (s, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = String(i) + "<small>" + esc(s.short) + "</small>";
+      b.setAttribute("aria-label", i === 0 ? "완성 모습" : i + "단계 " + s.title);
+      b.addEventListener("click", function () { go(i); });
+      navEl.appendChild(b);
+    });
+    tabs.forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.model === model)); });
+    noteEl.textContent = model === "car"
+      ? "끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리거나 누르면 이름 · 왼쪽/오른쪽은 차 기준"
+      : "끌어서 돌리기 · 휠/두 손가락으로 확대 · 부품에 올리거나 누르면 이름 · 화살표 쪽이 손잡이(내 쪽)";
+  }
+
+  function renderCard(i) {
+    var steps = STEPS[model], s = steps[i];
+    var html = '<div class="step-no">' + (model === "car" ? "RC카 · " : "조종기 · ") + (i === 0 ? "Overview" : "Step " + i + " / " + (steps.length - 1)) + "</div>";
+    html += "<h2>" + esc(s.title) + "</h2><p>" + esc(s.lead) + "</p><ol>";
+    s.list.forEach(function (li) { html += "<li>" + esc(li) + "</li>"; });
+    html += "</ol>";
+    if (s.warn) html += '<div class="callout"><strong>주의</strong> · ' + esc(s.warn) + "</div>";
+    if (i > 0 && DATA) {
+      var seen = {}, order = [], chips = "";
+      DATA.models[model].parts.forEach(function (p) {
+        if (p.step !== i) return;
+        var key = p.label.replace(/ \((앞|뒤)(왼쪽|오른쪽)\)$/, "").replace(/ (왼쪽|오른쪽)$/, "");
+        if (seen[key]) { seen[key].ids.push(p.id); return; }
+        seen[key] = { ids: [p.id], color: p.color, label: key }; order.push(key);
+      });
+      order.forEach(function (k) {
+        var it = seen[k];
+        chips += '<button type="button" data-ids="' + it.ids.join(",") + '"><span class="dot" style="background:' + it.color + '"></span>' + esc(it.label) + (it.ids.length > 1 ? " ×" + it.ids.length : "") + "</button>";
+      });
+      var hasWires = DATA.models[model].wires.some(function (w) { return w.step === i; });
+      if (hasWires) chips += '<button type="button" data-wires="' + i + '"><span class="dot" style="background:#D9443A"></span>이 단계 배선</button>';
+      if (chips) html += '<div class="parts-h">이번 단계 부품 · 누르면 3D에서 반짝여요</div><div class="parts">' + chips + "</div>";
+    }
+    cardEl.innerHTML = html;
+    cardEl.querySelectorAll(".parts button").forEach(function (b) {
+      b.addEventListener("mouseenter", function () { flash(b); });
+      b.addEventListener("focus", function () { flash(b); });
+      b.addEventListener("click", function () { flash(b, true); });
+    });
+  }
+  function flash(b, strong) {
+    if (!viewer) return;
+    if (b.dataset.wires) viewer.flashWires(+b.dataset.wires); else viewer.flash(b.dataset.ids.split(","), strong);
+  }
+
+  function go(i, fromHash) {
+    var steps = STEPS[model];
+    i = Math.max(0, Math.min(steps.length - 1, i));
+    current = i;
+    navEl.querySelectorAll("button").forEach(function (b, k) {
+      if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+      b.classList.toggle("done", k < i);
+    });
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === steps.length - 1;
+    nextBtn.textContent = i === 0 ? "1단계부터 시작 →" : (i === steps.length - 1 ? "마지막 단계" : "다음 단계 →");
+    explodeRow.hidden = i !== 0;
+    renderCard(i);
+    if (viewer) viewer.setStep(i);
+    var h = "#" + model + "-" + i;
+    if (!fromHash && location.hash !== h) { try { history.replaceState(null, "", h); } catch (e) {} }
+  }
+  function setModel(m, step, fromHash) {
+    if (!STEPS[m]) return;
+    var changed = m !== model;
+    model = m;
+    buildNav();
+    if (changed && viewer) viewer.setModel(m);
+    explodeEl.value = 0; if (viewer) viewer.setExplode(0);
+    go(step || 0, fromHash);
+  }
+  tabs.forEach(function (t) { t.addEventListener("click", function () { setModel(t.dataset.model, 0); }); });
+  prevBtn.addEventListener("click", function () { go(current - 1); });
+  nextBtn.addEventListener("click", function () { go(current + 1); });
+  replayBtn.addEventListener("click", function () { if (viewer) viewer.setStep(current, true); });
+  rotateBtn.addEventListener("click", function () {
+    var on = rotateBtn.getAttribute("aria-pressed") !== "true";
+    rotateBtn.setAttribute("aria-pressed", String(on));
+    if (viewer) viewer.setAutoRotate(on);
+  });
+  explodeEl.addEventListener("input", function () { if (viewer) viewer.setExplode(explodeEl.value / 100); });
+  function parseHash() {
+    var m = /^#(car|ctrl)-(\d+)$/.exec(location.hash || "");
+    return m ? { model: m[1], step: parseInt(m[2], 10) } : null;
+  }
+  window.addEventListener("hashchange", function () { var h = parseHash(); if (h) setModel(h.model, h.step, true); });
+
+  // 배선도: 선이 겹치는 곳이 보이게 바탕선 넣기
+  document.querySelectorAll("svg path.w").forEach(function (p) {
+    var h = p.cloneNode(); h.setAttribute("class", "wh"); p.parentNode.insertBefore(h, p);
+  });
+
+  // 복사 버튼
+  document.querySelectorAll("[data-copy]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var t = document.getElementById(b.dataset.copy).textContent;
+      var done = function () { b.textContent = "복사됨"; setTimeout(function () { b.textContent = "복사"; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () {});
+    });
+  });
+
+  // ---------- 3D 뷰어 ----------
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function b64(s) { var bin = atob(s), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+
+  function makeViewer() {
+    var T = window.THREE;
+    var renderer;
+    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); }
+    catch (e) { statusEl.textContent = "이 브라우저에서는 3D 그래픽(WebGL)을 쓸 수 없어요. 단계 설명은 그대로 볼 수 있어요."; return null; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
+    stageEl.insertBefore(renderer.domElement, stageEl.firstChild);
+    statusEl.hidden = true;
+
+    var scene = new T.Scene();
+    var camera = new T.PerspectiveCamera(32, 1, 5, 5000);
+    camera.position.set(250, 190, 300);
+    var controls = new T.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08;
+    controls.minDistance = 90; controls.maxDistance = 1200;
+    controls.target.set(0, 40, 0);
+    controls.autoRotateSpeed = 1.2;
+
+    scene.add(new T.HemisphereLight(0xffffff, 0x8a96a3, 0.75));
+    var sun = new T.DirectionalLight(0xffffff, 0.85);
+    sun.position.set(180, 420, 260); sun.castShadow = true; sun.shadow.mapSize.set(1536, 1536);
+    var sc = sun.shadow.camera; sc.left = -260; sc.right = 260; sc.top = 260; sc.bottom = -260; sc.near = 50; sc.far = 1100;
+    scene.add(sun);
+    var fill = new T.DirectionalLight(0xffffff, 0.35); fill.position.set(-260, 120, -200); scene.add(fill);
+
+    var ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), new T.ShadowMaterial({ opacity: 0.18 }));
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.2; ground.receiveShadow = true; scene.add(ground);
+    var grid = new T.GridHelper(900, 36, 0x000000, 0x000000);
+    grid.material.transparent = true; grid.material.opacity = 0.08; scene.add(grid);
+
+    function textSprite(txt, w) {
+      var c = document.createElement("canvas"); c.width = 256; c.height = 64;
+      var g = c.getContext("2d");
+      g.font = "700 40px 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+      g.fillStyle = "#D2622A"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, 128, 34);
+      var sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthWrite: false }));
+      sp.scale.set(w || 64, (w || 64) / 4, 1); return sp;
+    }
+    var marks = new T.Group(); scene.add(marks);
+    function buildMarks(m) {
+      while (marks.children.length) marks.remove(marks.children[0]);
+      var sh = new T.Shape();
+      sh.moveTo(-8, 0); sh.lineTo(8, 0); sh.lineTo(8, -34); sh.lineTo(18, -34); sh.lineTo(0, -54); sh.lineTo(-18, -34); sh.lineTo(-8, -34);
+      var arrow = new T.Mesh(new T.ShapeGeometry(sh), new T.MeshBasicMaterial({ color: 0xD2622A, transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
+      arrow.rotation.x = -Math.PI / 2;
+      if (m === "car") {
+        arrow.position.set(0, 0.3, 150); marks.add(arrow);
+        var f = textSprite("앞"); f.position.set(0, 10, 225); marks.add(f);
+        var l = textSprite("왼쪽", 70); l.position.set(125, 8, 20); marks.add(l);
+        var r = textSprite("오른쪽", 80); r.position.set(-125, 8, 20); marks.add(r);
+      } else {
+        arrow.position.set(0, 0.3, 95); marks.add(arrow);
+        var u = textSprite("내 쪽(손잡이)", 120); u.position.set(0, 10, 165); marks.add(u);
+        var bk = textSprite("뒤 · USB", 90); bk.position.set(0, 10, -90); marks.add(bk);
+      }
+    }
+
+    var group = new T.Group(); scene.add(group);
+    var edgeMat = new T.LineBasicMaterial({ color: new T.Color(cssVar("--edge") || "#24303B"), transparent: true, opacity: 0.5 });
+    var accent = new T.Color(cssVar("--accent") || "#D2622A");
+    var parts = [], byId = {}, meshes = [], wires = [];
+    var cache = {};
+
+    function buildModel(m) {
+      while (group.children.length) group.remove(group.children[0]);
+      parts = []; byId = {}; meshes = []; wires = [];
+      if (!cache[m]) {
+        var src = DATA.models[m], q = DATA.q;
+        cache[m] = {
+          parts: src.parts.map(function (p) {
+            var pos = new Int16Array(b64(p.pos)), f32 = new Float32Array(pos.length);
+            for (var i = 0; i < pos.length; i++) f32[i] = pos[i] * q;
+            var idx = p.i32 ? new Uint32Array(b64(p.idx)) : new Uint16Array(b64(p.idx));
+            var g = new T.BufferGeometry();
+            g.setAttribute("position", new T.BufferAttribute(f32, 3)); g.setIndex(new T.BufferAttribute(idx, 1));
+            var flat = g.toNonIndexed(); flat.computeVertexNormals();
+            var big = f32.length > 3 * 6000;
+            return { p: p, geo: flat, edges: new T.EdgesGeometry(g, big ? 40 : 30) };
+          }),
+          wires: src.wires.map(function (w) {
+            var curve = new T.CatmullRomCurve3(w.pts.map(function (a) { return new T.Vector3(a[0], a[1], a[2]); }), false, "centripetal");
+            return { w: w, geo: new T.TubeGeometry(curve, 80, w.r, 8, false) };
+          })
+        };
+      }
+      cache[m].parts.forEach(function (c, order) {
+        var p = c.p;
+        var isBolt = /^bolt|axle/.test(p.id);
+        var mat = new T.MeshStandardMaterial({ color: new T.Color(p.color), roughness: 0.62, metalness: isBolt ? 0.45 : 0.05, emissive: new T.Color(0x000000) });
+        var mesh = new T.Mesh(c.geo, mat); mesh.castShadow = true; mesh.receiveShadow = true;
+        var grp = new T.Group(); grp.add(mesh);
+        if (!isBolt) grp.add(new T.LineSegments(c.edges, edgeMat));
+        group.add(grp);
+        var part = { id: p.id, label: p.label, step: p.step, ghost: p.ghost, from: new T.Vector3(p.from[0], p.from[1], p.from[2]), grp: grp, mat: mat, order: order, flashT: 0 };
+        mesh.userData.part = part;
+        parts.push(part); byId[p.id] = part; meshes.push(mesh);
+      });
+      cache[m].wires.forEach(function (c) {
+        var mat = new T.MeshStandardMaterial({ color: new T.Color(c.w.color), roughness: 0.5, emissive: new T.Color(0x000000) });
+        var mesh = new T.Mesh(c.geo, mat); mesh.castShadow = true; group.add(mesh);
+        mesh.userData.part = { label: c.w.label };
+        meshes.push(mesh);
+        wires.push({ mesh: mesh, mat: mat, full: c.geo.index.count, step: c.w.step, flashT: 0 });
+      });
+      buildMarks(m);
+    }
+
+    // ---------- 상태 ----------
+    var stepIdx = 0, animStart = 0, explode = 0;
+    var camFrom = null, camTo = null, tgtFrom = null, tgtTo = null, camT0 = 0;
+    controls.addEventListener("start", function () { camTo = null; });
+    function ease(t) { return t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3); }
+
+    function setStep(i) {
+      stepIdx = i; animStart = performance.now();
+      var s = STEPS[model][i];
+      camFrom = camera.position.clone(); tgtFrom = controls.target.clone();
+      tgtTo = new T.Vector3(s.target[0], s.target[1], s.target[2]);
+      var fit = 1.4 * (camera.aspect < 1 ? Math.min(1.9, 1.15 / Math.sqrt(camera.aspect)) : 1);
+      camTo = new T.Vector3(s.cam[0], s.cam[1], s.cam[2]).sub(tgtTo).multiplyScalar(fit).add(tgtTo);
+      camT0 = performance.now();
+      if (reduce) { camera.position.copy(camTo); controls.target.copy(tgtTo); camTo = null; }
+    }
+    function flashIds(ids, strong) { ids.forEach(function (id) { if (byId[id]) byId[id].flashT = performance.now() + (strong ? 1600 : 900); }); }
+    function flashWires(st) { var t = performance.now() + 1600; wires.forEach(function (w) { if (w.step === st) w.flashT = t; }); }
+
+    // ---------- 툴팁 ----------
+    var tip = document.createElement("div"); tip.className = "tip3d"; tip.hidden = true; stageEl.appendChild(tip);
+    var ray = new T.Raycaster(), mouse = new T.Vector2();
+    function pick(ev) {
+      var r = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((ev.clientX - r.left) / r.width) * 2 - 1; mouse.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+      ray.setFromCamera(mouse, camera);
+      var vis = meshes.filter(function (m) { var o = m; while (o) { if (!o.visible) return false; o = o.parent; } return !(m.material.transparent && m.material.opacity < 0.5); });
+      var hit = ray.intersectObjects(vis, false)[0];
+      if (hit && hit.object.userData.part && hit.object.userData.part.label) {
+        tip.textContent = hit.object.userData.part.label; tip.hidden = false;
+        tip.style.left = (ev.clientX - r.left) + "px"; tip.style.top = (ev.clientY - r.top) + "px";
+      } else tip.hidden = true;
+    }
+    renderer.domElement.addEventListener("pointermove", function (ev) { if (ev.pointerType === "mouse" && ev.buttons === 0) pick(ev); });
+    renderer.domElement.addEventListener("pointerup", function (ev) { if (ev.pointerType !== "mouse") pick(ev); });
+    renderer.domElement.addEventListener("pointerleave", function () { tip.hidden = true; });
+
+    function resize() {
+      var w = stageEl.clientWidth, h = stageEl.clientHeight;
+      renderer.setSize(w, h, false); camera.aspect = w / h;
+      camera.fov = w < 520 ? 42 : 32; camera.updateProjectionMatrix();
+    }
+    window.addEventListener("resize", resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(stageEl);
+    resize();
+    function themeSync() { edgeMat.color.set(cssVar("--edge") || "#24303B"); accent.set(cssVar("--accent") || "#D2622A"); }
+    if (window.matchMedia) { var mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", themeSync); }
+    new MutationObserver(themeSync).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    // ---------- 그리기 ----------
+    function frame(now) {
+      requestAnimationFrame(frame);
+      var t = (now - animStart) / 1000;
+      var cur = parts.filter(function (p) { return p.step === stepIdx; }).sort(function (a, b) { return a.order - b.order; });
+      parts.forEach(function (p) {
+        var vis, k = 0, glow = 0, ghost = false;
+        if (stepIdx === 0) { vis = true; k = explode; }
+        else if (p.step < stepIdx) { vis = true; }
+        else if (p.step === stepIdx) {
+          vis = true;
+          var n = cur.indexOf(p), delay = Math.min(n * 0.1, 1.2);
+          k = reduce ? 0 : 1 - ease((t - delay) / 1.1);
+          glow = 0.22 + 0.12 * Math.sin(now / 260);
+        } else if (p.ghost && stepIdx >= p.ghost) { vis = true; ghost = true; }
+        else vis = false;
+        p.grp.visible = vis;
+        p.grp.position.copy(p.from).multiplyScalar(k);
+        var wantT = ghost;
+        if (p.mat.transparent !== wantT) { p.mat.transparent = wantT; p.mat.depthWrite = !wantT; p.mat.needsUpdate = true; }
+        p.mat.opacity = ghost ? 0.16 : 1;
+        if (p.grp.children[1]) p.grp.children[1].visible = !ghost;
+        if (p.flashT > now) glow = 0.55 + 0.25 * Math.sin(now / 90);
+        p.mat.emissive.copy(accent).multiplyScalar(glow);
+      });
+      wires.forEach(function (w) {
+        var vis = (stepIdx === 0 && explode < 0.05) || (stepIdx > 0 && w.step <= stepIdx);
+        w.mesh.visible = vis;
+        var frac = (w.step === stepIdx && !reduce) ? ease(t / 1.6) : 1;
+        w.mesh.geometry.setDrawRange(0, Math.floor(w.full * frac / 3) * 3);
+        var glow = w.step === stepIdx ? 0.12 : 0;
+        if (w.flashT > now) glow = 0.5 + 0.25 * Math.sin(now / 90);
+        w.mat.emissive.copy(accent).multiplyScalar(glow);
+      });
+      if (camTo) {
+        var ct = ease((now - camT0) / 1300);
+        camera.position.lerpVectors(camFrom, camTo, ct); controls.target.lerpVectors(tgtFrom, tgtTo, ct);
+        if (ct >= 1) camTo = null;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(frame);
+
+    buildModel(model);
+    return {
+      setStep: setStep, flash: flashIds, flashWires: flashWires,
+      setModel: function (m) { buildModel(m); },
+      setExplode: function (v) { explode = v; },
+      setAutoRotate: function (on) { controls.autoRotate = on && !reduce; }
+    };
+  }
+
+  // ---------- 시작 ----------
+  var h0 = parseHash();
+  if (h0) model = h0.model;
+  buildNav();
+  go(h0 ? h0.step : 0, true);
+  fetch("model.json").then(function (r) { if (!r.ok) throw new Error("http"); return r.json(); })
+    .then(function (d) {
+      DATA = d;
+      if (!window.THREE || !window.THREE.OrbitControls) { statusEl.textContent = "3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."; return; }
+      viewer = makeViewer();
+      go(current, true);
+    })
+    .catch(function () { statusEl.textContent = "3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요. 아래 단계 설명은 그대로 볼 수 있어요."; });
+})();
+</script>
+<script src="../../toolbox-nav.js"></script>
+</body>
+</html>
