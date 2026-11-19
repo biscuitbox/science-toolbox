@@ -213,7 +213,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         <a href="#print"><b>3</b>3D 출력</a>
         <a href="#wiring"><b>4</b>배선</a>
         <a href="#upload"><b>5</b>코드 올리기</a>
-        <a href="#test"><b>6</b>첫 시험</a>
+        <a href="#test"><b>6</b>첫 시험·충전</a>
         <a href="#phone"><b>7</b>폰·카메라</a>
         <a href="#trouble"><b>8</b>문제 해결</a>
         <a href="#safety"><b>9</b>안전</a>
@@ -292,7 +292,9 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
             <tr><td>ESP32 DevKit V1 (30핀)</td><td class="num">1</td><td>차 두뇌</td></tr>
             <tr><td>TT 기어모터 (노란색) + 65mm 바퀴</td><td class="num">4</td><td>구동</td></tr>
             <tr><td>L298N 모터 드라이버 (빨간 모듈)</td><td class="num">1</td><td>모터 전류 공급</td></tr>
-            <tr><td>18650 2구 홀더 + 보호회로 18650 배터리</td><td class="num">1+2</td><td>전원 7.4V</td></tr>
+            <tr><td>18650 2S 보호회로 배터리 팩 (7.4V, 2,000~3,000mAh, 셀 2개 나란히)</td><td class="num">1</td><td>전원</td></tr>
+            <tr><td>2S USB-C 충전 모듈 (IP2326 칩, 8.4V 출력)</td><td class="num">1</td><td>분해하지 않고 충전</td></tr>
+            <tr><td>저항 100kΩ · 33kΩ</td><td class="num">1+1</td><td>배터리 전압 측정</td></tr>
             <tr><td>KCD11 미니 로커 스위치 (19×13mm 구멍)</td><td class="num">1</td><td>전원 켜기</td></tr>
             <tr><td>HC-SR04 초음파 센서 + 저항 1kΩ·2kΩ</td><td class="num">1</td><td>충돌 방지·회피 모드</td></tr>
             <tr><td>능동 부저, 5mm LED 2개 + 220Ω 2개</td><td class="num">—</td><td>경적·전조등</td></tr>
@@ -324,7 +326,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
           <thead><tr><th>볼트·소모품</th><th>개수</th><th>쓰는 곳</th></tr></thead>
           <tbody>
             <tr><td>M3×30 볼트 + 너트</td><td class="num">12</td><td>모터 8 · 조종기 케이스 4</td></tr>
-            <tr><td>M3×8 볼트</td><td class="num">6</td><td>상판 → 기둥</td></tr>
+            <tr><td>M3×8 볼트 (+ 너트 2)</td><td class="num">8</td><td>상판 → 기둥 6 · 충전 포트 받침 2</td></tr>
             <tr><td>M3×16 볼트 + 너트</td><td class="num">2</td><td>범퍼 + 하판 + 라인 브래킷</td></tr>
             <tr><td>M3×10 볼트 + 너트</td><td class="num">10</td><td>받침 → 상판, 라인 브래킷</td></tr>
             <tr><td>M3×6 볼트 + M3 와셔</td><td class="num">20</td><td>보드 모서리 고정</td></tr>
@@ -345,6 +347,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
             <tr><td>멀티미터</td><td>MT3608·강압 모듈 5V 맞추기, 단락 확인</td></tr>
             <tr><td>글루건</td><td>초음파·LED·TP4056 고정</td></tr>
             <tr><td>USB 데이터 케이블 (Micro-USB 또는 USB-C, 보드에 맞게)</td><td>코드 올리기</td></tr>
+            <tr><td>USB-C 충전기 (5V 2A 이상, PD 충전기면 더 빠름)</td><td>차 배터리 충전</td></tr>
           </tbody>
         </table>
       </div>
@@ -372,6 +375,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
             <tr><td class="num">car_06_l298n_riser</td><td class="num">1</td><td>L298N 받침</td></tr>
             <tr><td class="num">car_07 ~ 09</td><td class="num">—</td><td>서보 마운트 · 초음파 브래킷 · 모듈판 (선택)</td></tr>
             <tr><td class="num">car_10 · 11 cam</td><td class="num">1+1</td><td>카메라 받침·홀더 (선택, 홀더는 브림 켜기)</td></tr>
+            <tr><td class="num">car_12_charge_port</td><td class="num">1</td><td>USB-C 충전 모듈 받침 (하판 뒤)</td></tr>
             <tr><td class="num">ctrl_01_top_shell</td><td class="num">1</td><td>조종기 위 케이스 (윗면이 판에 닿게)</td></tr>
             <tr><td class="num">ctrl_02_bottom_shell</td><td class="num">1</td><td>조종기 아래 케이스</td></tr>
           </tbody>
@@ -401,9 +405,10 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
 
     <figure class="figure">
       <svg viewBox="0 0 960 600" role="img" aria-labelledby="wcar-t">
-        <title id="wcar-t">RC카 배선도: 배터리, 스위치, L298N, 모터 4개, ESP32, 초음파 센서, 부저, 전조등</title>
-        <text x="560" y="40" class="sv-tb">RC카 배선</text>
-        <text x="560" y="62" class="sv-tm">빨강 = +, 검정 = GND. 모든 GND는 하나로 이어져요.</text>
+        <title id="wcar-t">RC카 배선도: 배터리 팩, 충전 모듈, 스위치, L298N, 모터 4개, ESP32, 배터리 전압 측정, 초음파 센서, 부저, 전조등</title>
+        <text x="660" y="40" class="sv-tb">RC카 배선</text>
+        <text x="660" y="62" class="sv-tm">빨강 = +, 검정 = GND.</text>
+        <text x="660" y="80" class="sv-tm">모든 GND는 하나로 이어져요.</text>
         <!-- 왼쪽 모터 (위) -->
         <rect x="40" y="56" width="92" height="48" rx="8" fill="#F2C230"/><text x="86" y="85" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">앞 왼쪽</text>
         <rect x="160" y="56" width="92" height="48" rx="8" fill="#F2C230"/><text x="206" y="85" text-anchor="middle" class="sv-tb" style="fill:#3a2c00">뒤 왼쪽</text>
@@ -418,13 +423,30 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         <path class="w r" d="M390 446 V566 H70 V542 M190 566 V542"/>
         <!-- 배터리·스위치 -->
         <rect x="20" y="250" width="150" height="80" rx="8" fill="var(--b-batt)"/>
-        <text x="95" y="283" text-anchor="middle" class="sv-tw">18650 × 2</text>
-        <text x="95" y="303" text-anchor="middle" class="sv-tws">7.4V (가득 8.4V)</text>
+        <text x="95" y="283" text-anchor="middle" class="sv-tw">18650 2S 팩</text>
+        <text x="95" y="303" text-anchor="middle" class="sv-tws">보호회로 · 7.4V</text>
         <text x="36" y="268" class="sv-tws">+</text><text x="148" y="268" class="sv-tws">−</text>
         <rect x="200" y="186" width="62" height="36" rx="6" class="sv-box"/><rect x="212" y="194" width="38" height="20" rx="3" fill="var(--w-black)"/>
         <text x="231" y="176" text-anchor="middle" class="sv-tm">전원 스위치</text>
         <path class="w r" d="M40 250 V204 H200 M262 204 H282 V298 H300"/>
         <path class="w k" d="M150 250 V240 H272 V322 H300"/>
+        <!-- 충전 모듈 -->
+        <rect x="20" y="360" width="150" height="56" rx="6" fill="var(--b-tp)"/>
+        <rect x="6" y="376" width="16" height="24" rx="3" fill="#C0C6CC"/>
+        <text x="95" y="384" text-anchor="middle" class="sv-tw">2S 충전 모듈</text>
+        <text x="95" y="404" text-anchor="middle" class="sv-tws">USB-C → 8.4V</text>
+        <text x="50" y="352" class="sv-pin">B+</text><text x="122" y="352" class="sv-pin">B−</text>
+        <path class="w r" d="M40 330 V360"/><path class="w k" d="M150 330 V360"/>
+        <text x="20" y="438" class="sv-acc">충전할 때는 스위치 OFF</text>
+        <!-- 배터리 전압 측정 -->
+        <path class="w p" d="M282 204 V110 H540 M576 110 H660 V120"/>
+        <rect x="540" y="103" width="36" height="14" rx="3" fill="var(--surface)" stroke="var(--edge)"/>
+        <text x="558" y="98" text-anchor="middle" class="sv-pin">100k</text>
+        <path class="w p" d="M610 110 V96 M610 70 V60"/>
+        <rect x="604" y="70" width="12" height="26" rx="3" fill="var(--surface)" stroke="var(--edge)"/>
+        <text x="622" y="88" class="sv-pin">33k</text>
+        <path d="M600 60 H620 M604 55 H616 M608 50 H612" stroke="var(--ink)" stroke-width="2" fill="none"/>
+        <circle class="dotj" cx="282" cy="204" r="3.5"/><circle class="dotj" cx="610" cy="110" r="3.5"/>
         <!-- L298N -->
         <rect x="300" y="146" width="200" height="300" rx="10" fill="var(--b-l298)"/>
         <rect x="330" y="146" width="80" height="22" rx="3" fill="#2E7DCF"/>
@@ -448,6 +470,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         <rect x="640" y="120" width="150" height="350" rx="10" fill="var(--b-esp)"/>
         <rect x="680" y="320" width="70" height="44" rx="4" fill="#9AA3AD"/><text x="715" y="347" text-anchor="middle" class="sv-tb" style="fill:#1A222A">ESP32</text>
         <rect x="697" y="452" width="36" height="18" rx="2" fill="#C0C6CC"/><text x="715" y="490" text-anchor="middle" class="sv-tm">USB</text>
+        <text x="668" y="142" class="sv-tws">36</text>
         <g class="sv-tws">
           <text x="648" y="184">25</text><text x="648" y="209">26</text><text x="648" y="234">27</text>
           <text x="648" y="259">33</text><text x="648" y="284">32</text><text x="648" y="309">13</text>
@@ -491,7 +514,9 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         <table>
           <thead><tr><th>RC카 연결</th><th>ESP32 핀</th><th>선 색</th></tr></thead>
           <tbody>
+            <tr><td>배터리 팩 + / − → 충전 모듈 B+ / B−</td><td class="num">—</td><td>빨강 · 검정</td></tr>
             <tr><td>배터리 + → 스위치 → L298N 12V</td><td class="num">—</td><td><span class="sw" style="background:var(--w-red)"></span>빨강</td></tr>
+            <tr><td>스위치 뒤 + → 100kΩ → ● → 33kΩ → GND</td><td class="num">● = 36</td><td><span class="sw" style="background:var(--w-purple)"></span>보라 (전압 측정)</td></tr>
             <tr><td>배터리 − → L298N GND</td><td class="num">GND</td><td><span class="sw" style="background:var(--w-black)"></span>검정</td></tr>
             <tr><td>L298N 5V 출력</td><td class="num">VIN</td><td><span class="sw" style="background:var(--w-red)"></span>빨강</td></tr>
             <tr><td>L298N ENA · IN1 · IN2</td><td class="num">25 · 26 · 27</td><td>노랑 · 주황 · 파랑</td></tr>
@@ -837,7 +862,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
   <section class="ref" id="test">
     <div class="ref-head">
       <div>
-        <h2><span class="n">6</span>첫 시험</h2>
+        <h2><span class="n">6</span>첫 시험 · 충전</h2>
         <p class="sub">처음 전원을 넣을 때는 차를 상자나 컵 위에 올려 바퀴가 바닥에 닿지 않게 해요.</p>
       </div>
     </div>
@@ -846,12 +871,13 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         <h3>순서</h3>
         <ol>
           <li>스위치 OFF 상태에서 멀티미터로 L298N <b>12V와 GND 사이가 0Ω(합선)이 아닌지</b> 확인해요.</li>
-          <li>18650을 + 방향을 확인하며 넣고 차 스위치를 켜요. ESP32 파란 LED가 깜빡이면 조종기를 기다리는 중이에요.</li>
+          <li>처음에는 스위치를 끈 채로 USB-C로 배터리를 가득 충전해요(아래 ‘충전하기’). 그다음 스위치를 켜요. ESP32 파란 LED가 깜빡이면 조종기를 기다리는 중이에요.</li>
           <li>조종기를 <b>스틱에서 손을 뗀 채로</b> 켜요(가운데 값 자동 맞춤). 부저가 두 번 울리고 조종기 LED가 켜지면 연결됐어요.</li>
           <li>왼쪽 스틱을 살짝 위로 밀어 네 바퀴가 모두 <b>앞으로</b> 도는지 봐요.</li>
           <li>오른쪽 스틱을 오른쪽으로 밀면 왼쪽 바퀴는 앞으로, 오른쪽 바퀴는 뒤로 돌아야 해요.</li>
           <li>조종기를 끄면 0.5초 안에 바퀴가 멈추는지 확인해요(안전 정지).</li>
           <li>손을 초음파 센서 앞 10cm에 대고 전진하면 멈추고 부저가 울려야 해요.</li>
+          <li>시리얼 모니터의 <code>[BATT] 8.12V</code> 값과 멀티미터로 잰 배터리 전압을 비교해요. 0.1V 넘게 다르면 <code>BATTERY_CAL</code> = 멀티미터 값 ÷ 모니터 값으로 고쳐요.</li>
         </ol>
       </div>
       <div class="tbl">
@@ -865,6 +891,29 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
             <tr><td>오른쪽으로 밀면 왼쪽으로 돈다</td><td>조종기 <code>INVERT_STEER</code> 0↔1</td></tr>
             <tr><td>천천히 밀면 안 움직인다</td><td><code>MOTOR_MIN_PWM</code> 90 → 110</td></tr>
             <tr><td>너무 빠르다 / 너무 느리다</td><td>조종기 B 버튼(1→2→3), 또는 <code>SPEED_L1~L3</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <h3 class="sub-h" id="charge">충전하기</h3>
+    <div class="cols">
+      <div class="card">
+        <ol>
+          <li>차의 전원 스위치를 <b>끄고</b>, 차 뒤쪽 USB-C 구멍에 충전기를 꽂아요. 상판을 열 필요가 없어요.</li>
+          <li>충전 모듈의 표시등이 켜져요. 표시 방법은 제품마다 달라요(대부분 충전 중 깜빡임 → 완료 켜짐, 또는 빨강 → 초록).</li>
+          <li>5V 2A 충전기로 약 2~3시간, PD 충전기를 쓰면 더 빨라요. 다 차면 약 8.4V예요.</li>
+          <li>달리다가 폰 화면에 ‘충전 필요’가 뜨거나 조종기 LED가 두 번씩 깜빡이면 충전할 때예요.</li>
+          <li>더 낮아지면 차가 스스로 멈추고 부저가 6번 울려요(배터리 보호). 스위치를 끄고 충전하면 돼요.</li>
+        </ol>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>배터리 전압</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td class="num">8.4V</td><td>가득 참</td></tr>
+            <tr><td class="num">7.4V</td><td>보통</td></tr>
+            <tr><td class="num">6.8V 아래</td><td>충전 필요 (경고, <code>BATT_WARN_MV</code>)</td></tr>
+            <tr><td class="num">6.3V 아래 3초</td><td>모터 정지 (<code>BATT_CUT_MV</code>)</td></tr>
           </tbody>
         </table>
       </div>
@@ -934,6 +983,9 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
           <tr><td>업로드할 때 포트가 안 보인다</td><td>데이터 케이블인지, USB 드라이버(CP210x / CH340) 설치했는지</td></tr>
           <tr><td><code>Failed to connect to ESP32</code></td><td>Connecting… 때 BOOT 누르기, Upload Speed 115200, 차 전원 스위치 끄기</td></tr>
           <tr><td>조종기와 연결이 안 된다</td><td>두 코드의 <code>CAR_ID</code>·<code>WIFI_CHANNEL</code>이 같은지, 시리얼 모니터에 [LINK]가 나오는지</td></tr>
+          <tr><td>충전 표시등이 안 켜진다</td><td>2S(8.4V) 모듈인지, B+·B− 납땜과 극성, 충전기·케이블이 USB-C 충전을 지원하는지</td></tr>
+          <tr><td>차가 갑자기 멈추고 부저가 6번 울린다</td><td>배터리 부족 보호예요. 스위치를 끄고 충전하세요</td></tr>
+          <tr><td>[BATT] 값이 0이거나 이상하다</td><td>100kΩ·33kΩ 위치(36번과 GND 사이가 33kΩ), 스위치 뒤에서 땄는지, <code>BATTERY_CAL</code></td></tr>
           <tr><td>출발할 때 ESP32가 재부팅된다</td><td>배터리 충전, L298N 12V 단자에 470~1000µF 콘덴서, <code>RAMP_STEP</code> 줄이기</td></tr>
           <tr><td>모터가 하나도 안 돈다</td><td>ENA·ENB 점퍼를 빼고 25·13번에 연결했는지, ESP32 GND와 L298N GND가 이어졌는지</td></tr>
           <tr><td>스틱을 안 건드려도 조금씩 움직인다</td><td>조종기를 손 뗀 채로 다시 켜기, 조종기 <code>DEADZONE</code> 올리기</td></tr>
@@ -954,18 +1006,18 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
     <div class="ref-head">
       <div>
         <h2><span class="n">9</span>안전 수칙</h2>
-        <p class="sub">18650 리튬 배터리는 작지만 에너지가 커요. 아래 내용은 만들기 전에 함께 읽어요.</p>
+        <p class="sub">리튬 배터리는 작지만 에너지가 커요. 아래 내용은 만들기 전에 함께 읽어요.</p>
       </div>
     </div>
     <div class="safety">
-      <div><b>보호회로 배터리만 쓰기</b>보호회로(PCB)가 있는 18650을 쓰고, 찌그러지거나 비닐이 벗겨진 배터리는 쓰지 않아요.</div>
-      <div><b>+와 −를 절대 맞대지 않기</b>배터리 양 끝을 쇠붙이(볼트·드라이버)로 동시에 건드리면 순식간에 뜨거워져요. 배선 중에는 배터리를 빼 두어요.</div>
-      <div><b>극성 두 번 확인</b>홀더의 + 표시와 배터리 + 끝을 맞추고, L298N 12V·GND에 빨강·검정이 맞는지 확인한 뒤 스위치를 켜요.</div>
-      <div><b>충전은 지켜보는 곳에서</b>18650 전용 충전기나 TP4056으로, 사람이 있는 곳에서 충전해요. 뜨거워지거나 냄새가 나면 바로 빼요.</div>
+      <div><b>보호회로 팩과 2S 충전 모듈만 쓰기</b>보호회로가 들어 있는 18650 2S 팩과 8.4V용 2S 충전 모듈을 써요. 찌그러지거나 비닐이 벗겨진 팩은 쓰지 않아요.</div>
+      <div><b>+와 −를 절대 맞대지 않기</b>팩의 빨강·검정 선 끝이 서로 닿거나 쇠붙이에 닿으면 순식간에 뜨거워져요. 납땜 전까지 선 끝은 절연 테이프로 감아 두어요.</div>
+      <div><b>극성 두 번 확인</b>충전 모듈 B+·B−와 L298N 12V·GND에 빨강·검정이 맞는지 확인한 뒤 스위치를 켜요.</div>
+      <div><b>충전은 스위치 OFF, 지켜보는 곳에서</b>스위치를 끈 채로, 사람이 있는 곳에서 충전하고 다 되면 뽑아요. 뜨거워지거나 냄새가 나면 바로 빼요.</div>
       <div><b>납땜은 선생님과 함께</b>인두 끝은 350℃ 이상이에요. 인두 받침에 두고, 환기하고, 납땜 후에는 손을 씻어요.</div>
       <div><b>바퀴 띄우고 시험</b>처음 시험과 코드 수정 후에는 바퀴를 띄운 채 확인하고, 사람 발 쪽으로 달리지 않아요.</div>
       <div><b>L298N 방열판은 뜨거워요</b>오래 달린 뒤에는 방열판을 만지지 말고 식혀요.</div>
-      <div><b>다 쓰면 스위치 OFF</b>쓰지 않을 때는 스위치를 끄고, 오래 보관할 때는 배터리를 빼 두어요.</div>
+      <div><b>다 쓰면 스위치 OFF</b>쓰지 않을 때는 스위치를 꺼요. 오래 보관할 때는 절반 정도(약 7.6V) 충전해 두어요.</div>
     </div>
   </section>
 
@@ -1019,7 +1071,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
       <div class="card"><h3>미리 해 두면 좋은 일</h3><ul>
         <li>하판·상판, 조종기 케이스는 수업 전에 출력</li>
         <li>TT모터에 선을 미리 납땜하거나 납땜된 모터 구입</li>
-        <li>18650 충전, 데이터 USB 케이블 표시</li>
+        <li>배터리 팩 첫 충전(USB-C 충전기 여러 개를 멀티탭에), 데이터 USB 케이블 표시</li>
         <li>컴퓨터실 PC에 IDE·ESP32 보드·USB 드라이버 미리 설치</li>
         <li>MT3608·강압 모듈을 5.0V로 미리 맞춰 나눠 주기</li>
       </ul></div>
@@ -1061,6 +1113,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
       <div><dt>승압 · 강압<span>boost · buck</span></dt><dd>전압을 올리거나(MT3608) 내리는(MP1584) 모듈. 출력은 가변저항으로 맞춰요.</dd></div>
       <div><dt>GND 공통<span>common ground</span></dt><dd>여러 모듈의 GND를 하나로 이어야 신호의 기준 전압이 같아져요. 안 이으면 오작동해요.</dd></div>
       <div><dt>18650<span>Li-ion cell</span></dt><dd>지름 18mm, 길이 65mm 리튬이온 배터리. 1개 3.7V, 가득 차면 4.2V예요.</dd></div>
+      <div><dt>2S 팩 · 보호회로<span>2S · PCM</span></dt><dd>셀 2개를 직렬로 이은 7.4V 팩. 보호회로가 과충전·과방전·합선을 막아요.</dd></div>
       <div><dt>장공<span>slot hole</span></dt><dd>길쭉한 구멍. 볼트 위치가 조금 달라도 맞출 수 있게 해요.</dd></div>
       <div><dt>캡티브 포털<span>captive portal</span></dt><dd>와이파이에 연결하면 웹페이지가 자동으로 뜨게 하는 방식. 폰 조종 화면이 이렇게 떠요.</dd></div>
       <div><dt>MJPEG<span>motion JPEG</span></dt><dd>사진(JPEG)을 빠르게 이어서 보내는 영상 방식. ESP32-CAM이 이렇게 보내요.</dd></div>
@@ -1078,7 +1131,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
     <div class="dl">
       <a class="btn" href="rc_car_esp32.zip" download>zip 받기 (STL + STEP + 코드)</a>
       <ul>
-        <li>models/stl · car_01~11, ctrl_01~02</li>
+        <li>models/stl · car_01~12, ctrl_01~02</li>
         <li>models/step · 부품별 + 조립본 2개</li>
         <li>code/rc_car · 차량 (폰 조종 화면 포함)</li>
         <li>code/rc_controller · 조종기</li>
@@ -1091,7 +1144,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
   </section>
 </main>
 
-<footer class="wrap">ESP32 DevKit V1 · TT 기어모터 ×4 · L298N · 18650 ×2 · HC-SR04 · KY-023 ×2 · ESP32-CAM (선택) · 뱀부랩 H2S 기준 출력</footer>
+<footer class="wrap">ESP32 DevKit V1 · TT 기어모터 ×4 · L298N · 18650 2S 팩 + USB-C 충전 · HC-SR04 · KY-023 ×2 · ESP32-CAM (선택) · 뱀부랩 H2S 기준 출력</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
@@ -1111,10 +1164,10 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
       { short: "바퀴", title: "바퀴 끼우기", lead: "모터 축의 평평한 두 면과 바퀴 구멍 모양을 맞춰 꾹 눌러 끼워요.",
         list: ["바퀴를 끼울 때는 모터 반대편을 손으로 받쳐 모터에 힘이 덜 가게 해요.", "바퀴와 차체 사이에 2~3mm 틈이 남을 때까지 밀어 넣어요.", "손으로 바퀴를 돌려 봐서 차체에 닿거나 걸리는 곳이 없는지 확인해요."],
         cam: [280, 80, 150], target: [0, 25, 0] },
-      { short: "배터리", title: "배터리 홀더 달기", lead: "18650 2구 홀더를 하판 가운데에 놓고 벨크로 끈 2개로 묶어요. 무게가 가운데 있어야 잘 달려요.",
-        list: ["벨크로 끈을 하판의 길쭉한 구멍 4개에 아래에서 통과시켜 두어요.", "홀더 선이 뒤쪽(스위치 쪽)으로 나오게 홀더를 놓아요.", "끈 2개로 홀더를 단단히 감아요."],
-        warn: "배터리는 아직 넣지 마세요. 배선이 모두 끝나고 스위치가 OFF인지 확인한 다음에 넣어요.",
-        cam: [190, 220, 120], target: [0, 25, 0] },
+      { short: "배터리", title: "배터리 팩과 충전 포트", lead: "18650 2S 보호회로 팩을 하판 가운데에 벨크로로 묶고, 하판 뒤쪽에 USB-C 충전 모듈을 달아요. 이렇게 하면 상판을 열지 않고 뒤에서 케이블만 꽂아 충전할 수 있어요.",
+        list: ["벨크로 끈 2개를 하판의 길쭉한 구멍 4개에 아래에서 통과시켜 두어요.", "배터리 팩을 선이 뒤쪽으로 나오게 하판 가운데에 놓고 끈으로 단단히 감아요. 무거운 배터리가 가운데 낮게 있어야 잘 달려요.", "충전 모듈 바닥에 양면 폼테이프를 붙여 충전 포트 받침의 포켓에 넣어요. USB-C 구멍이 뒷벽의 U자 홈에 오게 맞춰요.", "받침을 하판 뒤쪽 가운데 구멍 2개에 M3×8 볼트와 너트로 고정해요.", "배터리 팩의 빨강 선을 충전 모듈 B+, 검정 선을 B−에 납땜해요. 같은 자리에 빨강·검정 선을 하나씩 더 납땜해 두면 8단계에서 스위치와 L298N으로 이어요."],
+        warn: "충전 모듈은 꼭 2S(8.4V) 제품을 써요. 조종기의 TP4056은 1셀용이라 차 배터리에 쓰면 안 돼요. 납땜하는 동안 팩의 빨강·검정 선 끝이 서로 닿지 않게 절연 테이프로 감아 두세요.",
+        cam: [110, 130, -260], target: [0, 15, -55] },
       { short: "범퍼", title: "앞범퍼와 센서 달기", lead: "초음파 센서와 전조등 LED를 범퍼에 먼저 끼우고, 범퍼를 하판 코 위에 고정해요. 라인센서 브래킷은 같은 볼트로 아래에 함께 물려요.",
         list: ["HC-SR04를 범퍼 뒤에서 넣어 두 원통을 큰 구멍에 끼워요. 핀이 위로 오게 하고, 헐거우면 글루건 한 점으로 고정해요.", "5mm LED 2개를 양쪽 작은 구멍에 뒤에서 끼워요(긴 다리 +).", "범퍼를 하판 앞쪽 위에, 라인 브래킷(선택)을 하판 아래에 대고 앞쪽 M3×16 볼트 2개로 셋을 함께 고정해요.", "브래킷 뒤쪽 구멍 2개는 M3×10으로 하판에만 고정해요.", "라인센서(선택) 3개는 브래킷 끝의 긴 구멍에 센서가 바닥을 보게 달아요. 바닥과 5~10mm 떨어지게 해요."],
         cam: [140, 70, 330], target: [0, 20, 95] },
@@ -1130,7 +1183,7 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 30px; color: var
         list: ["받침을 상판 앞쪽 격자에 M3×10 볼트와 너트 4개로 고정해요.", "ESP32 핀에 암-암 점퍼선을 미리 꽂아 두면 나중에 편해요(받침 높이 22mm가 점퍼선 자리예요).", "ESP32를 기둥 4개 위에 올리고 모서리마다 와셔 + M3×6 볼트로 눌러 고정해요."],
         cam: [190, 200, 240], target: [0, 70, 55] },
       { short: "배선", title: "배선하기", lead: "아래 ‘배선’ 그림과 표를 보며 연결해요. 굵은 선이 전원, 가는 선이 신호예요.",
-        list: ["배터리 + → 스위치 → L298N 12V, 배터리 − → L298N GND. 나사 단자는 드라이버로 꽉 조여요.", "왼쪽 모터 2개 → OUT1·OUT2(나란히), 오른쪽 모터 2개 → OUT3·OUT4.", "L298N ENA·IN1·IN2·IN3·IN4·ENB → ESP32 25·26·27·33·32·13.", "L298N 5V → ESP32 VIN, L298N GND → ESP32 GND (GND 공통).", "HC-SR04 VCC → 5V, TRIG → 18, ECHO → 1k·2k 분압 → 19, GND → GND.", "남는 선은 케이블타이로 정리해 바퀴에 닿지 않게 해요."],
+        list: ["배터리 + → 스위치 → L298N 12V, 배터리 − → L298N GND. 나사 단자는 드라이버로 꽉 조여요.", "왼쪽 모터 2개 → OUT1·OUT2(나란히), 오른쪽 모터 2개 → OUT3·OUT4.", "L298N ENA·IN1·IN2·IN3·IN4·ENB → ESP32 25·26·27·33·32·13.", "L298N 5V → ESP32 VIN, L298N GND → ESP32 GND (GND 공통).", "HC-SR04 VCC → 5V, TRIG → 18, ECHO → 1k·2k 분압 → 19, GND → GND.", "배터리 전압 측정: 스위치 뒤 빨강 선(L298N 12V 쪽)에서 100kΩ → ESP32 36번, 36번에서 33kΩ → GND.", "남는 선은 케이블타이로 정리해 바퀴에 닿지 않게 해요."],
         warn: "배선하는 동안 배터리는 빼 두세요. 배터리를 넣기 전에 멀티미터로 12V와 GND 사이가 합선(0Ω)이 아닌지 확인해요.",
         cam: [230, 250, 160], target: [0, 50, 5] },
       { short: "카메라", title: "카메라 달기 (선택)", lead: "ESP32-CAM으로 폰 화면에 실시간 영상을 볼 수 있어요. 받침은 상판 맨 앞 줄에 달고, 카메라 전원은 강압 모듈로 따로 줘요.",
