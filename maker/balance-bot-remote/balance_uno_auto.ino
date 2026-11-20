@@ -25,14 +25,13 @@
 #include <EEPROM.h>
 
 // ===== 바퀴 종류 =====
-const bool MECANUM = true;   // 메카넘휠이면 true, 일반 고무바퀴면 false
+const bool MECANUM = false;  // 메카넘휠이면 true, 일반 고무바퀴면 false
 
 // ===== 방향 보정 (t 명령으로 확인) =====
 int ANGLE_SIGN = 1;
 int LEFT_DIR   = 1;
 int RIGHT_DIR  = -1;
-int LEFT_ENC   = 1;
-int RIGHT_ENC  = -1;
+// 엔코더 방향은 자동 튜닝 1단계에서 스스로 확인해 저장해요 (S.encL, S.encR)
 int YAW_SIGN   = 1;
 
 // ===== 튜닝 값 (자동 튜닝 결과가 여기 덮어써짐) =====
@@ -40,8 +39,9 @@ struct Settings {
   uint16_t magic;
   float Kp, Ki, Kd, sp, Kv, Kx, Ky;
   int16_t minPwm, maxPwm;
+  int8_t encL, encR;      // 엔코더 방향 (+1/-1)
 };
-const uint16_t MAGIC = 0xB417;
+const uint16_t MAGIC = 0xB418;
 Settings S;
 
 void defaults() {
@@ -55,6 +55,8 @@ void defaults() {
   S.Ky = 0.0;
   S.minPwm = 30;
   S.maxPwm = 255;
+  S.encL = 1;
+  S.encR = -1;
 }
 
 // ===== 고정 상수 =====
@@ -130,7 +132,7 @@ void initEncoders() {
 }
 void readEncoders(long &l, long &r) {
   noInterrupts(); l = encL; r = encR; interrupts();
-  l *= LEFT_ENC; r *= RIGHT_ENC;
+  l *= S.encL; r *= S.encR;
 }
 
 // ---------- PCA9685 ----------
@@ -260,7 +262,9 @@ void autotuneAbort(const __FlashStringHelper *why) {
   mode = RUN;
   enabled = false;
   integral = 0;
+  int8_t eL = S.encL, eR = S.encR;
   loadSettings();   // 튜닝 전 값으로 되돌림
+  if (S.encL != eL || S.encR != eR) { S.encL = eL; S.encR = eR; saveSettings(); }   // 1단계에서 확인한 엔코더 방향은 남김
   Serial.print(F("[자동 튜닝 중단] ")); Serial.println(why);
   Serial.println(F("모터를 껐어요. 로봇을 다시 세우고 g로 켜거나 a로 다시 시작하세요."));
 }
@@ -282,16 +286,33 @@ void autotuneStep(float dt, long l, long r) {
     return;
   }
 
+  // 제자리를 지키지 못하고 바퀴가 2바퀴 넘게 한쪽으로 굴러가면 중단
+  if ((mode == T_SETTLE || mode == T_SP || mode == T_GAIN || mode == T_VERIFY || mode == T_FINAL) && fabs(wheelPos) > 2.0) {
+    autotuneAbort(wheelPos > 0 ? F("앞(+) 방향으로 계속 굴러갔어요. s를 -2쯤 바꾸고 다시 해 보세요.")
+                               : F("뒤(-) 방향으로 계속 굴러갔어요. s를 +2쯤 바꾸고 다시 해 보세요."));
+    return;
+  }
+
   switch (mode) {
     case T_DEAD: {
       // 앞으로, 뒤로 출력을 천천히 올리며 바퀴가 처음 움직이는 출력을 찾음 (1.2초씩)
       bool fwd = (deadF == 0);
       int pwm = min(150, (int)(tick / 2));
-      long dl = labs(l - encStartL), dr = labs(r - encStartR);
+      long sl = l - encStartL, sr = r - encStartR;
+      long dl = labs(sl), dr = labs(sr);
       setMotors(fwd ? pwm : -pwm, fwd ? pwm : -pwm);
       if ((dl > 8 && dr > 8) || pwm >= 150) {
         setMotors(0, 0);
-        if (fwd) { deadF = pwm; delay(400); readEncoders(l, r); encStartL = l; encStartR = r; tick = 0; }
+        if (fwd) {
+          // 앞으로 돌렸는데 엔코더가 - 로 세면 방향을 뒤집음 (틀리면 속도·위치 제어가 거꾸로 걸려 한쪽으로 달려감)
+          bool flipL = (dl > 8 && sl < 0), flipR = (dr > 8 && sr < 0);
+          if (flipL) S.encL = -S.encL;
+          if (flipR) S.encR = -S.encR;
+          Serial.print(F("  엔코더 방향: 왼쪽 ")); Serial.print(dl > 8 ? (flipL ? F("뒤집음") : F("정상")) : F("안 움직임"));
+          Serial.print(F(", 오른쪽 ")); Serial.println(dr > 8 ? (flipR ? F("뒤집음") : F("정상")) : F("안 움직임"));
+          deadF = pwm; delay(400); readEncoders(l, r);
+          encStartL = l; encStartR = r; lastEncL = l; lastEncR = r; tick = 0;
+        }
         else {
           deadB = pwm;
           // 공중에서 잰 값이라 바닥 위보다 조금 작게 나옴 → 0.9배만 적용

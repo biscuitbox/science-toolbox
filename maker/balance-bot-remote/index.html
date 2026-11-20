@@ -745,7 +745,7 @@ function paintSave(){
   st.className = 'st' + (S.dirty ? ' dirty' : '');
 }
 $('#btnSave').onclick = () => send('w');
-$('#btnDefaults').onclick = () => ask('기본값으로 되돌릴까요?', '자동 튜닝으로 찾은 값도 지워지고 처음 값(p10, d0.25, s0 …)으로 저장돼요.', '되돌리기', () => send('r'));
+$('#btnDefaults').onclick = () => ask('기본값으로 되돌릴까요?', '자동 튜닝으로 찾은 값도 지워지고 처음 값(일반 바퀴 p12·d0.3, 메카넘 p10·d0.25, s0)으로 저장돼요.', '되돌리기', () => send('r'));
 
 /* ---------------- 균형 화면 ---------------- */
 function buildTicks(){
