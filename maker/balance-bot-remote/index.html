@@ -208,9 +208,19 @@ footer a{color:inherit}
     <b>이 브라우저에서는 블루투스 연결이 안 돼요</b>
     안드로이드 폰의 <b style="display:inline">크롬(138 이상)</b>이나 PC의 크롬·엣지에서 열어 주세요. 아이폰은 HC-05/06(클래식 블루투스)을 지원하지 않아요. 지금은 <b style="display:inline">체험</b> 버튼으로 화면만 둘러볼 수 있어요.
   </div>
+  <div class="notice" id="connHelp" hidden>
+    <b>목록에 HC-06이 안 보였나요? ("호환되는 기기를 찾을 수 없음")</b>
+    <ol class="checklist" style="margin:6px 0 8px">
+      <li><b style="display:inline">크롬에 근처 기기 권한 주기</b> — 폰 설정 → 애플리케이션 → Chrome → 권한 → <b style="display:inline">근처 기기</b> → 허용. 이 권한이 없으면 페어링한 기기가 목록에 안 나와요.</li>
+      <li>HC-06을 다른 앱(시리얼 블루투스 터미널 등)이나 PC가 붙잡고 있으면 그쪽 연결을 끊어요. 로봇 전원도 켜져 있어야 해요(빨간 LED 깜빡임).</li>
+      <li>블루투스 설정에서 HC-06을 <b style="display:inline">등록 해제 → 다시 등록</b>(비밀번호 1234)해요.</li>
+      <li>크롬을 최신으로 업데이트하고(138 이상), 삼성 인터넷·카카오톡 안 브라우저가 아니라 크롬에서 열어요.</li>
+    </ol>
+    <div class="row"><button class="btn sm" id="btnRetry">다시 찾기</button><button class="btn sm" id="btnRetryFilter">SPP로 찾기</button><button class="btn sm ghost" id="hideHelp">닫기</button></div>
+  </div>
   <div class="notice" id="firstTime" hidden>
     <b>처음 연결할 때</b>
-    ① 폰 설정 → 블루투스에서 HC-06과 먼저 페어링(비밀번호 1234 또는 0000) → ② <b style="display:inline">연결</b>을 누르고 목록에서 HC-06 선택. PC에서는 USB 케이블로 연결해도 돼요.
+    ① 폰 설정 → 블루투스에서 HC-06과 먼저 페어링(비밀번호 1234 또는 0000) → ② 설정 → 애플리케이션 → Chrome → 권한에서 <b style="display:inline">근처 기기</b> 허용 → ③ <b style="display:inline">연결</b>을 누르고 목록에서 HC-06 선택. PC에서는 USB 케이블로 연결해도 돼요.
     <button class="btn sm ghost" id="hideFirst" style="margin-top:6px">알겠어요</button>
   </div>
 </div>
@@ -475,16 +485,21 @@ class SerialLink {
   }
 }
 
-async function connect(){
+async function connect(useFilter){
   if (S.link){ await disconnect(); return; }
   if (!hasSerial){ toast('이 브라우저는 블루투스 시리얼을 지원하지 않아요. 체험 모드를 써 보세요.'); return; }
   let port;
   try{
-    port = await navigator.serial.requestPort({ allowedBluetoothServiceClassIds: [SPP] });
+    const opts = { allowedBluetoothServiceClassIds: [SPP] };
+    if (useFilter === true) opts.filters = [{ bluetoothServiceClassId: SPP }];
+    port = await navigator.serial.requestPort(opts);
   }catch(e){
-    if (e.name !== 'NotFoundError') toast('연결할 장치를 고르지 못했어요: ' + e.message);
+    // 목록에서 아무것도 못 고르고 닫으면 NotFoundError: 연결 도움말을 보여 줌
+    if (e.name === 'NotFoundError') { $('#connHelp').hidden = false; $('#firstTime').hidden = true; }
+    else toast('연결할 장치를 고르지 못했어요: ' + e.message);
     return;
   }
+  $('#connHelp').hidden = true;
   setChip('busy', '연결 중…');
   const link = new SerialLink(port);
   try{
@@ -531,7 +546,10 @@ function onDisconnected(){
   releaseWake();
   refresh();
 }
-$('#btnConnect').onclick = connect;
+$('#btnConnect').onclick = () => connect(false);
+$('#btnRetry').onclick = () => connect(false);
+$('#btnRetryFilter').onclick = () => connect(true);
+$('#hideHelp').onclick = () => { $('#connHelp').hidden = true; };
 $('#btnDemo').onclick = () => { const sim = new SimBot(onLine); attach(sim, true); };
 
 function send(cmd, quiet){
