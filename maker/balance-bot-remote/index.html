@@ -561,7 +561,7 @@ function send(cmd, quiet){
 
 /* ---------------- 받은 줄 해석 ---------------- */
 const reTelem = /^angle:(-?[\d.]+)\s+out:(-?\d+)\s+spd:(-?[\d.]+)(?:\s+st:(\d))?/;
-const reVals = /Kp=(-?[\d.]+)\s+Ki=(-?[\d.]+)\s+Kd=(-?[\d.]+)\s+s=(-?[\d.]+)\s+m=(-?\d+)\s+x=(-?\d+)\s+v=(-?[\d.]+)\s+k=(-?[\d.]+)\s+y=(-?[\d.]+)\s*(ON|OFF)?/;
+const reVals = /Kp=(-?[\d.]+)\s+Ki=(-?[\d.]+)\s+Kd=(-?[\d.]+)\s+s=(-?[\d.]+)\s+m=(-?\d+)\s+x=(-?\d+)\s+v=(-?[\d.]+)\s+k=(-?[\d.]+)\s+y=(-?[\d.]+)(?:\s+h=(-?[\d.]+))?\s*(ON|OFF)?/;
 
 function onLine(line){
   const m = reTelem.exec(line);
@@ -579,7 +579,7 @@ function onLine(line){
   logLine(line);
   const v = reVals.exec(line);
   if (v){
-    S.vals = { p:+v[1], i:+v[2], d:+v[3], s:+v[4], m:+v[5], x:+v[6], v:+v[7], k:+v[8], y:+v[9], on: v[10] ? v[10] === 'ON' : true };
+    S.vals = { p:+v[1], i:+v[2], d:+v[3], s:+v[4], m:+v[5], x:+v[6], v:+v[7], k:+v[8], y:+v[9], h: v[10] !== undefined ? +v[10] : NaN, on: v[11] ? v[11] === 'ON' : true };
     pending.clear();
     paintVals();
     if (S.tuning) { /* 튜닝 끝 직후 값 줄 */ }
@@ -700,7 +700,8 @@ const PARAMS = [
   { k: 'x', g: 'A', n: '최대 출력', step: 5, dec: 0, min: 0, max: 255, ds: '모터 출력 상한 (255가 최대).' },
   { k: 'v', g: 'B', n: '속도 잡기', step: .1, dec: 2, min: 0, max: 10, ds: '굴러가면 반대쪽으로 살짝 기울여 멈추게 해요. 바닥에 따라 s가 조금 틀려도 버티게 해 줘요.' },
   { k: 'k', g: 'B', n: '위치 잡기', step: .1, dec: 2, min: 0, max: 10, ds: '밀려난 거리만큼 되돌아와 제자리를 지켜요.' },
-  { k: 'y', g: 'B', n: '회전 잡기', step: .1, dec: 2, min: 0, max: 5, ds: '메카넘휠이 제자리에서 빙글 도는 것을 눌러 줘요. 돌면 0.3부터.' },
+  { k: 'h', g: 'B', n: '방향 잡기', step: 10, dec: 0, min: 0, max: 600, ds: '두 바퀴가 돈 양의 차이로 몸체가 돌아간 만큼 되돌려요. 계속 한쪽으로 돌면 올리고, 좌우로 떨면 내려요. 시험(t)이나 자동 튜닝 1단계를 한 번 해야 켜져요.' },
+  { k: 'y', g: 'B', n: '회전 흔들림 잡기', step: .1, dec: 2, min: -5, max: 5, ds: '자이로로 도는 빠르기를 눌러 줘요. 보통 0. 방향 잡기로 부족할 때만 0.2부터, 더 돌면 부호를 바꿔요.' },
 ];
 const pending = new Set();
 function buildParams(){
@@ -733,7 +734,9 @@ function paintVals(){
   PARAMS.forEach(P => {
     const inp = $('#in-' + P.k);
     if (document.activeElement === inp) return;
-    inp.value = S.vals ? (P.dec ? S.vals[P.k].toFixed(P.dec) : S.vals[P.k]) : '';
+    const val = S.vals ? S.vals[P.k] : NaN;
+    inp.value = (val === undefined || isNaN(val)) ? '' : (P.dec ? val.toFixed(P.dec) : val);
+    inp.closest('.param').hidden = !!S.vals && (val === undefined || isNaN(val));
     inp.classList.toggle('pending', pending.has(P.k));
   });
   $('#rSp').innerHTML = S.vals ? `${S.vals.s.toFixed(2)}<small>°</small>` : '–<small>°</small>';
@@ -939,7 +942,7 @@ window.addEventListener('hashchange', route);
 class SimBot {
   constructor(onLine){
     this.onLine = onLine; this.closed = false;
-    this.v = { p: 10, i: 0, d: .25, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0 };
+    this.v = { p: 12, i: 0, d: .3, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0, h: 150 };
     this.saved = { ...this.v };
     this.trueSp = 1.8;               // 이 바닥에서 실제 균형 각도
     this.th = 3; this.om = 0;        // 각도(°), 각속도(°/s)
@@ -954,7 +957,7 @@ class SimBot {
     setTimeout(() => { this.say('a 자동튜닝  q 중단  w 저장  r 기본값  g 모터 켜기/끄기  t 시험  ? 현재값'); this.vals(); }, 900);
   }
   say(t){ if (!this.closed) this.onLine(t); }
-  vals(){ const v = this.v; this.say(`Kp=${v.p.toFixed(2)} Ki=${v.i.toFixed(2)} Kd=${v.d.toFixed(3)} s=${v.s.toFixed(2)} m=${v.m} x=${v.x} v=${v.v.toFixed(2)} k=${v.k.toFixed(2)} y=${v.y.toFixed(2)}${this.on ? ' ON' : ' OFF'}`); }
+  vals(){ const v = this.v; this.say(`Kp=${v.p.toFixed(2)} Ki=${v.i.toFixed(2)} Kd=${v.d.toFixed(3)} s=${v.s.toFixed(2)} m=${v.m} x=${v.x} v=${v.v.toFixed(2)} k=${v.k.toFixed(2)} y=${v.y.toFixed(2)} h=${Math.round(v.h)}${this.on ? ' ON' : ' OFF'}`); }
   write(text){
     const line = text.trim(); if (!line) return Promise.resolve();
     setTimeout(() => this.cmd(line), 30);
@@ -969,11 +972,11 @@ class SimBot {
     switch (c){
       case 'a': this.startTune(); return;
       case 'q': return;
-      case 'p': case 'i': case 'd': case 's': case 'v': case 'k': case 'y': if (!isNaN(val)) v[c] = val; break;
+      case 'p': case 'i': case 'd': case 's': case 'v': case 'k': case 'y': case 'h': if (!isNaN(val)) v[c] = val; break;
       case 'm': v.m = Math.max(0, Math.min(200, Math.round(val) || 0)); break;
       case 'x': v.x = Math.max(0, Math.min(255, Math.round(val) || 0)); break;
       case 'w': this.saved = { ...v }; this.say('저장했어요.'); break;
-      case 'r': this.v = { p: 10, i: 0, d: .25, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0 }; this.saved = { ...this.v }; this.say('기본값으로 되돌렸어요.'); break;
+      case 'r': this.v = { p: 12, i: 0, d: .3, s: 0, m: 30, x: 255, v: 0, k: 0, y: 0, h: 150 }; this.saved = { ...this.v }; this.say('기본값으로 되돌렸어요.'); break;
       case 'g': this.on = !this.on; this.wp = 0; break;
       case 't':
         this.say('시험: 바퀴를 띄우세요. 왼쪽 → 오른쪽 순서로 1초씩 앞으로 돌립니다.');

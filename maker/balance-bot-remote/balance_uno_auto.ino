@@ -40,8 +40,10 @@ struct Settings {
   float Kp, Ki, Kd, sp, Kv, Kx, Ky;
   int16_t minPwm, maxPwm;
   int8_t encL, encR;      // 엔코더 방향 (+1/-1)
+  uint8_t encOk;          // 1단계에서 엔코더 방향을 확인했으면 1
+  float Kh;               // 방향 잡기: 두 바퀴가 돈 양의 차이를 되돌리는 세기
 };
-const uint16_t MAGIC = 0xB418;
+const uint16_t MAGIC = 0xB419;
 Settings S;
 
 void defaults() {
@@ -57,6 +59,8 @@ void defaults() {
   S.maxPwm = 255;
   S.encL = 1;
   S.encR = -1;
+  S.encOk = 0;
+  S.Kh = 150.0;
 }
 
 // ===== 고정 상수 =====
@@ -91,6 +95,8 @@ volatile long encL = 0, encR = 0;
 volatile uint8_t prevPD = 0;
 long lastEncL = 0, lastEncR = 0, posRef = 0;
 float wheelSpeed = 0, wheelPos = 0;
+long diffNow = 0, headRef = 0;   // 왼쪽-오른쪽 엔코더 차이 (몸체가 돈 양), 붙잡을 기준
+float turnSpd = 0;               // 몸체가 도는 빠르기 (바퀴 회전 차이/초)
 float driveCmd = 0, turnCmd = 0, driveSpd = 0;   // 조종 명령과 지금 따라가는 목표 속도
 unsigned long lastDriveMs = 0;
 
@@ -214,11 +220,12 @@ void printValues() {
   Serial.print(F(" v=")); Serial.print(S.Kv, 2);
   Serial.print(F(" k=")); Serial.print(S.Kx, 2);
   Serial.print(F(" y=")); Serial.print(S.Ky, 2);
+  Serial.print(F(" h=")); Serial.print(S.Kh, 0);
   Serial.println(enabled ? F(" ON") : F(" OFF"));
 }
 void printHelp() {
   Serial.println(F("a 자동튜닝  q 중단  w 저장  r 기본값  g 모터 켜기/끄기  t 시험  ? 현재값"));
-  Serial.println(F("p i d s m x v k y : 값 직접 바꾸기 (예: p14 s-1.5)"));
+  Serial.println(F("p i d s m x v k y h : 값 직접 바꾸기 (예: p14 s-1.5)"));
 }
 
 // ---------- 모터·엔코더 시험 ----------
@@ -228,11 +235,23 @@ void motorTest() {
   delay(1500);
   long l0, r0, l1, r1;
   readEncoders(l0, r0); setMotors(120, 0); delay(1000); setMotors(0, 0); delay(300); readEncoders(l1, r1);
-  Serial.print(F("왼쪽 엔코더: ")); Serial.println(l1 - l0);
+  long cl = l1 - l0;
+  Serial.print(F("왼쪽 엔코더: ")); Serial.println(cl);
   readEncoders(l0, r0); setMotors(0, 120); delay(1000); setMotors(0, 0); delay(300); readEncoders(l1, r1);
-  Serial.print(F("오른쪽 엔코더: ")); Serial.println(r1 - r0);
-  Serial.println(F("바퀴가 앞으로 돌았고 두 값이 모두 + 이면 정상이에요."));
+  long cr = r1 - r0;
+  Serial.print(F("오른쪽 엔코더: ")); Serial.println(cr);
+  if (labs(cl) > 50 && labs(cr) > 50) {
+    // - 로 센 쪽은 엔코더 방향을 뒤집어 저장 (속도·위치·방향 잡기가 거꾸로 걸리지 않게)
+    if (cl < 0) S.encL = -S.encL;
+    if (cr < 0) S.encR = -S.encR;
+    S.encOk = 1; saveSettings();
+    if (cl < 0 || cr < 0) Serial.println(F("- 로 센 엔코더 방향을 뒤집어 저장했어요."));
+    long hi = max(labs(cl), labs(cr)), lo = min(labs(cl), labs(cr));
+    if (lo < hi * 0.8) Serial.println(F("두 모터가 돈 양이 20% 넘게 달라요. 덜 돈 쪽 바퀴·어댑터가 헐겁거나 걸리는지 확인하세요."));
+  } else Serial.println(F("거의 안 돈 바퀴가 있어요. 모터 배선과 엔코더 선을 확인하세요."));
+  Serial.println(F("두 바퀴가 모두 앞으로 돌았으면 정상이에요. 한쪽이 뒤로 돌면 코드의 LEFT_DIR/RIGHT_DIR를 바꾸세요."));
   enabled = was; lastMicros = micros();
+  long l, r; readEncoders(l, r); lastEncL = l; lastEncR = r; diffNow = l - r; headRef = diffNow; posRef = (l + r) / 2;
 }
 
 // ---------- 자동 튜닝 ----------
@@ -262,11 +281,21 @@ void autotuneAbort(const __FlashStringHelper *why) {
   mode = RUN;
   enabled = false;
   integral = 0;
-  int8_t eL = S.encL, eR = S.encR;
+  int8_t eL = S.encL, eR = S.encR; uint8_t eOk = S.encOk;
   loadSettings();   // 튜닝 전 값으로 되돌림
-  if (S.encL != eL || S.encR != eR) { S.encL = eL; S.encR = eR; saveSettings(); }   // 1단계에서 확인한 엔코더 방향은 남김
+  if (S.encL != eL || S.encR != eR || S.encOk != eOk) { S.encL = eL; S.encR = eR; S.encOk = eOk; saveSettings(); }   // 1단계에서 확인한 엔코더 방향은 남김
   Serial.print(F("[자동 튜닝 중단] ")); Serial.println(why);
   Serial.println(F("모터를 껐어요. 로봇을 다시 세우고 g로 켜거나 a로 다시 시작하세요."));
+}
+
+// 방향 잡기: 두 바퀴가 돈 양이 달라지면(몸체가 돌면) 되돌림. 엔코더 방향을 확인하기 전에는 끔
+float headTurn() {
+  float t = S.Ky * yawRate * YAW_SIGN;
+  if (S.encOk && S.Kh > 0) {
+    float e = constrain((diffNow - headRef) / COUNTS_PER_REV, -0.5, 0.5);   // + : 왼쪽 바퀴가 더 많이 돎
+    t -= S.Kh * e + S.Kh * 0.15 * turnSpd;
+  }
+  return constrain(t, -YAW_MAX, YAW_MAX);
 }
 
 // 균형 제어 한 번 계산 (게인을 인자로 받음)
@@ -308,6 +337,7 @@ void autotuneStep(float dt, long l, long r) {
           bool flipL = (dl > 8 && sl < 0), flipR = (dr > 8 && sr < 0);
           if (flipL) S.encL = -S.encL;
           if (flipR) S.encR = -S.encR;
+          S.encOk = (dl > 8 && dr > 8) ? 1 : 0;   // 두 바퀴 모두 확인됐을 때만 방향 잡기를 켬
           Serial.print(F("  엔코더 방향: 왼쪽 ")); Serial.print(dl > 8 ? (flipL ? F("뒤집음") : F("정상")) : F("안 움직임"));
           Serial.print(F(", 오른쪽 ")); Serial.println(dr > 8 ? (flipR ? F("뒤집음") : F("정상")) : F("안 움직임"));
           deadF = pwm; delay(400); readEncoders(l, r);
@@ -330,7 +360,7 @@ void autotuneStep(float dt, long l, long r) {
       setMotors(0, 0);
       if (el < 3000 || fabs(angle - S.sp) > 8.0 || fabs(gyroRate) > 30) { tick = 0; return; }
       if (tick > 100) {
-        integral = 0; posRef = (l + r) / 2; wheelPos = 0; wheelSpeed = 0; gyroD = gyroRate;
+        integral = 0; posRef = (l + r) / 2; wheelPos = 0; wheelSpeed = 0; gyroD = gyroRate; headRef = diffNow; turnSpd = 0;
         Serial.println(F("  균형 각도 찾는 중... (로봇이 제자리에서 버티게 둬요)"));
         startPhase(T_SETTLE);
       }
@@ -339,7 +369,7 @@ void autotuneStep(float dt, long l, long r) {
     case T_SETTLE:   // 2초 동안 기본 게인으로 서서 안정시킨 뒤 측정
     case T_SP: {
       output = balanceOut(S.Kp, S.Kd, TUNE_KV, TUNE_KX, dt);
-      drive(output, 0);
+      drive(output, headTurn());
       if (mode == T_SETTLE) { if (el > 2000) startPhase(T_SP); return; }
       angSum += angle; spdSum += wheelSpeed; nSum++;
       if (el > 4000) {
@@ -355,7 +385,7 @@ void autotuneStep(float dt, long l, long r) {
     }
     case T_GAIN: {
       output = balanceOut(tKp, tKd, TUNE_KV, TUNE_KX, dt);
-      drive(output, 0);
+      drive(output, headTurn());
       oscUpdate();
       if (el > 1200) {
         // 마지막 0.8초 동안 진폭 1.2도 이상, 3번 이상 방향이 바뀌면 진동 시작으로 봄
@@ -380,7 +410,7 @@ void autotuneStep(float dt, long l, long r) {
     }
     case T_VERIFY: {
       output = balanceOut(S.Kp, S.Kd, TUNE_KV, TUNE_KX, dt);
-      drive(output, 0);
+      drive(output, headTurn());
       oscUpdate();
       if (el < 1000) { oscMin = oscMax = 0; oscCross = 0; oscSide = 0; return; }
       if (el > 3000) {
@@ -399,7 +429,7 @@ void autotuneStep(float dt, long l, long r) {
     }
     case T_FINAL: {
       output = balanceOut(S.Kp, S.Kd, TUNE_KV, TUNE_KX, dt);
-      drive(output, 0);
+      drive(output, headTurn());
       if (el > 1000) { angSum += angle; nSum++; }
       if (el > 4000) {
         S.sp = angSum / nSum;
@@ -441,6 +471,7 @@ void handleCommand(char *line) {
     case 'v': S.Kv = v; break;
     case 'k': S.Kx = v; break;
     case 'y': S.Ky = v; break;
+    case 'h': S.Kh = constrain(v, 0, 600); headRef = diffNow; break;
     case 'w': saveSettings(); Serial.println(F("저장했어요.")); break;
     case 'r': defaults(); saveSettings(); Serial.println(F("기본값으로 되돌렸어요.")); break;
     case 'g': enabled = !enabled; integral = 0; posRef = (lastEncL + lastEncR) / 2; break;
@@ -501,6 +532,9 @@ void loop() {
   long l, r;
   readEncoders(l, r);
   float spd = ((l - lastEncL) + (r - lastEncR)) * 0.5 / COUNTS_PER_REV / dt;
+  float tsp = ((l - lastEncL) - (r - lastEncR)) / COUNTS_PER_REV / dt;
+  turnSpd += (tsp - turnSpd) * 0.2;
+  diffNow = l - r;
   lastEncL = l; lastEncR = r;
   wheelSpeed += (spd - wheelSpeed) * 0.2;
   wheelPos = ((l + r) * 0.5 - posRef) / COUNTS_PER_REV;
@@ -519,14 +553,14 @@ void loop() {
   if (driving) { posRef = (l + r) / 2; wheelPos = 0; }   // 달리는 동안은 위치를 붙잡지 않음
 
   if (!enabled || fallen) {
-    output = 0; driveSpd = 0;
+    output = 0; driveSpd = 0; headRef = diffNow;
     drive(0, 0);
   } else {
     float kv = (driving && S.Kv < DRIVE_KV_MIN) ? DRIVE_KV_MIN : S.Kv;
     output = balanceOut(S.Kp, S.Kd, kv, S.Kx, dt);
     float turn;
-    if (fabs(turnCmd) > 1) turn = turnCmd / 100.0 * TURN_PWM_MAX;
-    else turn = constrain(S.Ky * yawRate * YAW_SIGN, -YAW_MAX, YAW_MAX);
+    if (fabs(turnCmd) > 1) { turn = turnCmd / 100.0 * TURN_PWM_MAX; headRef = diffNow; }   // 돌리는 동안은 새 방향을 기준으로
+    else turn = headTurn();
     drive(output, turn);
   }
 
