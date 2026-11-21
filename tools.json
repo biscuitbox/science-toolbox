@@ -658,6 +658,22 @@
         "M3 볼트·너트, 점퍼선, 3D 출력 부품"
       ],
       "safetyNotes": "보호회로가 든 18650 2S 팩과 8.4V용 2S 충전 모듈만 쓰고, 충전은 스위치를 끈 채 지켜보는 곳에서 합니다. 배터리 극성과 L298N 12V·GND를 두 번 확인하고, 멀티미터로 합선이 없는지 본 뒤 스위치를 켭니다. 처음 시험은 바퀴를 띄운 채로 하고, 납땜은 선생님과 함께 합니다."
+    },
+    {
+      "id": "tilt-fortress-3d",
+      "name": "틸트 포트리스 3D",
+      "description": "폰을 기울여 조준하는 1인칭 3D 포격 대전 게임 — 바람과 지형을 읽고 각도·힘 맞추기",
+      "category": "play",
+      "subcategory": "",
+      "path": "play/tilt-fortress-3d/",
+      "tags": ["게임", "포트리스", "탱크", "포물선", "바람", "기울기 센서", "스마트폰", "QR 참가", "멀티플레이", "팀전", "AI 대전", "학급 행사"],
+      "level": "전 학년",
+      "featured": false,
+      "activityType": "게임",
+      "target": "학급 전체 (PC·TV 중계 + 학생 폰 최대 8명, 또는 혼자 AI와 연습)",
+      "sessions": "자유 (한 판 약 5~10분)",
+      "materials": ["PC·TV 또는 전자칠판 (PC 중계 모드)", "학생 스마트폰 (QR로 참가)"],
+      "source": "직접 제작 (github.com/biscuitbox/tilt-fortress-3d)"
     }
   ]
 }

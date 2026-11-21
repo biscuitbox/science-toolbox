@@ -13,10 +13,11 @@ const CATEGORIES = {
   earth:     { name: '지구과학',  short: '지구',     description: '지질, 대기와 날씨, 천문, 해양' },
   maker:     { name: '메이커',    short: '메이커',   description: '직접 만들고 실험하는 활동' },
   common:    { name: '공통 도구', short: '공통',     description: '단위 변환, 주기율표, QR코드처럼 여러 분야에서 쓰는 도구' },
-  classroom: { name: '학급 운영', short: '학급',     description: '모둠 구성, 자리 바꾸기, 발표자 뽑기 같은 교실 운영 도구' }
+  classroom: { name: '학급 운영', short: '학급',     description: '모둠 구성, 자리 바꾸기, 발표자 뽑기 같은 교실 운영 도구' },
+  play:      { name: '놀거리',    short: '놀거리',   description: '쉬는 시간·학급 행사에 함께 즐기는 게임과 놀이' }
 };
 
-const CATEGORY_ORDER = ['physics', 'chemistry', 'biology', 'earth', 'maker', 'common', 'classroom'];
+const CATEGORY_ORDER = ['physics', 'chemistry', 'biology', 'earth', 'maker', 'common', 'classroom', 'play'];
 
 // 분야 아이콘 (색만으로 구분하지 않도록 모양도 함께 씁니다)
 const ICONS = {
@@ -27,6 +28,7 @@ const ICONS = {
   maker:     '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
   common:    '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M6 8v3M10 8v4.5M14 8v3M18 8v4.5"/>',
   classroom: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.6 14.2A5 5 0 0 1 21 19"/>',
+  play:      '<path d="M6.5 7h11a4.5 4.5 0 0 1 4.3 5.8l-1.3 4.4a2.6 2.6 0 0 1-4.4 1.1L14 16h-4l-2.1 2.3a2.6 2.6 0 0 1-4.4-1.1l-1.3-4.4A4.5 4.5 0 0 1 6.5 7z"/><path d="M7.5 10v4M5.5 12h4"/><circle cx="16" cy="11" r=".6"/><circle cx="18" cy="13" r=".6"/>',
   star:      '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'
 };
 

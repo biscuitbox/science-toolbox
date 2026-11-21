@@ -21,7 +21,9 @@ science-toolbox/
 ├── biology/         ← 생명과학 도구
 ├── earth/           ← 지구과학 도구
 ├── maker/           ← 메이커(만들기 활동)
-└── common/          ← 공통 도구
+├── common/          ← 공통 도구
+├── classroom/       ← 학급 운영 도구
+└── play/            ← 놀거리 (게임·놀이)
 ```
 
 각 카테고리 폴더 안에 도구별 하위 폴더를 만들고 그 안에 `index.html`을 두면 됩니다.
@@ -135,7 +137,7 @@ biology/photosynthesis/script.js    (필요하면)
 | `category` | 카테고리 — 아래 6가지 중 하나 | `chemistry` |
 | `path` | 도구 폴더 경로 (끝에 `/` 필수) | `chemistry/ph-calculator/` |
 
-**`category`에 쓸 수 있는 값**: `physics`, `chemistry`, `biology`, `earth`, `maker`, `common`
+**`category`에 쓸 수 있는 값**: `physics`, `chemistry`, `biology`, `earth`, `maker`, `common`, `classroom`, `play`(놀거리)
 
 ### 선택 필드 (학생용)
 
@@ -299,6 +301,7 @@ python3 -m http.server 8000
 | 메이커 | `#BE123C` |
 | 공통 도구 | `#57534E` |
 | 학급 운영 | `#6D28D9` |
+| 놀거리 | `#0E7490` |
 
 **2) 글꼴** — `<head>`에 이 두 줄이 있어야 합니다.
 ```html
