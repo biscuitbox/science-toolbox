@@ -109,10 +109,10 @@
     {
     "id": "coil-magnetic-field",
     "name": "코일 주위의 자기장 가상실험",
-    "description": "코일에 전류를 흘려 나침반 바늘로 자기장의 방향·세기를 관찰",
+    "description": "코일 전류로 나침반·3D 자기력선을 관찰해 자기장 방향·세기 알아보기",
     "category": "physics",
     "path": "physics/coil-magnetic-field/",
-    "tags": ["전기와 자기", "자기장", "코일", "나침반", "전류", "자기력선", "오른손 규칙", "전자석", "전동기"],
+    "tags": ["전기와 자기", "자기장", "코일", "나침반", "전류", "자기력선", "오른손 규칙", "전자석", "전동기", "3D"],
     "level": "중2~중3",
     "featured": false,
     "activityType": "시뮬레이션",
