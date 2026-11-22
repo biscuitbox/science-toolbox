@@ -587,7 +587,7 @@ table.terms th {
       <li><b>지구 자기장 스위치</b> — 켜 두면(기본) 실제 교실처럼 북쪽을 향한 지구 자기장(수평 성분 약 30 μT로 가정)이 합쳐집니다. 끄면 코일 자기장만 남아 <b>전류 세기를 바꿔도 바늘 방향은 거의 그대로</b>입니다. "세기"의 효과가 실제 실험에서 바늘이 북쪽에서 얼마나 더 돌아가는가로 보이는 까닭을 상위 학생 발문으로 쓰세요.</li>
       <li><b>모델 값</b> — 코일 반지름 3 cm, 30회 감음, 나침반 8개는 코일 중심에서 6.5 cm 떨어진 원 위. 바늘 방향은 비오-사바르 법칙으로 계산한 실제 방향이며, 코일 면은 남북 방향(위쪽이 북)으로 놓았습니다. 전원 장치 전압은 저항 1 Ω + 코일 0.2 Ω으로 계산한 표시용 값입니다.</li>
       <li><b>결과 그리기 판정</b> — 학생이 돌린 바늘이 계산한 방향과 <b>30° 이내</b>면 같다고 봅니다(8방향 선택이므로 가장 가까운 방향은 항상 정답 처리).</li>
-      <li><b>④ 3D로 둘러보기</b> — ① 화면과 같은 장치(판·코일·나침반 8개)를 입체로 보여 주며, 스위치·전류 방향·세기는 ① 화면과 함께 바뀝니다. 자기력선은 <b>코일만의 자기장</b>(지구 자기장 제외)을 원형 고리 전류의 정확한 식으로 계산해 그렸고, 코일 면을 지나는 자기장 세기에 맞춰 선 간격을 정해 전류가 셀수록 선이 늘어납니다. "판 위 평면만"을 고르면 ③ 화면의 자기력선 그림과 같은 평면이 됩니다.</li>
+      <li><b>④ 3D로 둘러보기</b> — ① 화면과 같은 장치(판·코일·나침반 8개)를 입체로 보여 주며, 스위치·전류 방향·세기는 ① 화면과 함께 바뀝니다. 자기력선은 <b>코일만의 자기장</b>(지구 자기장 제외)을 원형 고리 전류의 정확한 식으로 계산해 그렸고, 코일 면을 지나는 자기장 세기에 맞춰 선 간격을 정해 전류가 셀수록 선이 늘어납니다. "판 위 평면만"을 고르면 ③ 화면의 자기력선 그림과 같은 평면이 됩니다. 코일 축에 아주 가까이 지나는 자기력선은 수십 cm~수 m 밖까지 돌아 나가 화면에서 잘려 보이므로 생략하고, <b>화면 안에서 닫히는 고리만</b> 그렸습니다(모든 자기력선은 끊어지지 않고 닫힌 고리를 이룹니다).</li>
       <li><b>공중 나침반</b> — 수평으로만 도는 실제 나침반과 달리 어느 방향으로나 도는 <b>가상의 나침반</b>입니다(복각 나침반과 비슷). 판 위(높이 0)에서는 판 위 나침반과 같은 방향을 가리키고, 판에서 띄우면 자기장이 판과 기울어져 있음을 보여 줍니다. 세기는 학생 화면에서 수치 없이 5단계 막대로만 보여 줍니다. 지구 자기장은 ① 화면과 같이 수평 성분만 넣었습니다.</li>
       <li><b>3D 화면이 안 뜰 때</b> — 3D 그림 도구(three.js)를 ④ 탭을 처음 열 때 인터넷(jsDelivr, 막히면 unpkg)에서 불러옵니다. 학교망에서 둘 다 막히면 ④만 안내 문구가 뜨고 ①~③은 그대로 쓸 수 있습니다.</li>
       <li><b>실물 실험 팁</b> — 코일 면을 남북 방향으로 맞춰 놓으면 바늘이 가장 크게 돌아갑니다. 나침반끼리 너무 붙으면 서로 끌어당겨 방향이 흐트러집니다. 전류를 오래 흘리면 코일과 저항이 뜨거워지므로 스위치는 관찰할 때만 잠깐 켭니다.</li>
@@ -1800,10 +1800,10 @@ var V = { mode:"all", cmp:true, pole:true, flow:true, plate:true, probe:true, au
 var T = null, renderer = null, scene = null, camera = null;
 var active = false, loading = false, failed = false;
 var VIEWS = {
-  obl:   { th: 0.62, ph: 1.02, r: 40, name:"비스듬히 내려다본 모습" },
-  top:   { th: 0,    ph: 0.0008, r: 38, name:"위에서 내려다본 모습(① 화면과 같은 방향, 위쪽이 북쪽)" },
-  south: { th: 0,    ph: Math.PI/2, r: 40, name:"남쪽에서 본 옆모습(오른쪽이 동쪽)" },
-  east:  { th: Math.PI/2, ph: Math.PI/2, r: 40, name:"동쪽에서 코일 구멍을 정면으로 본 모습" }
+  obl:   { th: 0.62, ph: 1.02, r: 47, name:"비스듬히 내려다본 모습" },
+  top:   { th: 0,    ph: 0.0008, r: 46, name:"위에서 내려다본 모습(① 화면과 같은 방향, 위쪽이 북쪽)" },
+  south: { th: 0,    ph: Math.PI/2, r: 48, name:"남쪽에서 본 옆모습(오른쪽이 동쪽)" },
+  east:  { th: Math.PI/2, ph: Math.PI/2, r: 46, name:"동쪽에서 코일 구멍을 정면으로 본 모습" }
 };
 var cam = { th: VIEWS.obl.th, ph: VIEWS.obl.ph, r: VIEWS.obl.r }, camAnim = null, viewKey = "obl";
 var dirty = true, raf = 0, lastT = 0, phase = 0;
@@ -1849,7 +1849,10 @@ function field3(x, y, z){
 }
 
 /* ---------- 자기력선 따라 그리기 (자오면에서) ---------- */
-var RMAX = 17;
+var RMAX = 60;   // 안전장치(아래에서 고른 선은 모두 약 15 cm 안에서 닫힘)
+/* 축에 가까이 출발한 선은 수십 cm~수 m 밖까지 돌아가 화면에서 잘려 보이므로,
+   화면 안(약 15 cm)에서 닫히는 선만 그림: 코일 면에서 축으로부터 1.3 cm 이상 떨어진 곳에서 출발 */
+var RMIN_SEED = 1.3;
 function unitF(zz, rho){ var b = meridB(zz, rho), n = Math.hypot(b[0], b[1]) || 1; return [b[0]/n, b[1]/n]; }
 function traceHalf(rho0){
   var pts = [[0, rho0]], zz = 0, r = rho0, closed = false;
@@ -1882,15 +1885,15 @@ function resample(pts, sp){
 }
 /* 코일 면을 지나는 자기장 세기에 맞춰 출발점을 고름 → 촘촘할수록 셈 */
 var FLUX = (function(){
-  var M = 400, rmax = A - 0.24, s = [0], acc = 0, prev = meridB(0, 0)[0];
-  for (var i = 1; i <= M; i++){ var b = meridB(0, rmax*i/M)[0]; acc += (prev + b)/2 * rmax/M; prev = b; s.push(acc); }
-  return { s: s, M: M, rmax: rmax };
+  var M = 400, r0 = RMIN_SEED, rmax = A - 0.24, dr = (rmax - r0)/M, s = [0], acc = 0, prev = meridB(0, r0)[0];
+  for (var i = 1; i <= M; i++){ var b = meridB(0, r0 + dr*i)[0]; acc += (prev + b)/2 * dr; prev = b; s.push(acc); }
+  return { s: s, M: M, r0: r0, rmax: rmax };
 })();
 function seedRho(f){
   var t = f * FLUX.s[FLUX.M];
   for (var i = 1; i <= FLUX.M; i++) if (FLUX.s[i] >= t){
     var u = (t - FLUX.s[i-1]) / (FLUX.s[i] - FLUX.s[i-1]);
-    return FLUX.rmax * (i - 1 + u) / FLUX.M;
+    return FLUX.r0 + (FLUX.rmax - FLUX.r0) * (i - 1 + u) / FLUX.M;
   }
   return FLUX.rmax;
 }
@@ -1899,7 +1902,7 @@ function meridLines(n){
   if (LINE_CACHE[n]) return LINE_CACHE[n];
   var out = [];
   for (var k = 1; k <= n; k++){
-    var tr = traceHalf(seedRho(k / (n + 0.5)));
+    var tr = traceHalf(seedRho((k - 1) / n));
     var pts = resample(tr.pts, 0.22);
     // 화살촉 자리(호의 길이를 따라 일정한 간격)
     var len = [0];
@@ -2123,7 +2126,7 @@ function init(){
 /* ---------- 자기력선 다시 만들기 ---------- */
 var lineKey = "";
 function buildLines(){
-  var n = Math.round(2 * S.I) + 1;
+  var n = Math.round(2 * S.I) + 2;
   var key = [S.on, V.mode, n, S.dir].join("|");
   if (key === lineKey) return;
   lineKey = key;
@@ -2145,9 +2148,6 @@ function buildLines(){
       });
     });
   });
-  // 코일 축을 따라가는 곧은 선
-  G.lines.add(new T.Mesh(new T.TubeGeometry(new T.LineCurve3(v3(-RMAX, 0, 0), v3(RMAX, 0, 0)), 8, 0.06, 6, false), G.lineMat));
-  for (var ax = -RMAX + 2.2; ax < RMAX; ax += 3.8) marks.push([v3(ax, 0, 0), new T.Vector3(-1, 0, 0)]);
 
   var inst = new T.InstancedMesh(G.arrowGeo, G.arrowMat, marks.length);
   var up = new T.Vector3(0, 1, 0), q = new T.Quaternion(), one = new T.Vector3(1, 1, 1), mtx = new T.Matrix4();
