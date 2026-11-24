@@ -122,6 +122,21 @@
     "achievementStandard": ["9과14-04"]
     },
     {
+    "id": "coil-force-motor",
+    "name": "코일이 받는 힘과 전동기 가상실험",
+    "description": "말굽자석 속 전기 그네와 전동기를 3D로 보며 오른손 규칙으로 힘의 방향 찾기",
+    "category": "physics",
+    "path": "physics/coil-force-motor/",
+    "tags": ["전기와 자기", "자기장", "코일", "전류", "힘", "전기 그네", "말굽자석", "오른손 규칙", "전동기", "회전", "3D", "예측", "오개념"],
+    "level": "중2~중3",
+    "featured": false,
+    "activityType": "시뮬레이션",
+    "target": "중학교 과학 '전기와 자기' 단원 학생",
+    "sessions": "1~2차시",
+    "materials": ["태블릿 또는 노트북", "교실 TV 또는 프로젝터", "인쇄한 활동지(선택)", "전기 그네 실험 장치·전원 장치(실물 확인용, 선택)"],
+    "achievementStandard": ["9과14-04"]
+    },
+    {
     "id": "wave-motion-lab",
     "name": "물결파의 움직임 가상실험",
     "description": "물결을 일으켜 매질의 제자리 진동과 파장·주기를 관찰",
