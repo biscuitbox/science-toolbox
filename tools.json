@@ -660,6 +660,48 @@
       "safetyNotes": "보호회로가 든 18650 2S 팩과 8.4V용 2S 충전 모듈만 쓰고, 충전은 스위치를 끈 채 지켜보는 곳에서 합니다. 배터리 극성과 L298N 12V·GND를 두 번 확인하고, 멀티미터로 합선이 없는지 본 뒤 스위치를 켭니다. 처음 시험은 바퀴를 띄운 채로 하고, 납땜은 선생님과 함께 합니다."
     },
     {
+      "id": "office-call-system",
+      "name": "교무실 호출 시스템",
+      "description": "학생이 교무실 입구 터치 화면에서 선생님을 고르면 교사 파티션의 큰 화면에 이름이 뜨고 소리가 나는 ESP32 호출기 제작 안내",
+      "category": "maker",
+      "subcategory": "",
+      "path": "maker/office-call-system/",
+      "tags": [
+        "ESP32-S3",
+        "ESP32-P4",
+        "터치스크린",
+        "Firebase",
+        "실시간 DB",
+        "구글 시트",
+        "Apps Script",
+        "UDP",
+        "Wi-Fi",
+        "IoT",
+        "한글 폰트",
+        "Arduino IDE",
+        "교무실",
+        "시험 기간",
+        "학교 업무",
+        "피지컬 컴퓨팅"
+      ],
+      "level": "중3~고3",
+      "difficulty": 3,
+      "duration": "클라우드 설정 약 15분 + 펌웨어 올리기 약 30분",
+      "activityType": "만들기",
+      "target": "교사(교무실 설치) · 중3~고3 메이커 동아리",
+      "sessions": "3~4차시 (동아리 기준)",
+      "materials": [
+        "Guition JC4827W543C (4.3인치 ESP32-S3, 입구 호출기)",
+        "Guition JC8012P4A1C (10.1인치 ESP32-P4, 공통 단말)",
+        "소형 스피커 4~8Ω 2~3W",
+        "데이터용 USB-C 케이블 2개",
+        "5V 2A 이상 USB 충전기 2개",
+        "2.4GHz Wi-Fi, 구글 계정(시트·Firebase)",
+        "거치대 또는 3D 출력 케이스 (선택)"
+      ],
+      "safetyNotes": "USB 5V로 움직이는 보드이므로 뒷면 금속 부분이 다른 금속에 닿지 않게 케이스나 거치대에 넣습니다. 스피커 선을 연결하거나 뺄 때는 전원을 먼저 뽑습니다. Wi-Fi·Firebase 비밀번호를 넣은 config.h는 공개된 곳에 올리지 않습니다."
+    },
+    {
       "id": "tilt-fortress-3d",
       "name": "틸트 포트리스 3D",
       "description": "폰을 기울여 조준하는 1인칭 3D 포격 대전 게임 — 바람과 지형을 읽고 각도·힘 맞추기",

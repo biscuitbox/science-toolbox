@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>교무실 호출 시스템 만들기</title>
+<meta name="description" content="학생이 교무실 입구 터치 화면에서 선생님을 고르면 교사 파티션의 큰 화면에 이름이 뜨고 소리가 나는 ESP32 호출 시스템 제작 안내">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 다른 메이커 설명서(RC카, 밸런싱 로봇)와 같은 틀. 색은 실제 기기 화면(남색 머리띠 + 노란 알림)에서 가져옴 */
+:root {
+  --bg: #EEF1F4; --surface: #FFFFFF; --ink: #17202B; --muted: #546170; --line: #CAD2DB;
+  --accent: #1F3A5F; --accent-soft: #DCE5F0; --hi: #FFD400; --hi-ink: #17202B;
+  --ok: #1E8A4C; --warn: #B4471B; --warn-soft: #FBE6DC;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10151B; --surface: #18202A; --ink: #E6EBF0; --muted: #9AA6B2; --line: #2B3642;
+    --accent: #8DB4E6; --accent-soft: #1C2A3B; --warn: #F08A5C; --warn-soft: #3A2116; --ok: #5CC28A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10151B; --surface: #18202A; --ink: #E6EBF0; --muted: #9AA6B2; --line: #2B3642;
+  --accent: #8DB4E6; --accent-soft: #1C2A3B; --warn: #F08A5C; --warn-soft: #3A2116; --ok: #5CC28A;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+.wrap { max-width: 1000px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.3; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+code { background: var(--accent-soft); padding: 0.05em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: #17202B; color: #E6EBF0; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.55; }
+pre code { background: none; padding: 0; color: inherit; overflow-wrap: normal; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; height: auto; }
+button { font: inherit; }
+
+/* 머리말 */
+header.top { padding-block: 64px 20px; }
+.kicker { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(32px, 6vw, 52px); line-height: 1.1; margin: 6px 0 0; }
+h1 em { font-style: normal; background: var(--hi); color: var(--hi-ink); padding: 0 0.15em; border-radius: 4px; }
+.lead { max-width: 62ch; color: var(--muted); margin: 12px 0 0; }
+.specs { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.specs b { display: block; color: var(--ink); font-size: 16px; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+.toc a { text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 14px; }
+.toc a:hover { border-color: var(--accent); }
+.toc a b { font-family: var(--font-mono); color: var(--accent); font-weight: 500; margin-right: 4px; }
+.theme-btn { position: absolute; top: 14px; right: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 14px; font-size: 14px; cursor: pointer; }
+
+/* 안전·알림 상자 */
+.safety-box { border: 1px solid var(--warn); border-left-width: 6px; background: var(--warn-soft); border-radius: var(--r); padding: 12px 16px; margin: 18px 0 0; }
+.safety-box strong { color: var(--warn); }
+.note { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 var(--r) var(--r) 0; padding: 10px 14px; }
+
+/* 섹션 공통 */
+section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px clamp(16px, 4vw, 30px); margin-bottom: 18px; }
+section > h2 { font-size: 24px; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+section h3 { font-size: 19px; margin: 26px 0 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+section h4 { font-size: 16.5px; margin: 18px 0 4px; }
+.n { display: inline-grid; place-items: center; min-width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: var(--surface); font-family: var(--font-mono); font-size: 16px; font-weight: 500; }
+blockquote { margin: 12px 0; border-left: 4px solid var(--hi); background: var(--bg); padding: 8px 14px; border-radius: 0 8px 8px 0; }
+blockquote p { margin: 4px 0; }
+.tbl { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 460px; }
+th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+th { background: var(--accent-soft); font-weight: 700; white-space: nowrap; }
+figure { margin: 14px 0; }
+figure img { display: block; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+/* 화면 미리보기 */
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.gallery figure { margin: 0; }
+.gallery .wide { grid-column: 1 / -1; }
+
+/* 기기 카드 */
+.devices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 10px 0; }
+.devices div { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--bg); }
+.devices b { display: block; font-size: 17px; }
+.devices .tag { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; background: var(--bg); }
+.steps li::before { content: counter(s); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--hi); color: var(--hi-ink); font-weight: 700; }
+.steps .time { font-size: 14px; color: var(--muted); }
+
+.btn { display: inline-block; background: var(--accent); color: var(--surface); text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; }
+.btn:hover { filter: brightness(1.1); }
+footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
+
+@media (max-width: 720px) {
+  .devices, .gallery { grid-template-columns: minmax(0, 1fr); }
+  .steps li { grid-template-columns: 34px 1fr; }
+  .steps .time { grid-column: 2; }
+  body { font-size: 16px; }
+}
+@media print {
+  .toc, .theme-btn, .toolbox-back-link, .btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  section { break-inside: auto; border-color: #999; }
+  figure, table, pre { break-inside: avoid; }
+  header.top { padding-top: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" style="position:relative">
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="밝게/어둡게 화면 바꾸기">🌓 화면 바꾸기</button>
+
+  <header class="top">
+    <div class="kicker">MAKER · ESP32-S3 · ESP32-P4 · FIREBASE</div>
+    <h1>교무실 <em>호출</em> 시스템</h1>
+    <p class="lead">시험 기간처럼 학생이 교무실에 들어올 수 없을 때, 학생이 입구의 작은 터치 화면에서 선생님을 고르면 교사 파티션의 큰 화면에 그 선생님 이름이 크게 뜨고 "띵-동" 소리가 납니다.</p>
+    <div class="specs">
+      <div>입구 호출기<b>4.3인치 · 학생용</b></div>
+      <div>공통 단말<b>10.1인치 · 교사 파티션</b></div>
+      <div>관리<b>구글 시트 + Firebase(무료)</b></div>
+      <div>제작 시간<b>약 45분 (첫 컴파일 포함)</b></div>
+    </div>
+    <div class="safety-box" role="note">
+      <strong>⚠️ 안전 주의</strong> USB 5V 전원으로 움직이는 회로 보드입니다. 보드 뒷면의 금속 부분이 다른 금속에 닿지 않게 케이스나 거치대에 넣고, 스피커 선을 연결하거나 뺄 때는 전원을 먼저 뽑으세요. 학생 동아리에서 만들 때는 선생님이 함께 확인합니다.
+    </div>
+    <nav class="toc" aria-label="목차">
+      <a href="#about"><b>0</b>소개</a>
+      <a href="#prep"><b>1</b>준비물</a>
+      <a href="#cloud"><b>2</b>클라우드</a>
+      <a href="#firmware"><b>3</b>펌웨어</a>
+      <a href="#usage"><b>4</b>사용법</a>
+      <a href="#trouble"><b>5</b>문제 해결</a>
+      <a href="#arch"><b>6</b>구조</a>
+      <a href="#more"><b>7</b>더 해 보기</a>
+      <a href="#download"><b>8</b>파일 받기</a>
+      <a href="#license"><b>9</b>라이선스</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="about">
+      <h2><span class="n">0</span>무엇을 만드나</h2>
+      <figure><img src="images/terminal-landscape.png" alt="공통 단말 화면: 왼쪽 위는 호출 대기 화면, 오른쪽 위와 아래는 노란 바탕에 선생님 이름이 크게 뜬 알림 화면" width="1300" height="830"><figcaption>공통 단말 가로 화면 — 대기 화면, 한 명 호출, 두 명 동시 호출</figcaption></figure>
+
+      <h3>왜 만들었나</h3>
+      <p>시험 기간에는 시험지 보안 때문에 학생이 교무실에 들어올 수 없습니다. 입구에서 안쪽 자리의 선생님을 큰 소리로 부르면 다른 선생님께 방해가 되고, 가까운 선생님이 대신 전달하는 것도 번거롭습니다. 이 시스템은 학생이 입구에서 버튼만 누르면 파티션에 놓인 화면이 해당 선생님 이름을 띄워 알려 줍니다.</p>
+
+      <h3>기기 세 가지</h3>
+      <div class="devices">
+        <div><span class="tag">학생용 · 4.3"</span><b>입구 호출기</b>교과 → 선생님 → 호출하기. 전달되면 "선생님께 알렸어요!"가 뜹니다. 같은 선생님을 30초 안에 다시 누르면 보내지 않아 장난 호출을 막습니다.</div>
+        <div><span class="tag">교사 파티션 · 10.1"</span><b>공통 단말</b>노란 화면에 이름을 10초 동안 크게 띄우고 "띵-동" 소리를 냅니다. 여러 명이 동시에 호출되면 줄지어 보여 주고 최근 호출 기록이 남습니다.</div>
+        <div><span class="tag">관리용</span><b>구글 시트</b>선생님 명단, 알림 시간, 효과음 크기를 고치면 1분 안에 기기에 반영됩니다. 호출 기록과 기기 상태가 자동으로 쌓입니다.</div>
+      </div>
+
+      <h3>특징</h3>
+      <ul>
+        <li><b>두 경로로 전달</b> — 클라우드(Firebase)와 같은 Wi-Fi 안 직접 통신으로 동시에 보냅니다. 학교 Wi-Fi가 기기끼리의 통신을 막아도, 인터넷이 잠깐 끊겨도 전달됩니다.</li>
+        <li><b>화면에서 설정</b> — Wi-Fi, 화면 방향, 효과음 크기, 알림 효과를 기기 화면에서 바꿉니다. 입구 호출기 설정은 관리자 비밀번호로 잠겨 있습니다.</li>
+        <li><b>학생 정보 없음</b> — 오가는 정보는 선생님 이름, 교과, 호출 시각뿐입니다.</li>
+      </ul>
+
+      <h3>시스템 구성</h3>
+      <figure><img src="images/system.png" alt="시스템 구성도: 입구 호출기가 Firebase 실시간 DB에 호출을 올리고, 공통 단말이 실시간 알림을 받아 받았음 표시를 돌려보냄. 두 기기 사이에는 비상용 직접 통신. 구글 시트는 명단과 설정을 Firebase로 보내고 5분마다 기록과 상태를 가져옴" width="2174" height="788" loading="lazy"><figcaption>시스템 구성도</figcaption></figure>
+
+      <h3>화면 미리보기</h3>
+      <div class="gallery">
+        <figure><img src="images/entrance.png" alt="입구 호출기 화면: 교과와 선생님을 고르고 호출하기를 누르는 화면" width="990" height="574" loading="lazy"><figcaption>입구 호출기 (학생용)</figcaption></figure>
+        <figure><img src="images/wifi.png" alt="Wi-Fi 설정 화면: Wi-Fi 목록과 화면 키보드" width="1300" height="710" loading="lazy"><figcaption>Wi-Fi 설정 화면 (두 기기 공통)</figcaption></figure>
+        <figure class="wide"><img src="images/terminal-portrait.png" alt="공통 단말 세로 화면: 대기 화면과 설정 화면" width="1680" height="660" loading="lazy"><figcaption>공통 단말 세로 화면</figcaption></figure>
+      </div>
+      <p class="note">화면 미리보기는 실제 폰트와 그리기 방식으로 PC에서 만든 그림입니다. 실제 화면과 거의 같지만 색감은 조금 다를 수 있습니다.</p>
+
+      <h3>만드는 순서</h3>
+      <ol class="steps">
+        <li><a href="#prep">준비물 갖추기</a><span class="time">-</span></li>
+        <li><a href="#cloud">Firebase와 구글 시트 연결</a><span class="time">약 15분</span></li>
+        <li><a href="#firmware">두 기기에 프로그램 올리기</a><span class="time">약 30분</span></li>
+        <li><a href="#usage">설치하고 쓰기</a><span class="time">-</span></li>
+      </ol>
+      <p>만들다 막히면 <a href="#trouble">5. 막힌 곳과 해결</a>을 먼저 보세요. 같은 보드로 실제로 겪은 문제와 해결 방법을 정리했습니다.</p>
+    </section>
+
+<section class="doc" id="prep">
+<h2><span class="n">1</span>준비물</h2>
+<h3>하드웨어</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>품목</th>
+<th>모델 / 사양</th>
+<th>수량</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>입구 호출기</td>
+<td><strong>Guition JC4827W543C</strong> (ESP32-S3, 4.3인치 480×272, 정전식 터치)</td>
+<td>1</td>
+<td>모델명 끝의 <strong>C</strong>가 정전식 터치입니다. R은 저항식, N은 터치 없음입니다.</td>
+</tr>
+<tr>
+<td>공통 단말</td>
+<td><strong>Guition JC8012P4A1C</strong> (ESP32-P4 + ESP32-C6, 10.1인치 800×1280, 정전식 터치)</td>
+<td>1대 이상</td>
+<td>파티션마다 한 대씩 둘 수 있습니다.</td>
+</tr>
+<tr>
+<td>스피커</td>
+<td>보드 스피커 단자용 소형 스피커 (4~8Ω, 2~3W)</td>
+<td>단말당 1</td>
+<td>보드에 스피커가 붙어 있지 않을 수 있습니다. 2핀 단자에 연결합니다.</td>
+</tr>
+<tr>
+<td>USB-C 케이블</td>
+<td>데이터 전송이 되는 것</td>
+<td>2</td>
+<td>충전 전용 케이블은 업로드가 안 됩니다.</td>
+</tr>
+<tr>
+<td>전원 어댑터</td>
+<td>5V 2A 이상 USB 충전기</td>
+<td>2</td>
+<td>설치 후 상시 전원용입니다.</td>
+</tr>
+<tr>
+<td>거치대 / 케이스</td>
+<td>3D 프린팅 또는 시중 태블릿 거치대</td>
+<td>선택</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>10.1인치 보드 버전 주의</strong>: 2026년 출하분(라벨에 <code>-V3</code>가 붙은 SKU, 예: 10153001-V3)은 칩이 v3이고 화면 패널도 새것(V2)입니다. 코드 기본값은 이 버전에 맞춰 두었습니다. 이전 버전 보드는 <a href="#firmware">03_펌웨어_올리기</a>의 설정을 바꿔야 합니다.</p>
+</blockquote>
+<h3>네트워크</h3>
+<ul>
+<li><strong>2.4GHz Wi-Fi</strong>가 필요합니다. 5GHz 전용은 안 됩니다.</li>
+<li><strong>인터넷</strong>이 되어야 클라우드 중계가 동작합니다. 인터넷이 없으면 같은 Wi-Fi 안 직접 통신만 동작합니다.</li>
+<li><strong>학교 무선망 확인</strong>: 등록된 기기만 접속을 허용하거나, 아이디와 비밀번호를 함께 쓰는 기업용 인증일 수 있습니다. 정보 담당 선생님께 "IoT 기기 무선 접속 가능 여부"를 확인하세요. 시험 단계에서는 휴대폰 핫스팟이나 공유기 한 대로 충분합니다.</li>
+</ul>
+<h3>소프트웨어와 계정 (모두 무료)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>버전 / 비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Arduino IDE</td>
+<td>2.x</td>
+</tr>
+<tr>
+<td>ESP32 보드 패키지</td>
+<td><code>esp32 by Espressif Systems</code> <strong>3.3.x</strong> (3.3.13에서 확인)</td>
+</tr>
+<tr>
+<td>라이브러리: GFX Library for Arduino</td>
+<td><strong>1.6.9 이상</strong> (만든 이: Moon On Our Nation). 이름이 비슷한 Adafruit GFX와 다릅니다.</td>
+</tr>
+<tr>
+<td>라이브러리: U8g2</td>
+<td>최신. 한글 폰트 표시 기능을 켜는 데 필요합니다.</td>
+</tr>
+<tr>
+<td>라이브러리: ArduinoJson</td>
+<td><strong>7.x</strong></td>
+</tr>
+<tr>
+<td>구글 계정</td>
+<td>구글 시트와 Firebase에 같은 계정을 씁니다. 학교 계정은 외부 연결이 막혀 있을 수 있어 개인 계정을 권장합니다.</td>
+</tr>
+<tr>
+<td>Firebase</td>
+<td>Spark(무료) 요금제. 동시 접속 100대까지 가능해서 학교 규모에 충분합니다.</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="doc" id="cloud">
+<h2><span class="n">2</span>클라우드 설정</h2>
+<p>구글 시트에서 명단을 고치면 Firebase를 거쳐 기기에 전달되고, 입구 호출기의 호출도 Firebase를 거쳐 공통 단말에 실시간으로 전달됩니다. 아래 순서대로 약 15분이면 끝납니다.</p>
+<blockquote>
+<p>클라우드 없이 같은 Wi-Fi 안에서만 쓰려면 이 단계를 건너뛰고, <code>config.h</code>의 <code>FIREBASE_DB_URL</code>을 <code>""</code>(빈 값)으로 두면 됩니다.</p>
+</blockquote>
+<h3>1. Firebase 프로젝트 만들기</h3>
+<p><a href="https://console.firebase.google.com" target="_blank" rel="noopener">Firebase 콘솔</a>에서 <strong>구글 시트를 만들 계정과 같은 계정</strong>으로 진행합니다.</p>
+<ol>
+<li><strong>프로젝트 만들기</strong>: 이름은 자유롭게 정하고, Google 애널리틱스는 꺼도 됩니다.<ul>
+<li>같은 이름이 이미 있으면 프로젝트 ID 뒤에 <code>-a1b2c</code> 같은 글자가 자동으로 붙습니다. DB 주소에는 이 <strong>ID</strong>가 들어가니 나중에 꼭 확인하세요.</li>
+</ul>
+</li>
+<li><strong>실시간 데이터베이스 만들기</strong>: <strong>빌드 &gt; Realtime Database &gt; 데이터베이스 만들기</strong>를 누릅니다.<ul>
+<li>위치는 <strong>싱가포르(asia-southeast1)</strong>를 고릅니다. Realtime Database는 아이오와, 벨기에, 싱가포르 세 곳만 지원하고, 서울은 없습니다.</li>
+<li>보안 규칙은 <strong>잠금 모드</strong>로 시작합니다.</li>
+<li><strong>규칙</strong> 탭에 <code>code/firebase/database.rules.json</code> 내용을 붙여 넣고 <strong>게시</strong>합니다.</li>
+<li><strong>데이터</strong> 탭 위쪽의 주소(<code>https://…firebasedatabase.app</code>)를 복사해 둡니다. 이것이 <strong>DB 주소</strong>입니다.</li>
+</ul>
+</li>
+<li><strong>기기용 계정 만들기</strong>: <strong>빌드 &gt; Authentication &gt; 시작하기</strong>를 누릅니다.<ul>
+<li><strong>로그인 방법</strong>에서 <strong>이메일/비밀번호</strong>를 사용 설정합니다.</li>
+<li><strong>사용자</strong> 탭 &gt; <strong>사용자 추가</strong>에서 <code>device@callsys.local</code>과 비밀번호를 만듭니다. 실제로 없는 메일 주소여도 됩니다.</li>
+</ul>
+</li>
+<li><strong>웹 API 키 찾기</strong>: 톱니바퀴 <strong>프로젝트 설정 &gt; 일반</strong>으로 갑니다.<ul>
+<li>"웹 API 키" 칸이 있으면 그 값을 복사합니다.</li>
+<li>칸이 없으면 아래쪽 <strong>내 앱</strong>에서 <strong><code>&lt;/&gt;</code>(웹)</strong> 아이콘으로 웹앱을 하나 등록합니다(호스팅 설정은 체크하지 않음). 그러면 나오는 코드의 <code>apiKey: "AIza…"</code> 값이 웹 API 키입니다.</li>
+</ul>
+</li>
+</ol>
+<h3>2. 구글 시트 연결</h3>
+<ol>
+<li>새 구글 시트를 만듭니다(예: "교무실 호출 관리").</li>
+<li><strong>확장 프로그램 &gt; Apps Script</strong>를 엽니다.<ul>
+<li>왼쪽 톱니바퀴 <strong>프로젝트 설정</strong>에서 <strong>"appsscript.json" 매니페스트 파일 표시</strong>를 체크합니다.</li>
+<li>편집기의 <code>appsscript.json</code> 내용을 <code>code/google_sheet/appsscript.json</code>으로 바꿉니다.</li>
+<li><code>Code.gs</code> 내용을 <code>code/google_sheet/Code.gs</code>로 바꾸고, 맨 위 <code>FIREBASE_URL</code>에 <strong>DB 주소</strong>를 넣고 저장합니다.</li>
+</ul>
+</li>
+<li>위쪽 함수 목록에서 <strong>setup</strong>을 고르고 <strong>실행</strong>합니다.<ul>
+<li>권한 요청이 뜨면 허용합니다. "확인되지 않은 앱" 경고는 <strong>고급 &gt; (프로젝트)로 이동</strong>을 누르면 됩니다. 내가 만든 스크립트라서 나오는 경고입니다.</li>
+</ul>
+</li>
+<li>시트를 새로고침하면 시트 4개와 메뉴 <strong>호출 시스템</strong>이 생깁니다.</li>
+</ol>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>시트</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>선생님 명단</strong></td>
+<td>ID, 이름, 교과, 사용 여부. 행 순서가 입구 화면 순서입니다. ID는 비워 두면 자동으로 붙고, [사용]을 끄면 입구 화면에서 숨겨집니다.</td>
+</tr>
+<tr>
+<td><strong>설정</strong></td>
+<td>알림 표시 시간(초), 처음 깜빡임 시간(초), 같은 선생님 재호출 제한(초), 효과음 크기(1~10)</td>
+</tr>
+<tr>
+<td><strong>호출 기록</strong></td>
+<td>호출 시각, 선생님, 교과, 받은 단말 수. 5분마다 자동으로 추가됩니다.</td>
+</tr>
+<tr>
+<td><strong>단말 상태</strong></td>
+<td>기기별 종류, 받는 선생님, 마지막 신호, 켜짐/꺼짐</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="5">
+<li>Firebase 콘솔 <strong>데이터</strong> 탭에 <code>config</code>가 보이면 연결된 것입니다.</li>
+</ol>
+<h3>알아 두기</h3>
+<ul>
+<li><strong>반영 시간</strong>: 시트를 고치면 자동으로 Firebase에 올라가고, 기기는 1분마다 확인합니다. 화면 오른쪽 아래에 "반영했어요" 알림이 안 뜨면 메뉴 <strong>호출 시스템 &gt; 단말에 반영하기</strong>를 누릅니다.</li>
+<li><strong>표시할 수 없는 글자</strong>: 이름에 기기 폰트로 표시할 수 없는 글자(한글 2,350자 밖, 예: "똠")가 있으면 그 칸이 빨갛게 표시되고 메모로 알려 줍니다.</li>
+<li><strong>기록 보관</strong>: Firebase에는 하루치 호출만 남기고 지웁니다. 기록은 시트에 계속 쌓입니다.</li>
+</ul>
+</section>
+<section class="doc" id="firmware">
+<h2><span class="n">3</span>펌웨어 올리기</h2>
+<h3>1. Arduino IDE 준비 (처음 한 번)</h3>
+<ol>
+<li>보드 매니저에서 <code>esp32 by Espressif Systems</code> <strong>3.3.x</strong>를 설치합니다.</li>
+<li>라이브러리 매니저에서 3개를 설치합니다.<ul>
+<li><code>GFX Library for Arduino</code> (Moon On Our Nation) <strong>1.6.9 이상</strong></li>
+<li><code>U8g2</code></li>
+<li><code>ArduinoJson</code> <strong>7.x</strong></li>
+</ul>
+</li>
+</ol>
+<h3>2. config.h 채우기</h3>
+<p><code>code/entrance_caller/config.h</code>와 <code>code/shared_terminal/config.h</code>에 <strong>같은 내용</strong>을 넣습니다.</p>
+<pre><code class="language-cpp">#define WIFI_SSID &quot;와이파이 이름&quot;          // 처음 접속용. 나중에 기기 화면에서 바꿀 수 있음
+#define WIFI_PASS &quot;비밀번호&quot;
+#define FIREBASE_DB_URL  &quot;https://…firebasedatabase.app&quot;   // 02단계의 DB 주소 (&quot;&quot; 이면 클라우드 없이 사용)
+#define FIREBASE_API_KEY &quot;AIza…&quot;                             // 02단계의 웹 API 키
+#define DEVICE_EMAIL     &quot;device@callsys.local&quot;              // 02단계에서 만든 기기용 계정
+#define DEVICE_PASSWORD  &quot;…&quot;
+#define ADMIN_PIN &quot;0000&quot;                                     // 입구 호출기 관리 메뉴 비밀번호
+</code></pre>
+<blockquote>
+<p>따옴표가 두 번 들어가지 않게 주의하세요(<code>"AIza…""</code>처럼 되면 컴파일 오류가 납니다).</p>
+</blockquote>
+<p>처음 켤 때 쓰는 기본 명단은 <code>teachers.h</code>에 있습니다. 시트 명단을 한 번 받으면 기기에 저장되어, 그 뒤로는 시트 명단을 씁니다.</p>
+<h3>3. 보드 설정과 업로드</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>입구 호출기 (<code>entrance_caller.ino</code>)</th>
+<th>공통 단말 (<code>shared_terminal.ino</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>보드</td>
+<td>ESP32S3 Dev Module</td>
+<td>ESP32P4 Dev Module</td>
+</tr>
+<tr>
+<td>Chip Variant</td>
+<td>-</td>
+<td><strong>v3.00 or newer</strong> (업로드 로그에 <code>revision v1.x</code>가 보이면 Before v3.00)</td>
+</tr>
+<tr>
+<td>Flash Size</td>
+<td>4MB</td>
+<td>-</td>
+</tr>
+<tr>
+<td>PSRAM</td>
+<td><strong>OPI PSRAM</strong></td>
+<td><strong>Enabled</strong></td>
+</tr>
+<tr>
+<td>Partition Scheme</td>
+<td>Huge APP (3MB No OTA/1MB SPIFFS)</td>
+<td>Huge APP (3MB No OTA/1MB SPIFFS)</td>
+</tr>
+<tr>
+<td>Upload Speed</td>
+<td>921600</td>
+<td>921600</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>첫 컴파일은 한글 폰트 때문에 몇 분 걸립니다. 폰트는 <code>fonts.cpp</code>로 분리해 두어서, 이후 코드나 명단을 고칠 때는 빨리 끝납니다.</li>
+<li>10.1인치 화면이 안 나오면 <code>terminal_app.cpp</code> 맨 위의 <code>LCD_PANEL_V2</code>를 바꿉니다. 1은 새 패널, 0은 이전 패널입니다.</li>
+</ul>
+<h3>4. 처음 켰을 때 확인</h3>
+<p>시리얼 모니터(115200)를 열면 과정이 자세히 나옵니다.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>확인할 것</th>
+<th>정상</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>공통 단말 아래쪽</td>
+<td><code>● Wi-Fi (이름) · IP</code>, <code>● 클라우드 연결됨</code></td>
+</tr>
+<tr>
+<td>입구 호출기 오른쪽 위</td>
+<td>초록 <code>● 연결됨</code> (주황 <code>● 직접 통신</code>은 클라우드 미연결, 빨강은 Wi-Fi 미연결)</td>
+</tr>
+<tr>
+<td>시리얼 <code>[소리]</code> 줄</td>
+<td><code>I2C 장치 찾기: 0x18 …</code>, <code>코덱 ID: 83 11</code>, <code>효과음 준비 완료</code></td>
+</tr>
+<tr>
+<td>시리얼 <code>[클라우드]</code> 줄</td>
+<td><code>클라우드 연결됨</code>, <code>실시간 스트림 연결</code> (공통 단말)</td>
+</tr>
+</tbody>
+</table></div>
+<h3>5. 10.1인치 보드 Wi-Fi 칩 펌웨어 (필요할 때만)</h3>
+<p>공통 단말이 Wi-Fi를 <strong>검색은 하는데 접속을 못 하면</strong>, 보드의 Wi-Fi 보조칩(ESP32-C6) 펌웨어가 오래된 것입니다.</p>
+<ol>
+<li><code>code/tools/wifi_test</code>를 올리면 시리얼 모니터에 "보조칩 펌웨어가 오래됨"이 표시됩니다.</li>
+<li><code>code/tools/c6_update</code>를 한 번 올리면 인터넷 없이 펌웨어가 업데이트됩니다. 펌웨어가 프로그램 안에 들어 있고, 1분 안에 끝납니다.</li>
+<li>다시 <code>shared_terminal</code>을 올립니다.</li>
+</ol>
+<p>이 작업은 보드마다 한 번만 하면 됩니다.</p>
+<h3>점검용 스케치 (<code>code/tools</code>)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>스케치</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display_test</code></td>
+<td>10.1인치 화면을 단계별로 점검합니다(백라이트, 초기화, 색 화면).</td>
+</tr>
+<tr>
+<td><code>wifi_test</code></td>
+<td>주변 Wi-Fi 목록, 채널, 신호, 보조칩 버전, 접속 실패 이유를 보여 줍니다. 두 보드 공용입니다.</td>
+</tr>
+<tr>
+<td><code>c6_update</code></td>
+<td>10.1인치 보드의 Wi-Fi 보조칩 펌웨어를 업데이트합니다(v2.12.13 내장).</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="doc" id="usage">
+<h2><span class="n">4</span>사용법</h2>
+<h3>학생 (입구 호출기)</h3>
+<ol>
+<li>찾는 선생님의 <strong>교과</strong>를 누릅니다.</li>
+<li><strong>선생님 이름</strong>을 누릅니다. 이름 아래 <code>● 켜짐</code>이면 그 선생님 호출을 받는 단말이 켜져 있다는 뜻입니다.</li>
+<li><strong>호출하기</strong>를 누릅니다.</li>
+<li>"선생님께 알렸어요!"가 뜨면 입구에서 기다립니다.</li>
+</ol>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>화면</th>
+<th>뜻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"조금 전에 이미 알렸어요"</td>
+<td>같은 선생님을 30초 안에 다시 눌렀습니다. 장난 호출을 막기 위해 다시 보내지 않습니다. 시간은 시트에서 바꿉니다.</td>
+</tr>
+<tr>
+<td>"교무실 단말에 연결되지 않았어요"</td>
+<td>약 12초 동안 전달 확인이 없었습니다. 단말 전원이나 Wi-Fi를 확인하세요.</td>
+</tr>
+</tbody>
+</table></div>
+<figure><img src="images/entrance.png" alt="입구 호출기 화면" loading="lazy"><figcaption>입구 호출기 화면</figcaption></figure>
+<h3>선생님 (공통 단말)</h3>
+<p>호출이 오면 노란 화면에 이름이 크게 뜨고 "띵-동" 소리가 납니다. 정해진 시간(기본 10초)이 지나면 대기 화면으로 돌아가고, 화면을 누르면 바로 닫힙니다. 놓친 호출은 대기 화면의 <strong>최근 호출</strong>에서 볼 수 있습니다.</p>
+<p><strong>대기 화면 버튼</strong></p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>버튼</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>효과음 켜짐/꺼짐</td>
+<td>효과음을 끄고 켭니다. 보드의 <strong>BOOT 버튼</strong>으로도 됩니다.</td>
+</tr>
+<tr>
+<td>알림 효과</td>
+<td>누를 때마다 바뀝니다. <strong>없음</strong>(기본, 화면 고정) → <strong>깜빡임</strong>(처음 몇 초 동안 1초 간격으로 노랑/검정) → <strong>부드럽게</strong>(배경이 노랑과 주황 사이를 천천히 오감)</td>
+</tr>
+<tr>
+<td>소리 시험</td>
+<td>지금 크기로 효과음을 들려줍니다.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>설정 화면</strong> (맨 위 파란 영역을 <strong>3초</strong> 누르기)</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>전체 선택 / 모두 해제 / 선생님 버튼</td>
+<td>이 단말이 받을 선생님을 고릅니다. 파티션마다 단말을 두면 각자 맡은 선생님만 받습니다. 두 단말이 같은 선생님을 맡으면 둘 다 울립니다.</td>
+</tr>
+<tr>
+<td>화면: 가로</td>
+<td>누를 때마다 세로 → 가로 → 세로(반대) → 가로(반대)로 바뀌고 바로 저장됩니다.</td>
+</tr>
+<tr>
+<td>Wi-Fi: (이름)</td>
+<td>Wi-Fi를 바꿉니다(아래 참고).</td>
+</tr>
+<tr>
+<td>소리 - / +</td>
+<td>효과음 크기(1~10)를 바꾸면 바로 들려줍니다. 시트의 "효과음 크기"와 둘 중 <strong>나중에 바꾼 값</strong>이 적용됩니다.</td>
+</tr>
+<tr>
+<td>저장하고 닫기</td>
+<td>받을 선생님 선택을 저장합니다.</td>
+</tr>
+</tbody>
+</table></div>
+<figure><img src="images/terminal-portrait.png" alt="공통 단말 세로 화면" loading="lazy"><figcaption>공통 단말 세로 화면</figcaption></figure>
+<h3>Wi-Fi 바꾸기 (두 기기 공통)</h3>
+<ul>
+<li><strong>공통 단말</strong>: 설정 화면에서 <strong>Wi-Fi: (이름)</strong> 버튼을 누릅니다.</li>
+<li><strong>입구 호출기</strong>: 처음 화면 위쪽 파란 띠를 <strong>5초</strong> 누르고, 관리자 비밀번호(<code>ADMIN_PIN</code>, 기본 <code>0000</code>)를 넣은 뒤 <strong>Wi-Fi 바꾸기</strong>를 누릅니다. 관리 메뉴에서는 Wi-Fi, IP, 클라우드 상태도 볼 수 있습니다.</li>
+</ul>
+<p>이후 순서는 같습니다.</p>
+<ol>
+<li>목록에서 Wi-Fi를 고릅니다. 숨김 Wi-Fi는 <strong>직접 입력</strong>을 씁니다.</li>
+<li>화면 키보드로 비밀번호를 넣고 <strong>완료</strong>를 누릅니다. 대문자는 <strong>대/소</strong>, 특수문자는 <strong>기호</strong> 버튼으로 바꿉니다.</li>
+<li>15초 안에 연결되면 저장되고, 다시 켜도 그 Wi-Fi를 씁니다. 실패하면 원래 Wi-Fi로 돌아갑니다.</li>
+</ol>
+<figure><img src="images/wifi.png" alt="Wi-Fi 설정 화면" loading="lazy"><figcaption>Wi-Fi 설정 화면</figcaption></figure>
+<h3>관리자 (구글 시트)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>하고 싶은 일</th>
+<th>방법</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>선생님 추가</td>
+<td>[선생님 명단]에 이름과 교과를 적습니다. ID는 비워 두면 됩니다.</td>
+</tr>
+<tr>
+<td>잠시 숨기기</td>
+<td>[사용] 체크를 끕니다.</td>
+</tr>
+<tr>
+<td>순서 바꾸기</td>
+<td>행 순서를 바꿉니다.</td>
+</tr>
+<tr>
+<td>알림 시간, 효과음 크기</td>
+<td>[설정] 시트의 값을 바꿉니다.</td>
+</tr>
+<tr>
+<td>호출 통계</td>
+<td>[호출 기록] 시트를 피벗 테이블이나 차트로 정리합니다.</td>
+</tr>
+<tr>
+<td>기기 상태 확인</td>
+<td>[단말 상태] 시트를 봅니다. 마지막 신호가 2분 넘게 없으면 "꺼짐"으로 표시됩니다.</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="doc" id="trouble">
+<h2><span class="n">5</span>막힌 곳과 해결</h2>
+<p>같은 보드로 따라 만들다 보면 만날 가능성이 높은 문제들입니다. 실제로 겪은 순서대로 정리했습니다.</p>
+<h3>설계 단계</h3>
+<h4>ESP-NOW로 연결하려 했는데 10.1인치 보드에서 안 됨</h4>
+<ul>
+<li><strong>원인</strong>: 10.1인치 보드(ESP32-P4)는 Wi-Fi를 보조칩(ESP32-C6)을 거쳐 씁니다. 이 구조(ESP-Hosted)에서는 ESP-NOW가 공식 지원되지 않습니다.</li>
+<li><strong>해결</strong>: 같은 Wi-Fi 안 UDP 브로드캐스트로 바꾸고, 나중에 클라우드(Firebase) 중계를 더해 두 경로로 동시에 보냅니다.</li>
+</ul>
+<h4>실시간 DB 위치에 서울이 없음</h4>
+<ul>
+<li><strong>원인</strong>: Firebase Realtime Database는 아이오와, 벨기에, 싱가포르만 지원합니다. 서울은 Firestore 등 다른 제품에만 있습니다.</li>
+<li><strong>해결</strong>: 싱가포르를 선택했습니다. 왕복 지연이 0.1초 안팎이라 체감 차이가 없습니다.</li>
+</ul>
+<h3>화면</h3>
+<h4>10.1인치 화면이 아예 꺼진 채로 재부팅 반복</h4>
+<ul>
+<li><strong>증상</strong>: 시리얼에 <code>abort() was called</code>와 <code>Rebooting...</code>이 반복됩니다.</li>
+<li><strong>원인</strong>: 화면 라이브러리 <strong>GFX Library for Arduino 1.6.7 이하</strong>는 새 칩(ESP32-P4 v3)의 화면 신호 설정을 몰라서, 초기화하다 멈춥니다.</li>
+<li><strong>해결</strong>: 라이브러리를 <strong>1.6.9</strong>로 올렸습니다. 이름이 비슷한 <strong>Adafruit GFX Library</strong>와 헷갈리기 쉬우니, 만든 이가 Moon On Our Nation인지 확인하세요.</li>
+<li><strong>점검 방법</strong>: <code>tools/display_test</code>로 백라이트, 초기화, 색 화면을 단계별로 확인할 수 있습니다.</li>
+</ul>
+<h4><code>jd9365_type1_init_operations was not declared</code> 컴파일 오류</h4>
+<ul>
+<li><strong>원인</strong>: 라이브러리 버전마다 화면 초기화 값의 이름이 다릅니다.</li>
+<li><strong>해결</strong>: 초기화 값을 프로젝트 안(<code>lcd_panel_v1.h</code>, <code>lcd_panel_v2.h</code>)에 직접 넣어 버전과 상관없이 컴파일되게 했습니다.</li>
+</ul>
+<h4>새 패널(V2)</h4>
+<ul>
+<li><strong>원인</strong>: 2026년 출하 보드(SKU <code>-V3</code>)는 화면 패널이 바뀌어 초기화 값과 신호 속도가 다릅니다.</li>
+<li><strong>해결</strong>: <code>LCD_PANEL_V2 1</code>이 새 패널, <code>0</code>이 이전 패널입니다.</li>
+</ul>
+<h4>알림 화면이 계속 깜빡임</h4>
+<ul>
+<li><strong>원인</strong>: 남은 시간 막대를 갱신하려고 0.5초마다 화면 전체를 지우고 다시 그렸는데, 큰 글씨를 그리는 동안 지워진 상태가 눈에 보였습니다. 기기 고장이 아니었습니다.</li>
+<li><strong>해결</strong>: 보이지 않는 메모리(캔버스)에 먼저 다 그린 뒤 한 번에 화면으로 옮기는 <strong>이중 버퍼</strong>로 바꿨습니다. 알림 효과의 기본값도 "없음"(화면 고정)으로 했습니다.</li>
+</ul>
+<h4>큰 이름이 계단처럼 각져 보임</h4>
+<ul>
+<li><strong>원인</strong>: 기기에 넣을 수 있는 한글 폰트는 48픽셀까지입니다. 이를 4배 이상 키우면 계단이 생깁니다.</li>
+<li><strong>해결</strong>: 글자를 살짝 흐리게 한 뒤 확대하고, 가장자리를 다시 또렷하게 다듬어 그립니다. 폰트 파일을 늘리지 않고도 매끈해졌습니다.</li>
+</ul>
+<h4>입구 호출기 터치 위치가 180도 반대</h4>
+<ul>
+<li><strong>해결</strong>: <code>caller_app.cpp</code>의 <code>TOUCH_MIRROR_X</code>, <code>TOUCH_MIRROR_Y</code>로 맞춥니다. <code>TOUCH_DEBUG</code>를 켜면 누른 곳에 점이 찍혀서 확인하기 쉽습니다.</li>
+</ul>
+<h3>Wi-Fi</h3>
+<h4>10.1인치 보드가 Wi-Fi 검색은 되는데 접속을 못 함</h4>
+<ul>
+<li><strong>증상</strong>: <code>wifi_test</code>에서 끊김 이유가 계속 <code>8 (ASSOC_LEAVE)</code>만 나옵니다.</li>
+<li><strong>원인</strong>: 보조칩 펌웨어가 <strong>2.3.2</strong>로, 본체 쪽 <strong>2.12.13</strong>보다 너무 오래되어 접속 명령이 전달되지 않았습니다.</li>
+<li><strong>해결</strong>: 공식 업데이트 예제(ESP_HostedOTA)는 Wi-Fi로 인터넷에 접속해야 해서 쓸 수 없었습니다. 그래서 펌웨어를 프로그램 안에 넣어 보조칩에 직접 써 넣는 <code>tools/c6_update</code>를 만들었습니다.</li>
+</ul>
+<h4>학교 Wi-Fi 접속 실패 (끊김 이유 36)</h4>
+<ul>
+<li><strong>원인</strong>: 비밀번호 문제가 아니라, 공유기가 등록되지 않은 기기를 내보낸 것입니다(MAC 주소 등록제 또는 기업용 인증).</li>
+<li><strong>해결</strong>: 정보 담당에게 기기 MAC 주소(<code>wifi_test</code>에 표시)로 등록을 요청합니다. 그동안은 핫스팟이나 별도 공유기로 시험했습니다. 클라우드 중계 구조라 인터넷만 되면 어떤 Wi-Fi든 됩니다.</li>
+</ul>
+<h4>Wi-Fi가 바뀔 때마다 다시 업로드해야 함</h4>
+<ul>
+<li><strong>해결</strong>: 기기 화면에서 Wi-Fi를 고르고 비밀번호를 입력하는 기능을 넣었습니다(<code>wifi_ui</code>). 입구 호출기는 관리자 비밀번호로 잠갔습니다.</li>
+</ul>
+<h3>소리</h3>
+<h4>효과음이 안 남</h4>
+<ul>
+<li><strong>점검 순서</strong>: 시리얼의 <code>[소리]</code> 줄로 오디오 칩(ES8311, I2C 0x18, ID 83 11)과 소리 데이터 전송을 확인했는데 모두 정상이었습니다.</li>
+<li><strong>원인</strong>: <strong>스피커가 연결되어 있지 않았습니다.</strong> 보드 스피커 단자에 연결하니 해결됐습니다. 앰프를 켜는 신호(GPIO20)는 HIGH가 맞습니다.</li>
+<li><strong>조정</strong>: 소리를 부드러운 "띵-동"으로 바꾸고, 크기는 시트와 기기 화면에서 1~10으로 조절하게 했습니다.</li>
+</ul>
+<h3>개발 환경</h3>
+<h4>업로드 전 컴파일이 너무 오래 걸림</h4>
+<ul>
+<li><strong>원인</strong>: 한글 폰트 데이터(약 1MB)가 본체 파일에 포함되어, 코드를 조금만 고쳐도 매번 다시 컴파일됐습니다.</li>
+<li><strong>해결</strong>: 폰트를 <code>fonts.cpp</code>로 분리했습니다. 테스트 환경 기준으로 재컴파일이 약 53초에서 6초로 줄었습니다. Upload Speed가 921600인지도 확인하세요.</li>
+</ul>
+<h4>Firebase 웹 API 키가 프로젝트 설정에 안 보임</h4>
+<ul>
+<li><strong>해결</strong>: <strong>내 앱</strong>에서 웹앱을 하나 등록하면 나오는 <code>apiKey</code> 값을 씁니다.</li>
+</ul>
+<h4>DB 주소가 프로젝트 이름과 다름</h4>
+<ul>
+<li><strong>원인</strong>: 프로젝트 ID에 <code>-a1b2c</code> 같은 글자가 붙을 수 있습니다.</li>
+<li><strong>해결</strong>: 주소는 Realtime Database <strong>데이터</strong> 탭에 보이는 것을 그대로 복사합니다.</li>
+</ul>
+</section>
+<section class="doc" id="arch">
+<h2><span class="n">6</span>구조와 통신</h2>
+<figure><img src="images/system.png" alt="시스템 구성도" loading="lazy"><figcaption>시스템 구성도</figcaption></figure>
+<h3>설계 원칙</h3>
+<ul>
+<li><strong>명단은 한 곳에서 관리</strong>: 구글 시트 → Firebase <code>/config</code> → 모든 기기. 기기는 받은 명단을 저장해 두어서, 인터넷 없이 켜져도 동작합니다.</li>
+<li><strong>호출은 두 경로로</strong>: 입구 호출기는 같은 호출 ID로 클라우드와 같은 Wi-Fi 직접 통신(UDP)에 동시에 보냅니다. 단말은 먼저 도착한 것으로 한 번만 알리고, 받았다는 표시(RECV)를 양쪽으로 돌려보냅니다.</li>
+<li><strong>화면이 멈추지 않게</strong>: 클라우드 통신은 별도 작업(FreeRTOS 태스크)에서 돌아갑니다.</li>
+<li><strong>시각은 서버 기준</strong>: NTP가 막힌 학교망을 위해, Firebase 응답의 <code>Date</code> 헤더로 시각을 맞춥니다.</li>
+</ul>
+<h3>Firebase 데이터 구조</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>위치</th>
+<th>쓰는 쪽</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/config</code></td>
+<td>구글 시트</td>
+<td><code>teachers: [{id, name, subject}]</code>, <code>settings: {alertSeconds, flashSeconds, repeatBlockSeconds, soundLevel}</code></td>
+</tr>
+<tr>
+<td><code>/calls/{호출ID}</code></td>
+<td>입구 호출기</td>
+<td><code>tid, name, subject, from, ts(서버 시각)</code>. 단말이 받으면 <code>recv/{단말ID}</code>에 시각을 기록합니다.</td>
+</tr>
+<tr>
+<td><code>/devices/{기기ID}</code></td>
+<td>각 기기</td>
+<td><code>type(terminal/entrance), covers("*" 또는 "T01,T02"), ip, lastSeen</code>. 공통 단말은 30초, 입구 호출기는 60초마다 씁니다.</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>보안 규칙</strong>(<code>firebase/database.rules.json</code>): 기기용 계정으로 로그인한 경우만 읽고 쓸 수 있습니다. <code>/config</code>는 기기에서 쓰기 금지이고, 시트 스크립트는 소유자 권한으로 씁니다.</li>
+<li><strong>실시간 수신</strong>: 공통 단말은 <code>/calls</code>를 REST 스트리밍(Server-Sent Events)으로 받습니다. 20초보다 오래된 호출과 이미 받은 호출은 무시합니다.</li>
+<li><strong>정리</strong>: 시트 스크립트가 5분마다 호출 기록을 시트로 옮기고, 하루 지난 호출은 Firebase에서 지웁니다.</li>
+</ul>
+<h3>같은 Wi-Fi 직접 통신 (UDP 47800번 포트, 브로드캐스트)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>메시지</th>
+<th>보내는 쪽</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CALL\|CALL\|호출ID\|선생님ID\|이름\|교과</code></td>
+<td>입구</td>
+<td>호출. 전달 확인이 올 때까지 0.8초마다 다시 보냅니다(최대 약 12초).</td>
+</tr>
+<tr>
+<td><code>CALL\|RECV\|호출ID\|선생님ID</code></td>
+<td>공통 단말</td>
+<td>받았음</td>
+</tr>
+<tr>
+<td><code>CALL\|HB\|받는선생님\|상태</code></td>
+<td>공통 단말</td>
+<td>3초마다 보내는 생존 신호. 받는 선생님은 <code>*</code>(전체) 또는 <code>T01,T02</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>맨 앞의 <code>CALL</code>은 <code>config.h</code>의 <code>SYSTEM_TAG</code>입니다. 같은 Wi-Fi에 다른 학교나 다른 시스템이 있으면 바꿔서 구분합니다.</p>
+<h3>주요 소스 파일</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>파일</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cloud.cpp</code> (두 기기 공용)</td>
+<td>Firebase 로그인, REST, 실시간 스트림, 명단 캐시, 서버 시각</td>
+</tr>
+<tr>
+<td><code>wifi_ui.cpp</code> (두 기기 공용)</td>
+<td>Wi-Fi 검색 목록, 화면 키보드, 접속 확인과 저장</td>
+</tr>
+<tr>
+<td><code>caller_app.cpp</code></td>
+<td>입구 호출기 화면과 호출 흐름, 관리 메뉴</td>
+</tr>
+<tr>
+<td><code>terminal_app.cpp</code></td>
+<td>공통 단말 화면(가로/세로), 큰 글씨, 알림 효과, 설정 화면</td>
+</tr>
+<tr>
+<td><code>sound.cpp</code></td>
+<td>ES8311 코덱 설정과 효과음 합성(I2S 16kHz)</td>
+</tr>
+<tr>
+<td><code>gt911_touch.h</code> / <code>src/touch/</code></td>
+<td>4.3인치 GT911, 10.1인치 GSL3680 터치 드라이버</td>
+</tr>
+<tr>
+<td><code>fonts.cpp</code>, <code>font_kr*.h</code></td>
+<td>나눔고딕 한글 2,350자 비트맵 폰트(u8g2 형식)</td>
+</tr>
+<tr>
+<td><code>google_sheet/Code.gs</code></td>
+<td>시트 → Firebase 반영, 기록·상태 가져오기, 글자 검사</td>
+</tr>
+</tbody>
+</table></div>
+<h3>하드웨어 핀 (참고)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>기능</th>
+<th>입구 호출기 (JC4827W543C)</th>
+<th>공통 단말 (JC8012P4A1C)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>화면</td>
+<td>QSPI: CS 45, SCK 47, D0~D3 21/48/40/39, 백라이트 1</td>
+<td>MIPI-DSI, 리셋 27, 백라이트 23</td>
+</tr>
+<tr>
+<td>터치</td>
+<td>GT911: SDA 8, SCL 4, INT 3, RST 38</td>
+<td>GSL3680: SDA 7, SCL 8, RST 22, INT 21</td>
+</tr>
+<tr>
+<td>소리</td>
+<td>-</td>
+<td>ES8311(I2C 0x18): MCLK 13, BCLK 12, WS 10, DOUT 9, 앰프 20</td>
+</tr>
+<tr>
+<td>Wi-Fi</td>
+<td>내장</td>
+<td>ESP32-C6 (SDIO: CLK 18, CMD 19, D0~D3 14~17, RST 54)</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+
+    <section id="more">
+      <h2><span class="n">7</span>더 해 볼 수 있는 것</h2>
+      <p>동아리나 심화 프로젝트 과제로 쓰기 좋은 확장 아이디어입니다.</p>
+      <ul>
+        <li><b>응답 기능</b> — 공통 단말에서 "지금 나갈게요 / 5분 후 / 자리에 안 계세요"를 누르면 입구에 표시하기 (초기 버전에서 시험했던 기능)</li>
+        <li><b>시간표와 감독 일정 연동</b> — 시험 감독 중인 선생님을 호출하면 입구에 "3교시 감독 중, 10:40 이후에 오세요"라고 자동 안내하기</li>
+        <li><b>파티션별 단말</b> — 단말마다 받을 선생님을 나눠 여러 대 설치하기 (이미 지원)</li>
+        <li><b>교사 휴대폰 알림</b> — 호출 기록을 메신저나 푸시 알림으로 보내기</li>
+      </ul>
+    </section>
+
+    <section id="download">
+      <h2><span class="n">8</span>파일 받기</h2>
+      <p>코드, 안내 문서, 화면 그림, 라이선스 안내를 한 번에 받습니다. 압축을 풀고 <code>README.md</code>부터 보세요.</p>
+      <p><a class="btn" href="office_call_system.zip" download>zip 받기 (코드 + 문서 + 그림)</a></p>
+      <p class="note"><code>config.h</code>와 <code>Code.gs</code>의 Wi-Fi·Firebase 값은 모두 "여기에_…" 자리표시자입니다. 내 값을 넣은 파일은 깃허브 같은 공개된 곳에 올리지 마세요.</p>
+      <h3>코드 안내</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>폴더</th>
+<th>대상</th>
+<th>여는 파일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>entrance_caller/</code></td>
+<td>입구 호출기 (JC4827W543C)</td>
+<td><code>entrance_caller.ino</code></td>
+</tr>
+<tr>
+<td><code>shared_terminal/</code></td>
+<td>공통 단말 (JC8012P4A1C)</td>
+<td><code>shared_terminal.ino</code></td>
+</tr>
+<tr>
+<td><code>google_sheet/</code></td>
+<td>구글 시트 Apps Script</td>
+<td><code>Code.gs</code>, <code>appsscript.json</code></td>
+</tr>
+<tr>
+<td><code>firebase/</code></td>
+<td>Firebase 보안 규칙</td>
+<td><code>database.rules.json</code></td>
+</tr>
+<tr>
+<td><code>tools/display_test/</code></td>
+<td>10.1" 화면 점검</td>
+<td><code>display_test.ino</code></td>
+</tr>
+<tr>
+<td><code>tools/wifi_test/</code></td>
+<td>Wi-Fi 점검 (두 보드 공용)</td>
+<td><code>wifi_test.ino</code></td>
+</tr>
+<tr>
+<td><code>tools/c6_update/</code></td>
+<td>10.1" Wi-Fi 보조칩 펌웨어 업데이트</td>
+<td><code>c6_update.ino</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>두 스케치의 <code>config.h</code>에 Wi-Fi와 Firebase 정보를 <strong>같게</strong> 넣습니다. 자세한 방법은 <code>../docs/03_펌웨어_올리기.md</code>에 있습니다.</li>
+<li><code>.ino</code> 파일에는 설명만 있고, 프로그램 본체는 <code>caller_app.cpp</code>와 <code>terminal_app.cpp</code>에 있습니다(Arduino IDE에서 탭으로 보입니다).</li>
+<li>컴파일 확인 환경: Arduino ESP32 core 3.3.13, GFX Library for Arduino 1.6.9 (1.6.8에서도 확인), U8g2 2.37, ArduinoJson 7.4.</li>
+</ul>
+    </section>
+
+    <section id="license">
+      <h2><span class="n">9</span>사용한 외부 자료와 라이선스</h2>
+<p>이 프로젝트를 공개하거나 배포할 때 아래 자료의 라이선스를 함께 지켜 주세요.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>자료</th>
+<th>사용한 곳</th>
+<th>출처</th>
+<th>라이선스</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>나눔고딕 ExtraBold</td>
+<td><code>font_kr*.h</code> (한글 2,350자 + 영문을 u8g2 비트맵으로 변환)</td>
+<td>네이버 / Google Fonts</td>
+<td>SIL Open Font License 1.1</td>
+</tr>
+<tr>
+<td>GSL3680 터치 드라이버</td>
+<td><code>code/shared_terminal/src/touch/</code></td>
+<td>Guition 제공 코드 기반, <a href="https://github.com/CelliesProjects/JC8012P4A1-Arduino_GFX" target="_blank" rel="noopener">CelliesProjects/JC8012P4A1-Arduino_GFX</a></td>
+<td><code>esp_lcd_touch.*</code>: Apache-2.0, <code>gsl_point_id.c</code>: GPL v2. 나머지는 원 출처의 조건을 따릅니다.</td>
+</tr>
+<tr>
+<td>10.1" 새 패널(V2) 초기화 값, 오디오 핀 정보</td>
+<td><code>lcd_panel_v2.h</code>, <code>sound.cpp</code></td>
+<td><a href="https://github.com/chickymonkey/guition-10.1-inch-esp32-p4" target="_blank" rel="noopener">chickymonkey/guition-10.1-inch-esp32-p4</a></td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>10.1" 이전 패널(V1) 초기화 값</td>
+<td><code>lcd_panel_v1.h</code></td>
+<td><a href="https://github.com/moononournation/Arduino_GFX" target="_blank" rel="noopener">Arduino_GFX</a></td>
+<td>Arduino_GFX 라이선스를 따름</td>
+</tr>
+<tr>
+<td>ESP-Hosted 보조칩 펌웨어 v2.12.13</td>
+<td><code>code/tools/c6_update/c6_firmware.cpp</code></td>
+<td>Espressif (arduino-esp32 배포본)</td>
+<td>Apache-2.0</td>
+</tr>
+<tr>
+<td>ES8311 초기화 순서</td>
+<td><code>sound.cpp</code></td>
+<td>ESPHome es8311 컴포넌트 참고</td>
+<td>(참고 구현)</td>
+</tr>
+</tbody>
+</table></div>
+<h3>이 프로젝트의 코드</h3>
+<p>나머지 코드(입구 호출기, 공통 단말 본체, 클라우드 모듈, Wi-Fi 설정 화면, 구글 시트 스크립트)의 라이선스는 만든 사람이 정해 주세요(예: MIT).</p>
+<p><code>gsl_point_id.c</code>가 GPL v2이므로, 공통 단말(<code>shared_terminal</code>) 펌웨어를 바이너리로 배포할 때는 GPL 조건(소스 공개)을 함께 지켜야 합니다.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>폰트: 나눔고딕 (SIL OFL 1.1) · 화면 그림과 구성도는 이 프로젝트에서 직접 만든 것입니다.</p>
+  </footer>
+</div>
+
+<script>
+// 밝게/어둡게 화면 바꾸기 — 선택값은 이 브라우저에만 저장
+(function () {
+  var root = document.documentElement, KEY = 'office-call-theme';
+  try { var saved = localStorage.getItem(KEY); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+  });
+})();
+</script>
+<script src="../../toolbox-nav.js"></script>
+</body>
+</html>
