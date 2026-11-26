@@ -89,6 +89,14 @@ table.fit { min-width: 0; } table.fit td:first-child { white-space: nowrap; }
 .gallery figcaption { font-size: 13px; color: var(--muted); }
 @media (max-width: 720px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* 보드 살 때 참고 */
+.buy { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 18px; align-items: start; margin: 8px 0 6px; }
+.buy figure { margin: 0; border: 1px solid var(--line); border-radius: var(--r); background: #fff; padding: 8px; text-align: center; }
+.buy img { display: block; width: 100%; height: auto; margin: 0 auto 4px; }
+.buy figcaption { font-size: 13px; color: #546170; }
+.buy p { margin-top: 0; }
+@media (max-width: 720px) { .buy { grid-template-columns: minmax(0, 1fr); } }
+
 /* 기기 카드 */
 .devices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 10px 0; }
 .devices div { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--bg); }
@@ -195,10 +203,25 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <!-- ============================ 1. 준비물 ============================ -->
     <section id="prep">
       <h2><span class="n">1</span>준비물</h2>
+      <h3 style="border-top:0;margin-top:4px;padding-top:0">보드 살 때 참고</h3>
+      <div class="buy">
+        <figure><img src="images/board-kit.png" alt="ES3C28P 제품 구성: 2.8인치 터치 보드 앞면(아이콘이 뜬 화면)과 뒷면, 흰색 플라스틱 상자, USB-C 케이블, 색깔 연결선, 작은 스피커" width="426" height="362" loading="lazy"><figcaption>ES3C28P 제품 구성 (판매 페이지 사진)</figcaption></figure>
+        <div>
+          <p>쇼핑몰에서 <b>"ES3C28P"</b> 또는 <b>"2.8인치 ESP32-S3 IPS 터치 LCD"</b>로 찾으세요.</p>
+          <ul>
+            <li>보드 뒷면에 <b>2.8" LCD Display · ESP32-S3 · 240x320 · Capacitive Touch</b>라고 적혀 있으면 맞아요.</li>
+            <li><b>Capacitive Touch(정전식 터치)</b> 제품이어야 해요. 이름이 비슷한 <b>ES3N28P</b>는 터치가 없어서 쓸 수 없어요.</li>
+            <li><b>스피커가 함께 든 구성</b>을 고르세요. 효과음·경고음·알림이 이 스피커로 나와요. 스피커는 보드 뒷면 스피커 단자에 꽂습니다.</li>
+            <li>사진처럼 USB-C 케이블·연결선·플라스틱 상자가 함께 오는 구성이 많아요. 구성은 판매처마다 다를 수 있으니 상세 설명을 확인하세요.</li>
+            <li>배터리는 따로 사야 해요 → <a href="#battery">배터리 고르기</a></li>
+          </ul>
+        </div>
+      </div>
+      <h3>전체 준비물</h3>
       <div class="tbl"><table>
         <thead><tr><th>품목</th><th>설명</th><th>꼭?</th></tr></thead>
         <tbody>
-          <tr><td>LCDwiki <b>ES3C28P</b></td><td>2.8인치 ESP32-S3 터치 보드 (240×320, 정전식 터치, 스피커·마이크 내장, 플래시 16MB·PSRAM 8MB). 터치 없는 ES3N28P는 안 됩니다.</td><td>필수</td></tr>
+          <tr><td>LCDwiki <b>ES3C28P</b><br>(스피커 포함 구성)</td><td>2.8인치 ESP32-S3 터치 보드 (240×320, 정전식 터치, 마이크·스피커 단자, 플래시 16MB·PSRAM 8MB). 위 사진 참고. 터치 없는 ES3N28P는 안 됩니다.</td><td>필수</td></tr>
           <tr><td>USB-C <b>데이터</b> 케이블</td><td>충전 전용 케이블은 PC가 보드를 못 알아봐요. 휴대폰과 PC를 연결해 사진을 옮길 수 있던 케이블이면 됩니다.</td><td>필수</td></tr>
           <tr><td>PC (윈도우·맥)</td><td>아두이노 IDE를 설치할 수 있는 컴퓨터. 학교 PC라면 설치 권한이 필요해요.</td><td>필수</td></tr>
           <tr><td>리튬폴리머 배터리<br><b>803035 · 3.7V 800mAh</b></td><td>케이스 안에 딱 맞는 크기(두께 8 × 폭 30 × 길이 35mm). 단자는 <b>JST PH1.25mm 2핀</b>이어야 보드에 꽂혀요. 자세한 건 <a href="#battery">배터리 고르기</a>. 없으면 USB 선을 꽂아 두고 씁니다.</td><td>선택</td></tr>
