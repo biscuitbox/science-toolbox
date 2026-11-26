@@ -703,6 +703,37 @@
       "safetyNotes": "USB 5V로 움직이는 보드이므로 뒷면 금속 부분이 다른 금속에 닿지 않게 케이스나 거치대에 넣습니다. 스피커 선을 연결하거나 뺄 때는 전원을 먼저 뽑습니다. Wi-Fi·Firebase 비밀번호를 넣은 config.h는 공개된 곳에 올리지 않습니다."
     },
     {
+      "id": "happystamp",
+      "name": "스탬프 도안 생성기",
+      "description": "도장 도안을 만들어 A4에 모아 인쇄 (외부 사이트)",
+      "category": "maker",
+      "path": "maker/happystamp/",
+      "tags": [
+        "도장",
+        "팝핑도장",
+        "스탬프",
+        "도안",
+        "인쇄",
+        "외부 사이트"
+      ],
+      "level": "전 학년",
+      "featured": false,
+      "activityType": "만들기",
+      "target": "중학생 메이커 동아리",
+      "sessions": "2차시",
+      "materials": [
+        "크롬북",
+        "레이저 프린터",
+        "팝핑필름",
+        "팝핑전용지",
+        "팝핑머신"
+      ],
+      "safetyNotes": "팝핑머신(약 380℃)은 교사가 직접 조작, 막 나온 도장 판은 식은 뒤 만지기",
+      "source": "happystamp.web.app (외부 사이트)",
+      "difficulty": 1,
+      "duration": "약 90분"
+    },
+    {
       "id": "tilt-fortress-3d",
       "name": "틸트 포트리스 3D",
       "description": "폰을 기울여 조준하는 1인칭 3D 포격 대전 게임 — 바람과 지형을 읽고 각도·힘 맞추기",
