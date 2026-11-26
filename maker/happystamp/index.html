@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스탬프 도안 생성기 · 과학 도구상자</title>
+<!-- 폰트: CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
+<style>
+  /* 이 도구만의 디자인 (부모 사이트 CSS에 의존하지 않음) */
+  :root {
+    --paper: #FBF7EF;
+    --line: #E9E1D2;
+    --ink: #2B2620;
+    --muted: #5E554A;
+    --accent: #BE123C;        /* 메이커 진홍 (사이트 --c-maker와 동일) */
+    --accent-soft: #F8E6EB;
+    --warn-bg: #FFF6E0;
+    --warn-border: #C98A00;
+    --card: #FFFFFF;
+    --border2: #DDD3C2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Pretendard", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--line) 31px, var(--line) 32px);
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 20px 48px; }
+  h1, h2 { font-family: "Gowun Batang", serif; line-height: 1.35; }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; }
+  h2 { font-size: 1.25rem; margin: 0 0 12px; color: var(--accent); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.9rem; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: 999px; padding: 2px 12px; margin-bottom: 12px;
+  }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 20px 22px; margin-bottom: 18px;
+  }
+
+  /* 큰 열기 버튼 */
+  .open-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 64px; padding: 14px 20px;
+    font-size: 1.2rem; font-weight: 700; color: #fff; text-decoration: none;
+    background: var(--accent); border-radius: 14px;
+    box-shadow: 0 4px 0 #7F0D28;
+    transition: transform 300ms ease, box-shadow 300ms ease;
+  }
+  .open-btn:hover { transform: translateY(-1px); }
+  .open-btn:focus-visible { outline: 4px solid #1D4ED8; outline-offset: 3px; }
+  .open-note { font-size: 0.92rem; color: var(--muted); text-align: center; margin: 10px 0 24px; }
+
+  /* 안전 주의 */
+  .safety {
+    background: var(--warn-bg); border: 2px solid var(--warn-border);
+    border-radius: 14px; padding: 16px 20px; margin-bottom: 18px;
+  }
+  .safety strong.title { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+  .safety ul { margin: 6px 0 0; padding-left: 1.2em; }
+
+  /* 단계 */
+  ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  ol.steps li {
+    counter-increment: step; position: relative;
+    padding: 10px 0 10px 48px; border-bottom: 1px dashed var(--border2);
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 10px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps b { display: block; }
+  ol.steps span { color: var(--muted); font-size: 0.95rem; }
+
+  /* 체크리스트: 색 + 기호로 구분 */
+  ul.check { list-style: none; margin: 0; padding: 0; }
+  ul.check li { padding: 6px 0 6px 30px; position: relative; }
+  ul.check li::before { position: absolute; left: 0; font-weight: 700; }
+  ul.check li.ok::before { content: "✔"; color: #166534; }
+  ul.check li.no::before { content: "✖"; color: #A3123A; }
+
+  /* 교사용 정보 (기본 접힘) */
+  details.teacher {
+    border: 1px dashed var(--border2); border-radius: 14px;
+    padding: 12px 20px; background: rgba(255,255,255,0.7); margin-bottom: 18px;
+  }
+  details.teacher summary { cursor: pointer; font-weight: 700; color: var(--muted); }
+  details.teacher summary:focus-visible { outline: 3px solid #1D4ED8; outline-offset: 3px; border-radius: 6px; }
+  details.teacher dl { display: grid; grid-template-columns: 5.5em 1fr; gap: 6px 12px; margin: 12px 0 0; }
+  details.teacher dt { font-weight: 700; }
+  details.teacher dd { margin: 0; }
+
+  footer { font-size: 0.85rem; color: #6B6257; margin-top: 28px; }
+  footer a { color: inherit; }
+
+  @media (max-width: 420px) {
+    h1 { font-size: 1.55rem; }
+    .card, .safety { padding: 16px; }
+    details.teacher dl { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .open-btn { color: var(--accent); background: none; border: 2px solid var(--accent); box-shadow: none; }
+    .open-btn::after { content: " (https://happystamp.web.app/)"; font-weight: 400; font-size: 0.9rem; }
+    details.teacher { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <span class="eyebrow">🔗 외부 사이트 · 메이커</span>
+  <h1>스탬프 도안 생성기</h1>
+  <p class="lead">원형·사각 도장 모양을 고르고, 그림과 글자를 넣어 <b>검은색 단색 도안</b>을 만든 뒤 A4에 모아 인쇄하는 도구입니다. 팝핑도장 만들기 수업에 씁니다.</p>
+
+  <a class="open-btn" href="https://happystamp.web.app/" target="_blank" rel="noopener noreferrer">
+    🖨️ 도안 생성기 열기 <span aria-hidden="true">↗</span><span class="sr-only" style="position:absolute;left:-9999px;">(새 탭에서 열림)</span>
+  </a>
+  <p class="open-note">새 탭에서 열립니다. 다 만들면 이 탭으로 돌아와도 됩니다.</p>
+
+  <div class="safety" role="note" aria-label="안전 주의">
+    <strong class="title">⚠️ 안전 주의 — 팝핑머신은 고온 장비입니다</strong>
+    <ul>
+      <li>도장을 찍어내는 기계(약 380℃)는 <b>선생님이 직접 조작</b>합니다. 학생은 기계에 손대지 않아요.</li>
+      <li>막 나온 도장 판은 뜨거울 수 있으니 식을 때까지 만지지 않아요.</li>
+    </ul>
+  </div>
+
+  <section class="card" aria-labelledby="h-steps">
+    <h2 id="h-steps">이렇게 만들어요</h2>
+    <ol class="steps">
+      <li><b>도장 고르기</b><span>원형 또는 사각형 도장 모델을 골라 모양과 크기를 맞춥니다.</span></li>
+      <li><b>그림 넣기</b><span>그림을 끌어다 놓거나 붙여넣고, 필요하면 "✂️ 누끼 따기"로 배경을 지웁니다.</span></li>
+      <li><b>흑백 · 크기 조절</b><span>선 그림은 흑백 대비, 사진은 망점·도트 무늬로 바꿉니다. 미리보기에서 끌어서 옮기고 휠로 크기를 조절해요.</span></li>
+      <li><b>글자 넣기</b><span>원형 도장은 테두리를 따라 위·아래에 글자를 넣을 수 있어요.</span></li>
+      <li><b>인쇄 목록에 넣기</b><span>"🖨 인쇄 목록에 넣기"를 누른 뒤 ② 인쇄하기에서 A4에 배치해 인쇄하거나 PDF로 저장합니다.</span></li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="h-check">
+    <h2 id="h-check">제출 전 확인</h2>
+    <ul class="check">
+      <li class="ok">도안이 <b>검은색 단색</b>인가요? (회색·색깔이 섞이면 안 돼요)</li>
+      <li class="ok">글자가 너무 가늘거나 작아서 뭉개지지 않나요?</li>
+      <li class="no">그림에 원래 테두리가 있는데 도장 테두리를 또 넣으면 <b>두 겹</b>이 돼요.</li>
+    </ul>
+  </section>
+
+  <details class="teacher">
+    <summary>교사용 정보 보기</summary>
+    <dl>
+      <dt>대상</dt><dd>중학생 메이커 동아리</dd>
+      <dt>차시</dt><dd>2차시 (90분)</dd>
+      <dt>준비물</dt><dd>크롬북(1인 1대), 레이저 프린터, 팝핑필름, 팝핑전용지, 팝핑머신</dd>
+      <dt>팁</dt><dd>도안은 PNG·SVG 저장도 되지만, 인쇄 목록에 모아 PDF 한 장으로 받으면 출력이 편합니다.</dd>
+    </dl>
+  </details>
+
+  <footer>
+    출처: 스탬프 도안 생성기 (<a href="https://happystamp.web.app/" target="_blank" rel="noopener noreferrer">happystamp.web.app</a>) — 외부 사이트이며 내용과 저작권은 해당 사이트에 있습니다. 이 페이지는 바로가기와 수업 안내만 제공합니다.
+  </footer>
+</main>
+
+<!-- 도구상자 복귀 링크 (2단계 깊이: maker/happystamp/) -->
+<script src="../../toolbox-nav.js"></script>
+</body>
+</html>
