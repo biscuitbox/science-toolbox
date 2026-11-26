@@ -95,7 +95,8 @@ table.fit { min-width: 0; } table.fit td:first-child { white-space: nowrap; }
 .buy img { display: block; width: 100%; height: auto; margin: 0 auto 4px; }
 .buy figcaption { font-size: 13px; color: #546170; }
 .buy p { margin-top: 0; }
-@media (max-width: 720px) { .buy { grid-template-columns: minmax(0, 1fr); } }
+.buy.wide { grid-template-columns: minmax(0, 450px) 1fr; }
+@media (max-width: 720px) { .buy, .buy.wide { grid-template-columns: minmax(0, 1fr); } }
 
 /* 기기 카드 */
 .devices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 10px 0; }
@@ -205,7 +206,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
       <h2><span class="n">1</span>준비물</h2>
       <h3 style="border-top:0;margin-top:4px;padding-top:0">보드 살 때 참고</h3>
       <div class="buy">
-        <figure><img src="images/board-kit.png" alt="ES3C28P 제품 구성: 2.8인치 터치 보드 앞면(아이콘이 뜬 화면)과 뒷면, 흰색 플라스틱 상자, USB-C 케이블, 색깔 연결선, 작은 스피커" width="426" height="362" loading="lazy"><figcaption>ES3C28P 제품 구성 (판매 페이지 사진)</figcaption></figure>
+        <figure><img src="images/board-kit.png" alt="ES3C28P 제품 구성: 2.8인치 터치 보드 앞면(아이콘이 뜬 화면)과 뒷면, 흰색 플라스틱 상자, USB-C 케이블, 색깔 연결선, 작은 스피커" width="402" height="366" loading="lazy"><figcaption>ES3C28P 제품 구성</figcaption></figure>
         <div>
           <p>쇼핑몰에서 <b>"ES3C28P"</b> 또는 <b>"2.8인치 ESP32-S3 IPS 터치 LCD"</b>로 찾으세요.</p>
           <ul>
@@ -217,6 +218,31 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
           </ul>
         </div>
       </div>
+      <h3 id="board">보드 살펴보기 (뒷면)</h3>
+      <div class="buy wide">
+        <figure><a href="images/board-interface.png" target="_blank" rel="noopener"><img src="images/board-interface.png" alt="ES3C28P 뒷면 단자 안내: 왼쪽에 RESET 버튼, TYPE-C 단자, BOOT 버튼, 아래쪽에 배터리 단자와 시리얼 포트, 위쪽에 스피커 단자·RGB LED·I2C 단자·확장 핀, 오른쪽 위에 마이크, 가운데 ESP32-S3 칩, 오른쪽 아래 MicroSD 카드 슬롯" width="434" height="416" loading="lazy"></a><figcaption>ES3C28P 뒷면의 단자와 버튼 · 누르면 크게 봐요</figcaption></figure>
+        <div>
+          <p>보드를 뒤집으면 단자와 버튼이 이렇게 있어요. 교탁 도우미에서 <b>꼭 쓰는 것은 TYPE-C, 스피커 단자, 마이크</b>이고, 배터리 단자는 배터리를 넣을 때 씁니다.</p>
+          <p class="warn-note" style="margin:8px 0 0"><b>BOOT 버튼</b>은 이 코드에서 쓰지 않아요. 케이스에 넣을 때 눌리지 않게만 해 주세요. 눌린 채로 켜지면 화면이 켜지지 않습니다.</p>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>이름 (그림의 영어)</th><th>하는 일</th><th>교탁 도우미에서</th></tr></thead>
+        <tbody>
+          <tr><td><b>TYPE-C 단자</b><br>TYPE-C Interface</td><td>전원, 배터리 충전, PC와 연결해 프로그램 올리기</td><td>✅ 씀 — 데이터용 케이블로 PC에 꽂아 업로드, 평소엔 충전선</td></tr>
+          <tr><td><b>스피커 단자</b><br>Speaker Interface</td><td>함께 온 작은 스피커를 꽂는 2핀 단자 (오디오 칩 ES8311 + 앰프)</td><td>✅ 씀 — 효과음, 소음 경고음, 타이머 알림</td></tr>
+          <tr><td><b>마이크</b><br>Microphone</td><td>보드에 붙어 있는 작은 마이크</td><td>✅ 씀 — 소음 신호등이 교실 소리를 잼. 케이스로 막지 마세요</td></tr>
+          <tr><td><b>배터리 단자</b><br>Battery Interface (BAT)</td><td>3.7V 리튬 배터리를 꽂는 2핀 단자. USB-C를 꽂으면 충전돼요</td><td>⭕ 선택 — <a href="#battery">803035 3.7V 800mAh, JST PH1.25mm</a>. 화면의 배터리 % 표시</td></tr>
+          <tr><td><b>RESET 버튼</b><br>RESET Button</td><td>보드를 다시 시작</td><td>⭕ 업로드 후 화면이 안 바뀌거나 멈췄을 때 한 번 누르기</td></tr>
+          <tr><td><b>BOOT 버튼</b><br>BOOT Button</td><td>누른 채 켜면 '프로그램 올리기 대기'로 들어감</td><td>⛔ 안 씀 — 업로드가 안 될 때만 <a href="#trouble">문제 해결</a>대로 사용</td></tr>
+          <tr><td><b>RGB LED</b><br>RGB LED Light</td><td>색이 바뀌는 작은 불빛</td><td>✅ 지뢰찾기에서 깃발·터짐·성공 때 반짝여요</td></tr>
+          <tr><td><b>I2C 단자</b><br>I2C Peripheral Interface</td><td>센서·모듈을 꽂는 단자 (터치·오디오 칩과 같은 선을 나눠 씀)</td><td>⭕ 선택 — 시계 모듈 DS3231을 꽂으면 저절로 찾아 씀</td></tr>
+          <tr><td><b>ESP32-S3 칩</b><br>ESP32-S3 Chip</td><td>보드의 두뇌. 와이파이·블루투스, 플래시 16MB, PSRAM 8MB</td><td>✅ 블루투스(프레젠터), 와이파이(시간·날씨)</td></tr>
+          <tr><td><b>MicroSD 슬롯</b><br>MicroSD Card Slot</td><td>메모리 카드를 꽂는 곳</td><td>— 안 씀</td></tr>
+          <tr><td><b>시리얼 포트</b><br>Serial port (UART)</td><td>다른 기기와 글자를 주고받는 단자</td><td>— 안 씀 (업로드·시리얼 모니터는 TYPE-C로 해요)</td></tr>
+          <tr><td><b>확장 핀</b><br>Extended Pin</td><td>남는 입출력 핀을 꺼내 쓰는 단자</td><td>— 안 씀 (버튼·센서를 더 달 때 바이브코딩으로)</td></tr>
+        </tbody>
+      </table></div>
       <h3>전체 준비물</h3>
       <div class="tbl"><table>
         <thead><tr><th>품목</th><th>설명</th><th>꼭?</th></tr></thead>
