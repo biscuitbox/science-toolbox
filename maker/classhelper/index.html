@@ -85,7 +85,7 @@ table.fit { min-width: 0; } table.fit td:first-child { white-space: nowrap; }
 /* 케이스 그림 */
 .gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
 .gallery figure { margin: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); padding: 6px; text-align: center; }
-.gallery img { display: block; margin: 0 auto; width: 100%; }
+.gallery img { display: block; margin: 0 auto 4px; width: 100%; aspect-ratio: 6 / 5; object-fit: cover; border-radius: 6px; }
 .gallery figcaption { font-size: 13px; color: var(--muted); }
 @media (max-width: 720px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
@@ -282,10 +282,10 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
       <h2><span class="n">5</span>케이스 만들기</h2>
       <p>케이스는 <b>뒤판</b>과 <b>앞 베젤</b> 두 부품이고, <b>M3×12 렌치볼트 4개</b>로 조립합니다. 파일은 <a href="#download">8. 파일 받기</a>의 zip 안 <code>models/</code> 폴더에 있어요.</p>
       <div class="gallery">
-        <figure><img src="images/back-outside.png" alt="뒤판 바깥쪽: 네 귀퉁이에 볼트 머리가 들어가는 둥근 홈, 가운데 스피커 구멍, 한쪽 끝에 고리" width="420" height="420" loading="lazy"><figcaption>뒤판 바깥 — 네 귀퉁이 볼트 구멍, 스피커 구멍, 고리</figcaption></figure>
-        <figure><img src="images/back-inside.png" alt="뒤판 안쪽: 보드가 들어가는 칸과 네 귀퉁이 기둥" width="420" height="420" loading="lazy"><figcaption>뒤판 안쪽 — 보드가 들어가는 칸</figcaption></figure>
-        <figure><img src="images/bezel-front.png" alt="앞 베젤 앞면: 화면이 보이는 네모난 창" width="420" height="420" loading="lazy"><figcaption>앞 베젤 앞면 — 화면 창</figcaption></figure>
-        <figure><img src="images/bezel-inside.png" alt="앞 베젤 안쪽: 네 귀퉁이에 볼트가 조여 들어가는 기둥" width="420" height="420" loading="lazy"><figcaption>앞 베젤 안쪽 — 볼트가 조여 들어가는 기둥 4개</figcaption></figure>
+        <figure><img src="images/back-outside.png" alt="뒤판 바깥쪽: 네 귀퉁이에 볼트 머리가 들어가는 둥근 홈, 가운데 스피커 구멍, 한쪽 끝에 고리" width="522" height="468" loading="lazy"><figcaption>뒤판 바깥 — 네 귀퉁이 볼트 구멍, 스피커 구멍, 고리</figcaption></figure>
+        <figure><img src="images/back-inside.png" alt="뒤판 안쪽: 보드가 들어가는 칸과 네 귀퉁이 기둥" width="610" height="524" loading="lazy"><figcaption>뒤판 안쪽 — 보드가 들어가는 칸</figcaption></figure>
+        <figure><img src="images/bezel-front.png" alt="앞 베젤 앞면: 화면이 보이는 네모난 창" width="721" height="567" loading="lazy"><figcaption>앞 베젤 앞면 — 화면 창</figcaption></figure>
+        <figure><img src="images/bezel-inside.png" alt="앞 베젤 안쪽: 네 귀퉁이에 볼트가 조여 들어가는 기둥" width="674" height="560" loading="lazy"><figcaption>앞 베젤 안쪽 — 볼트가 조여 들어가는 기둥 4개</figcaption></figure>
       </div>
 
       <div class="tbl"><table>
