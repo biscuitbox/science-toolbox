@@ -163,13 +163,13 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <h1>스터디<em>패드</em></h1>
     <p class="lead">손바닥만 한 ESP32 터치 보드에 코드를 올려 만드는 <b>공부 단말기</b>입니다. 쉬는 시간엔 지뢰찾기, 공부할 땐 하루 10단어와 상식 퀴즈, 펜으로 그리는 그림판·메모, 공부 타이머, 그리고 평소엔 날씨·미세먼지가 나오는 탁상시계가 돼요. 학생들은 <b>바이브코딩 없이 아두이노 IDE만으로</b> 보드 매니저 · 라이브러리 매니저 · 업로드를 처음부터 직접 해 봅니다.</p>
     <div class="specs">
-      <div>보드<b>E32R28T (2.8인치 ESP32-32E)</b></div>
+      <div>보드<b>E32R28T (ESP32) · ES3C28P (ESP32-S3)</b></div>
       <div>앱<b>11가지 · 펜 터치</b></div>
       <div>수업<b>3차시 (동아리 기준 예시)</b></div>
       <div>필요한 실력<b>아두이노 처음이어도 OK</b></div>
     </div>
     <div class="safety-box" role="note">
-      <strong>⚠️ 지금 꼭 알아 둘 것 (2026-11-27)</strong> 보드 매니저에서 esp32를 설치할 때 버전 칸을 눌러 <b>3.3.13</b>을 고르세요. 11월 19일에 나온 <b>4.0.0</b>은 화면 라이브러리 LovyanGFX 1.3.0과 맞지 않아 이 보드(ESP32)에서 컴파일 오류가 납니다. → <a href="#version">2-1. 버전 확인 결과</a>
+      <strong>⚠️ 지금 꼭 알아 둘 것 (2026-11-27)</strong> 보드 매니저에서 esp32를 설치할 때 버전 칸을 눌러 <b>3.3.13</b>을 고르세요. 11월 19일에 나온 <b>4.0.0</b>은 화면 라이브러리 LovyanGFX 1.3.0과 맞지 않아 이 보드(ESP32)에서 컴파일 오류가 납니다. → <a href="#version">2-2. 버전 확인 결과</a>
     </div>
     <nav class="toc" aria-label="목차">
       <a href="#about"><b>0</b>소개</a>
@@ -236,7 +236,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
       <div class="tbl"><table>
         <thead><tr><th>준비물</th><th>설명</th></tr></thead>
         <tbody>
-          <tr><td>2.8인치 ESP32 터치 보드</td><td>ESP32-32E 칩이 든 2.8인치 디스플레이 보드 <b>E32R28T</b> (ST7789 화면, XPT2046 저항막 터치). <a href="https://ko.aliexpress.com/item/1005010542008086.html" target="_blank" rel="noopener">알리익스프레스</a>에서 살 때 옵션을 <b>With touch</b>로 골라요.</td></tr>
+          <tr><td>2.8인치 ESP32 터치 보드</td><td>ESP32-32E 칩이 든 2.8인치 디스플레이 보드 <b>E32R28T</b> (ST7789 화면, XPT2046 저항막 터치). <a href="https://ko.aliexpress.com/item/1005010542008086.html" target="_blank" rel="noopener">알리익스프레스</a>에서 살 때 옵션을 <b>With touch</b>로 골라요. 교탁 도우미 연수의 <b>ES3C28P</b>(ESP32-S3)도 같은 코드로 돼요 → <a href="#es3c28p">2-1</a></td></tr>
           <tr><td>USB-C 데이터 케이블</td><td>충전 전용 케이블은 컴퓨터가 보드를 못 찾아요. 업로드가 안 되면 케이블부터 바꿔요.</td></tr>
           <tr><td>노트북 (윈도우 10/11)</td><td>인터넷 · 설치 권한. 학교 PC는 설치 비밀번호가 필요할 수 있어요.</td></tr>
           <tr><td>터치펜</td><td>저항막 터치라 손가락보다 펜이 훨씬 정확해요. 화면 키보드(와이파이 비밀번호)도 펜으로.</td></tr>
@@ -267,7 +267,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
         <li><b>아두이노 IDE 2 설치 · 한국어</b>arduino.cc/en/software → Windows 64bits → JUST DOWNLOAD. 설치 중 드라이버를 묻으면 <span class="k">설치</span>. <span class="menu">File → Preferences → Language: 한국어</span>.</li>
         <li><b>보드 매니저: esp32 by Espressif Systems → 3.3.13</b>왼쪽 두 번째 아이콘(<span class="k">Ctrl</span>+<span class="k">Shift</span>+<span class="k">B</span>) → <code>esp32</code> 검색 → 위의 <i>Arduino ESP32 Boards</i>가 아니라 아래 <b>esp32 by Espressif Systems</b> → 버전 칸 <b>3.3.13</b> → <span class="k">설치</span> (5~15분).</li>
         <li><b>라이브러리 매니저: LovyanGFX</b>세 번째 아이콘(<span class="k">Ctrl</span>+<span class="k">Shift</span>+<span class="k">I</span>) → <code>LovyanGFX</code> → <b>LovyanGFX by lovyan03</b> 설치. 라이브러리는 이것 하나뿐이에요.</li>
-        <li><b>코드 열기</b>학생 사이트의 <code>StudyPad.zip</code>(또는 <a href="#download">9번</a> zip의 <code>code/StudyPad/</code>)을 <b>압축을 풀고</b> <code>StudyPad.ino</code> 더블클릭. 탭 21개가 보이면 성공. 폴더 이름과 .ino 이름은 같아야 해요.</li>
+        <li><b>코드 열기</b>학생 사이트의 <code>StudyPad.zip</code>(또는 <a href="#download">9번</a> zip의 <code>code/StudyPad/</code>)을 <b>압축을 풀고</b> <code>StudyPad.ino</code> 더블클릭. 탭 23개가 보이면 성공. 폴더 이름과 .ino 이름은 같아야 해요.</li>
         <li><b>보드 연결 · 포트</b>장치 관리자 → 포트(COM &amp; LPT)에서 뺐다 꽂으면 사라졌다 생기는 번호(예: COM5, USB-SERIAL CH340).</li>
         <li><b>도구 메뉴 세 가지</b>아래 표처럼 맞춰요. 나머지는 처음 값 그대로.</li>
         <li><b>✓ 확인 → → 업로드</b>처음 컴파일은 3~10분. <code>Connecting......</code>에서 멈추면 BOOT를 꾹 누르고 있다가 <code>Writing at</code>이 나오면 떼기.</li>
@@ -282,13 +282,37 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
         </tbody>
       </table></div>
 
-      <h3 id="version">2-1. 버전 확인 결과 (2026-11-27, 실제 ESP32 툴체인으로 컴파일)</h3>
+      <h3 id="es3c28p">2-1. ES3C28P(교탁 도우미 보드)로 만들 때</h3>
+      <p><b>같은 코드</b>가 교탁 도우미 연수 때 쓴 ES3C28P(ESP32-S3, 정전식 터치) 보드에서도 돌아가요. 도구 메뉴에서 <b>ESP32S3 Dev Module</b>을 고르면 코드가 칩 종류를 보고 그 보드의 화면·터치·소리 설정을 저절로 써요(<code>hw.h</code> → <code>hw_es3c28p.cpp</code>). 코드를 고칠 곳은 없어요.</p>
+      <div class="tbl"><table class="fit">
+        <thead><tr><th>도구 메뉴</th><th>E32R28T</th><th>ES3C28P</th></tr></thead>
+        <tbody>
+          <tr><td>보드</td><td>ESP32 Dev Module</td><td><b>ESP32S3 Dev Module</b></td></tr>
+          <tr><td>Partition Scheme</td><td colspan="2"><b>Huge APP (3MB No OTA/1MB SPIFFS)</b> — 교탁 도우미 때 고른 <i>Custom</i>이 남아 있으면 <code>partitions.csv: No such file</code> 오류</td></tr>
+          <tr><td>USB CDC On Boot</td><td>(없음)</td><td>Enabled (시리얼 모니터용)</td></tr>
+          <tr><td>Flash Size · PSRAM</td><td>처음 값</td><td>16MB · OPI PSRAM 그대로 둬도, 처음 값이어도 됨</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl"><table>
+        <thead><tr><th>달라지는 것</th><th>E32R28T (ESP32)</th><th>ES3C28P (ESP32-S3)</th></tr></thead>
+        <tbody>
+          <tr><td>화면</td><td>ST7789</td><td>ILI9341V (IPS, 반전 켜서 씀)</td></tr>
+          <tr><td>터치</td><td>XPT2046 저항막 — 처음 켤 때 보정</td><td>FT6336G 정전식 — 보정 없음, 설정의 <b>터치 점검</b>(누른 곳에 점)</td></tr>
+          <tr><td>소리</td><td>스피커 핀 PWM</td><td>ES8311 오디오 칩(I2S) + 앰프, 뒤에서 도는 작업이 음을 만듦</td></tr>
+          <tr><td>LED</td><td>RGB LED 3핀</td><td>뒷면 WS2812 1개</td></tr>
+          <tr><td>절전에서 깨우기</td><td>화면 · BOOT</td><td>화면(터치 INT) · BOOT. 배터리 부족 깊은 절전도 화면을 누르면 깨어남</td></tr>
+          <tr><td>배터리 전압 핀</td><td>34</td><td>9</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="version">2-2. 버전 확인 결과 (2026-11-27, 실제 ESP32 툴체인으로 컴파일)</h3>
       <div class="tbl"><table>
         <thead><tr><th>보드 매니저 esp32</th><th>LovyanGFX</th><th>결과</th></tr></thead>
         <tbody>
           <tr><td><b>3.3.13</b></td><td>1.3.0 (라이브러리 매니저 최신)</td><td>✅ 성공 — 프로그램 2.52MB / 3MB (80%), 전역 변수 67KB</td></tr>
           <tr><td>4.0.0 (11/19 출시)</td><td>1.3.0</td><td>❌ <code>Panel_CVBS.inl: 'dac_ll_digi_enable_dma' was not declared</code> 등</td></tr>
           <tr><td>4.0.0</td><td>develop 브랜치 (11/25)</td><td>✅ 성공 — LovyanGFX 새 버전이 나오면 4.0.0도 쓸 수 있어요</td></tr>
+          <tr><td><b>3.3.13</b> · ESP32S3 Dev Module</td><td>1.3.0</td><td>✅ ES3C28P용 성공 — 2.53MB / 3MB (Huge APP, 16MB · OPI PSRAM 설정에서도 성공)</td></tr>
         </tbody>
       </table></div>
       <p class="warn-note">이미 4.0.0을 설치한 노트북은 보드 매니저에서 버전 칸을 3.3.13으로 바꾸고 설치를 다시 누르면 돼요(제거하지 않아도 됨). IDE가 "업데이트할 수 있어요" 알림을 띄워도 당분간 누르지 않게 안내하세요. 교탁 도우미(ESP32-S3)는 이 오류와 관계없지만, 같은 노트북에서 함께 쓸 거라면 3.3.13 하나로 맞춰 두는 게 편해요.</p>
@@ -410,8 +434,9 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <section id="trouble">
       <h2><span class="n">8</span>문제 해결</h2>
       <h3>컴파일 (✓ 확인)</h3>
-      <details><summary><code>'dac_ll_digi_enable_dma' was not declared</code> · Panel_CVBS.inl</summary><div class="body"><p>esp32 4.0.0이 설치됐어요. 보드 매니저에서 버전을 <b>3.3.13</b>으로 바꿔 설치해요. → <a href="#version">2-1</a></p></div></details>
+      <details><summary><code>'dac_ll_digi_enable_dma' was not declared</code> · Panel_CVBS.inl</summary><div class="body"><p>esp32 4.0.0이 설치됐어요. 보드 매니저에서 버전을 <b>3.3.13</b>으로 바꿔 설치해요. → <a href="#version">2-2</a></p></div></details>
       <details><summary><code>Sketch too big</code> / text section exceeds available space</summary><div class="body"><p>도구 → Partition Scheme → <b>Huge APP (3MB No OTA/1MB SPIFFS)</b>. 와이파이·날씨를 넣으면서 프로그램이 2.52MB라 기본 파티션(1.2MB)에는 안 들어가요.</p></div></details>
+      <details><summary><code>partitions.csv: No such file or directory</code> (ES3C28P)</summary><div class="body"><p>교탁 도우미 때 고른 Partition Scheme <b>Custom</b>이 남아 있어요. <b>Huge APP</b>으로 바꿔요. → <a href="#es3c28p">2-1</a></p></div></details>
       <details><summary><code>LovyanGFX.hpp: No such file or directory</code></summary><div class="body"><p>라이브러리 매니저에서 LovyanGFX를 설치해요.</p></div></details>
       <details><summary><code>'C_SCI' was not declared</code> / 지운 파일 이름이 나오는 오류</summary><div class="body"><p>새 코드를 옛 폴더 위에 덮어써서 옛 파일(예: <code>app_science.cpp</code>)이 남았어요. 아두이노는 폴더 안 .cpp를 모두 컴파일해요. 옛 폴더를 지우고 새로 압축을 풀어요. 그래도 같으면 폴더와 .ino 이름을 둘 다 <code>StudyPad2</code>로 바꿔요.</p></div></details>
       <details><summary><code>ESP_EXT1_WAKEUP_ANY_LOW was not declared</code></summary><div class="body"><p>보드를 ESP32S3 Dev Module 등으로 잘못 골랐어요. 스터디패드는 <b>ESP32 Dev Module</b>. (교탁 도우미 코드는 반대로 ESP32S3 Dev Module이어야 해요.)</p></div></details>
@@ -438,7 +463,8 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
         <thead><tr><th>파일</th><th>하는 일</th></tr></thead>
         <tbody>
           <tr><td><code>StudyPad.ino</code></td><td>홈 화면, 앱 표(<code>APPS[]</code>), 시작 화면</td></tr>
-          <tr><td><code>hw.h</code> · <code>hw.cpp</code></td><td>화면·터치·소리·LED·배터리·저장·절전 (하드웨어)</td></tr>
+          <tr><td><code>hw.h</code> · <code>hw.cpp</code></td><td>화면·터치·소리·LED·배터리·저장·절전 (하드웨어 공통). 보드는 칩 종류로 저절로 골라짐</td></tr>
+          <tr><td><code>hw_e32r28t.cpp</code> · <code>hw_es3c28p.cpp</code></td><td>보드마다 다른 부분: 터치, 소리, LED, 절전 (도구 메뉴의 보드에 맞는 파일만 쓰임)</td></tr>
           <tr><td><code>ui.h</code> · <code>ui.cpp</code></td><td>색, 버튼, 글자 줄바꿈, 대화상자 같은 공통 화면 도구</td></tr>
           <tr><td><code>apps.h</code> · <code>app_*.cpp</code></td><td>앱 하나 = 파일 하나 (지뢰찾기, 단어, 퀴즈, 그림판·메모, 타이머, 계산기, 뽑기, 설정, 반응 속도)</td></tr>
           <tr><td><code>app_clock.cpp</code> · <code>app_wifi.cpp</code></td><td>탁상시계·날씨·미세먼지, 와이파이·날씨 위치 설정 화면</td></tr>
