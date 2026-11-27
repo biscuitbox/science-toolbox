@@ -164,7 +164,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <p class="lead">손바닥만 한 ESP32 터치 보드에 코드를 올려 만드는 <b>공부 단말기</b>입니다. 쉬는 시간엔 지뢰찾기, 공부할 땐 하루 10단어와 상식 퀴즈, 펜으로 그리는 그림판·메모, 공부 타이머, 그리고 평소엔 날씨·미세먼지가 나오는 탁상시계가 돼요. 학생들은 <b>바이브코딩 없이 아두이노 IDE만으로</b> 보드 매니저 · 라이브러리 매니저 · 업로드를 처음부터 직접 해 봅니다.</p>
     <div class="specs">
       <div>보드<b>E32R28T (ESP32) · ES3C28P (ESP32-S3)</b></div>
-      <div>앱<b>11가지 · 펜 터치</b></div>
+      <div>앱<b>12가지 · 펜 터치</b></div>
       <div>수업<b>3차시 (동아리 기준 예시)</b></div>
       <div>필요한 실력<b>아두이노 처음이어도 OK</b></div>
     </div>
@@ -192,7 +192,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
       <div class="buy">
         <figure><img src="images/board_home.png" alt="스터디패드 홈 화면 — 앱 아이콘 9개" width="240" height="320" style="max-width:240px;margin:0 auto"><figcaption>홈 화면 (실제 코드로 그린 화면)</figcaption></figure>
         <div>
-          <p>홈 화면 두 쪽에 앱 11개가 있어요. 어느 앱에서든 왼쪽 위 <span class="k">◀</span>를 누르면 홈으로 돌아와요.</p>
+          <p>홈 화면 두 쪽에 앱 12개가 있어요. 어느 앱에서든 왼쪽 위 <span class="k">◀</span>를 누르면 홈으로 돌아와요.</p>
           <div class="devices">
             <div><span class="tag">쉬는 시간</span><b>💣 지뢰찾기</b>톡 = 열기, 꾹 = 깃발. 3단계 난이도와 최고 기록.</div>
             <div><span class="tag">공부</span><b>🔤 영어 단어</b>중학 845 · 고등 588 · 숙어 231, 모두 1,664개. <b>하루 10단어</b> 익히기 → 테스트(8개 이상 통과).</div>
@@ -201,6 +201,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
             <div><span class="tag">공부</span><b>⏱️ 공부 타이머</b>25분 공부 + 5분 휴식, 스톱워치.</div>
             <div><span class="tag">도구</span><b>🧮 계산기 · 🎲 주사위·뽑기</b>사칙연산, 중복 없는 번호 뽑기, 동전.</div>
             <div><span class="tag">평소</span><b>🕰️ 탁상시계</b>와이파이로 시간이 맞고 날씨·습도·미세먼지·초미세먼지까지.</div>
+            <div><span class="tag">도움말</span><b>🔳 도움말</b>앱 사용법 페이지 주소를 QR 코드로 보여 줘요. 휴대폰 카메라로 찍으면 열려요.</div>
             <div><span class="tag">만들기 예제</span><b>⚡ 반응 속도</b>새 앱을 만들 때 따라 해 보는 짧은 예제 코드.</div>
           </div>
         </div>
@@ -267,7 +268,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
         <li><b>아두이노 IDE 2 설치 · 한국어</b>arduino.cc/en/software → Windows 64bits → JUST DOWNLOAD. 설치 중 드라이버를 묻으면 <span class="k">설치</span>. <span class="menu">File → Preferences → Language: 한국어</span>.</li>
         <li><b>보드 매니저: esp32 by Espressif Systems → 3.3.13</b>왼쪽 두 번째 아이콘(<span class="k">Ctrl</span>+<span class="k">Shift</span>+<span class="k">B</span>) → <code>esp32</code> 검색 → 위의 <i>Arduino ESP32 Boards</i>가 아니라 아래 <b>esp32 by Espressif Systems</b> → 버전 칸 <b>3.3.13</b> → <span class="k">설치</span> (5~15분).</li>
         <li><b>라이브러리 매니저: LovyanGFX</b>세 번째 아이콘(<span class="k">Ctrl</span>+<span class="k">Shift</span>+<span class="k">I</span>) → <code>LovyanGFX</code> → <b>LovyanGFX by lovyan03</b> 설치. 라이브러리는 이것 하나뿐이에요.</li>
-        <li><b>코드 열기</b>학생 사이트의 <code>StudyPad.zip</code>(또는 <a href="#download">9번</a> zip의 <code>code/StudyPad/</code>)을 <b>압축을 풀고</b> <code>StudyPad.ino</code> 더블클릭. 탭 23개가 보이면 성공. 폴더 이름과 .ino 이름은 같아야 해요.</li>
+        <li><b>코드 열기</b>학생 사이트의 <code>StudyPad.zip</code>(또는 <a href="#download">9번</a> zip의 <code>code/StudyPad/</code>)을 <b>압축을 풀고</b> <code>StudyPad.ino</code> 더블클릭. 탭 24개가 보이면 성공. 폴더 이름과 .ino 이름은 같아야 해요.</li>
         <li><b>보드 연결 · 포트</b>장치 관리자 → 포트(COM &amp; LPT)에서 뺐다 꽂으면 사라졌다 생기는 번호(예: COM5, USB-SERIAL CH340).</li>
         <li><b>도구 메뉴 세 가지</b>아래 표처럼 맞춰요. 나머지는 처음 값 그대로.</li>
         <li><b>✓ 확인 → → 업로드</b>처음 컴파일은 3~10분. <code>Connecting......</code>에서 멈추면 BOOT를 꾹 누르고 있다가 <code>Writing at</code>이 나오면 떼기.</li>
@@ -346,6 +347,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
           <tr><td>🧮 계산기 · 🎲 주사위·뽑기</td><td>사칙연산·%·부호. 주사위 1~2개, 1~N 번호 뽑기(중복 없이 켜기), 동전.</td></tr>
           <tr><td>⚙️ 설정</td><td>밝기 · 소리 · 색 반전 · 화면 뒤집기 · 자동 절전(끄기/1/3/5/10분) · <b>와이파이·날씨</b> · 터치 보정 · 기록 지우기. 배터리 전압 표시.</td></tr>
           <tr><td>🕰️ 탁상시계</td><td>→ <a href="#clock">4. 탁상시계 · 와이파이</a></td></tr>
+          <tr><td>🔳 도움말</td><td>학생 사이트 <b>앱 사용법</b> 페이지 QR 코드(홈 2쪽). 주소는 <code>app_help.cpp</code>의 <code>HELP_SITE</code> · <code>HELP_PATH</code>에서 바꿀 수 있어요(우리 반 사이트로 바꾸기 좋음).</td></tr>
           <tr><td>⚡ 반응 속도</td><td>새 앱 만들기 예제(<code>app_reaction.cpp</code>). <code>apps.h</code>에 한 줄, <code>StudyPad.ino</code>의 <code>APPS[]</code>에 한 줄 넣으면 홈 2쪽에 새 앱이 생겨요.</td></tr>
         </tbody>
       </table></div>
@@ -461,7 +463,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <section id="download">
       <h2><span class="n">9</span>파일 받기 · 라이선스</h2>
       <p>코드와 케이스 STL, 짧은 안내(README)를 한 번에 받습니다. 압축을 풀면 <code>스터디패드/</code> 폴더 안에 <code>code/StudyPad/</code>와 <code>models/</code>가 있어요.</p>
-      <p><a class="btn" href="studypad.zip" download>zip 받기 (코드 v1.2.2 + 케이스 STL, 약 2MB)</a></p>
+      <p><a class="btn" href="studypad.zip" download>zip 받기 (코드 v1.2.3 + 케이스 STL, 약 2MB)</a></p>
       <h3>코드 파일 안내</h3>
       <div class="tbl"><table>
         <thead><tr><th>파일</th><th>하는 일</th></tr></thead>
@@ -471,6 +473,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
           <tr><td><code>hw_e32r28t.cpp</code> · <code>hw_es3c28p.cpp</code></td><td>보드마다 다른 부분: 터치, 소리, LED, 절전 (도구 메뉴의 보드에 맞는 파일만 쓰임)</td></tr>
           <tr><td><code>ui.h</code> · <code>ui.cpp</code></td><td>색, 버튼, 글자 줄바꿈, 대화상자 같은 공통 화면 도구</td></tr>
           <tr><td><code>apps.h</code> · <code>app_*.cpp</code></td><td>앱 하나 = 파일 하나 (지뢰찾기, 단어, 퀴즈, 그림판·메모, 타이머, 계산기, 뽑기, 설정, 반응 속도)</td></tr>
+          <tr><td><code>app_help.cpp</code></td><td>도움말 — 앱 사용법 주소 QR 코드</td></tr>
           <tr><td><code>app_clock.cpp</code> · <code>app_wifi.cpp</code></td><td>탁상시계·날씨·미세먼지, 와이파이·날씨 위치 설정 화면</td></tr>
           <tr><td><code>net.h</code> · <code>net.cpp</code></td><td>와이파이로 시간·날씨·위치 받기(뒤에서 따로 도는 작업), 보드 안 시계</td></tr>
           <tr><td><code>data_words.h</code> · <code>data_quiz.h</code></td><td>✏️ 영어 단어 1,664개 · 상식 퀴즈 266문제 — 학생들이 고치기 좋은 곳</td></tr>
