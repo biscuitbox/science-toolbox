@@ -369,7 +369,9 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
         <li>날씨 위치: <b>자동</b> = 주변 공유기 주소·신호 세기로 beaconDB에 물어보고(20km 안쪽으로 맞으면 사용), 안 되면 인터넷 주소(ip-api.com)로 대략. 아니면 도시 17곳 중 직접 고르기. 위치는 하루 한 번 또는 다른 와이파이에 붙었을 때 다시 찾아요.</li>
         <li>미세먼지 등급은 환경부 기준: 미세먼지 <span class="grade g0">좋음</span> ~30 · <span class="grade g1">보통</span> ~80 · <span class="grade g2">나쁨</span> ~150 · <span class="grade g3">매우나쁨</span>, 초미세먼지 15 · 35 · 75. 모델 예측값이라 에어코리아 측정소 값과 다를 수 있어요.</li>
         <li>인터넷이 끊겨도 시계는 보드 안 시계로 계속 가고, 날씨는 마지막 값이 남아요(3시간 지나면 흐리게 "○시간 전", 12시간 지나면 숨김).</li>
+        <li><b>방향 바꾸기</b>(시계 메뉴): 노란 테두리 화면에서 바닥으로 둘 쪽 가장자리를 누르면 그쪽이 아래가 돼요. 세로 · 거꾸로 · 가로 2가지, 모두 4방향. 가로일 때는 시계 왼쪽, 시각·날씨·미세먼지가 오른쪽에 나와요. 고른 방향은 기억되고, 다른 앱은 원래 방향으로 돌아가요.</li>
       </ul>
+      <figure style="margin:8px 0 0;max-width:420px"><img src="images/board_clock_land.png" alt="가로로 세운 탁상시계" loading="lazy" style="width:100%;border:6px solid #0B0D1A;border-radius:8px;display:block"><figcaption style="font-size:13px;color:var(--muted)">가로로 세운 탁상시계</figcaption></figure>
       <h3>시간 지키기 — 이 보드에는 시계 칩이 없어요</h3>
       <ul>
         <li>30분마다 지금 시간을 보드에 적어 두어요. 전원이 완전히 꺼졌다 켜지면 그 시간부터 다시 가고 위에 <b>"시간 확인 필요"</b>가 떠요. 와이파이가 있으면 몇 초 뒤 저절로 맞고, 없으면 화면을 눌러 <span class="menu">시간 맞추기</span>.</li>
