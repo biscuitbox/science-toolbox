@@ -300,7 +300,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
           <tr><td>터치</td><td>XPT2046 저항막 — 처음 켤 때 보정</td><td>FT6336G 정전식 — 보정 없음, 설정의 <b>터치 점검</b>(누른 곳에 점)</td></tr>
           <tr><td>소리</td><td>스피커 핀 PWM</td><td>ES8311 오디오 칩(I2S) + 앰프, 뒤에서 도는 작업이 음을 만듦</td></tr>
           <tr><td>LED</td><td>RGB LED 3핀</td><td>뒷면 WS2812 1개</td></tr>
-          <tr><td>절전에서 깨우기</td><td>화면 · BOOT</td><td>화면(터치 INT) · BOOT. 배터리 부족 깊은 절전도 화면을 누르면 깨어남</td></tr>
+          <tr><td>절전에서 깨우기</td><td>화면 꾹 · BOOT</td><td>화면 꾹 · BOOT. 배터리 부족 깊은 절전도 화면을 누르면 깨어남</td></tr>
           <tr><td>배터리 전압 핀</td><td>34</td><td>9</td></tr>
         </tbody>
       </table></div>
@@ -386,7 +386,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <section id="power">
       <h2><span class="n">5</span>절전 · 배터리 · 기록</h2>
       <ul>
-        <li><b>자동 절전</b>(처음 값 3분): 15초 전에 화면이 어두워지고, 시간이 되면 화면을 끄고 CPU를 멈춰요(가벼운 절전). 화면(터치 IRQ)이나 BOOT를 누르면 <b>하던 화면 그대로</b> 깨어나요. 깨우려고 누른 손가락은 버튼으로 치지 않아요.</li>
+        <li><b>자동 절전</b>(처음 값 3분): 15초 전에 화면이 어두워지고, 시간이 되면 화면을 끄고 CPU를 멈춰요(가벼운 절전). 화면을 <b>꾹(0.5초쯤)</b> 누르거나 BOOT를 누르면 <b>하던 화면 그대로</b> 깨어나요. 깨우려고 누른 손가락은 버튼으로 치지 않아요. 터치 칩의 IRQ 선만 믿지 않고 절전 중에도 0.2초마다 아주 잠깐 깨어 화면이 눌렸는지 직접 확인해요(v1.2.1 — 학생 보드에서 터치로 안 깨어나던 문제 수정).</li>
         <li><b>배터리 부족</b>(3.45V 아래 30초): 기록을 저장하고 빨간 LED 깜빡임, 설정에 '충전 필요!'. <b>3.3V 아래</b>면 "배터리가 부족해요" 화면 → 저장 → 깊은 절전. 충전 후 BOOT로 다시 켜요.</li>
         <li><b>기록이 남는 것</b>: 단어 진도·오답 노트(답할 때마다), 지뢰찾기·반응 속도 최고 기록, 퀴즈 기록, 설정, 와이파이, 그림·메모(자동 저장), 터치 보정값. 절전 직전에도 앱마다 저장 함수를 불러요(<code>hwSetSaveHook</code>).</li>
         <li>배터리 전압은 핀 34에서 1/2로 나뉘어 들어온다고 보고 ×2 해요. 보드마다 다를 수 있으니 설정 화면의 전압이 실제(멀티미터)와 다르면 <code>hw.cpp</code>의 <code>batteryMilliVolts()</code>를 고쳐요.</li>
@@ -459,7 +459,7 @@ footer { color: var(--muted); font-size: 14px; padding: 10px 0 40px; }
     <section id="download">
       <h2><span class="n">9</span>파일 받기 · 라이선스</h2>
       <p>코드와 케이스 STL, 짧은 안내(README)를 한 번에 받습니다. 압축을 풀면 <code>스터디패드/</code> 폴더 안에 <code>code/StudyPad/</code>와 <code>models/</code>가 있어요.</p>
-      <p><a class="btn" href="studypad.zip" download>zip 받기 (코드 v1.2 + 케이스 STL, 약 2MB)</a></p>
+      <p><a class="btn" href="studypad.zip" download>zip 받기 (코드 v1.2.1 + 케이스 STL, 약 2MB)</a></p>
       <h3>코드 파일 안내</h3>
       <div class="tbl"><table>
         <thead><tr><th>파일</th><th>하는 일</th></tr></thead>
